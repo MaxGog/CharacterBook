@@ -1,0 +1,53 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+		     xmlns:models="clr-namespace:CharacterBook.Models"
+			 x:Class="CharacterBook.Views.EditCharacterPage"
+             x:DataType="models:CharacterModel"
+             Title="Редактирование">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Сохранить" Clicked="SaveBtnClicked"/>
+        <ToolbarItem Text="Удалить" Clicked="DelBtnClicked"/>
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Content>
+        <ScrollView>
+            <StackLayout Margin="10">
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="Последнее редактирование:" TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"/>
+                    <Label Text="{Binding DateCreate, StringFormat='{0:dd MMMM, yy}'}" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"/>
+                </StackLayout>
+                <Border>
+                    <StackLayout Orientation="Vertical" Padding="20">
+                        <AbsoluteLayout HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border>
+                                <Image x:Name="CharacterPicture" Source="{Binding Image, Converter={StaticResource ImageToByteService}}"/>
+                            </Border>
+                            <!--<ImageButton WidthRequest="35" HeightRequest="35" Margin="-5" Padding="2" BackgroundColor="{StaticResource MainColor}" CornerRadius="10"/>-->
+                        </AbsoluteLayout>
+                        <!--<Button Text="{x:Static resources:Resource.EditPicture}" Clicked="Image_Clicked"/>-->
+                        <Entry Text="{Binding Tags}" Placeholder="Тэги"/>
+                    </StackLayout>
+                </Border>
+                <StackLayout Margin="5" Orientation="Vertical">
+                    <Entry Text="{Binding Name}" Placeholder="Имя:"/>
+                    <Entry Text="{Binding Age}" Placeholder="Возраст:"/>
+                    <Entry Text="{Binding Gender}" Placeholder="Гендер:"/>
+                    <Entry Text="{Binding Species}" Placeholder="Раса:"/>
+                </StackLayout>
+                <StackLayout Margin="5" Orientation="Vertical">
+                    <!--<StackLayout Orientation="Horizontal">
+                        <Label Text="Выбранная фракция" TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}" HorizontalOptions="StartAndExpand"/>
+                        <Label Text="{Binding DisplayFraction}" TextColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}" HorizontalOptions="StartAndExpand" Style="{StaticResource TextOnPageStyle}"/>
+                    </StackLayout>
+                    <Picker x:Name="chooseFraction" Title="{x:Static resources:Resource.Fraction}" Style="{StaticResource PickerOnPageStyle}"
+                            SelectedIndexChanged="chooseFraction_SelectedIndexChanged" SelectedItem="{Binding Fraction}"/>-->
+                </StackLayout>
+                <StackLayout Margin="5" Orientation="Vertical">
+                    <Editor Text="{Binding Description}" Placeholder="Внешность"/>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+
+</ContentPage>
