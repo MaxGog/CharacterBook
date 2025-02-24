@@ -56,6 +56,14 @@
         "net9.0-android35.0": {
           "targetAlias": "net9.0-android",
           "dependencies": {
+            "CommunityToolkit.Maui": {
+              "target": "Package",
+              "version": "[9.0.21, )"
+            },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -64,11 +72,19 @@
               "target": "Package",
               "version": "[9.0.14, )"
             },
+            "Microsoft.Maui.Graphics": {
+              "target": "Package",
+              "version": "[9.0.40, )"
+            },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.2, )",
               "autoReferenced": true
+            },
+            "sqlite-net-pcl": {
+              "target": "Package",
+              "version": "[1.9.172, )"
             }
           },
           "imports": [
@@ -95,6 +111,14 @@
         "net9.0-ios18.2": {
           "targetAlias": "net9.0-ios",
           "dependencies": {
+            "CommunityToolkit.Maui": {
+              "target": "Package",
+              "version": "[9.0.21, )"
+            },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -103,11 +127,19 @@
               "target": "Package",
               "version": "[9.0.14, )"
             },
+            "Microsoft.Maui.Graphics": {
+              "target": "Package",
+              "version": "[9.0.40, )"
+            },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.2, )",
               "autoReferenced": true
+            },
+            "sqlite-net-pcl": {
+              "target": "Package",
+              "version": "[1.9.172, )"
             }
           },
           "imports": [
@@ -134,6 +166,14 @@
         "net9.0-maccatalyst18.2": {
           "targetAlias": "net9.0-maccatalyst",
           "dependencies": {
+            "CommunityToolkit.Maui": {
+              "target": "Package",
+              "version": "[9.0.21, )"
+            },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -142,11 +182,19 @@
               "target": "Package",
               "version": "[9.0.14, )"
             },
+            "Microsoft.Maui.Graphics": {
+              "target": "Package",
+              "version": "[9.0.40, )"
+            },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.2, )",
               "autoReferenced": true
+            },
+            "sqlite-net-pcl": {
+              "target": "Package",
+              "version": "[1.9.172, )"
             }
           },
           "imports": [

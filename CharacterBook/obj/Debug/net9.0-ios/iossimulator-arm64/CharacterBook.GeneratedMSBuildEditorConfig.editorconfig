@@ -3,6 +3,11 @@ build_property.EnableAotAnalyzer =
 build_property.EnableSingleFileAnalyzer = 
 build_property.EnableTrimAnalyzer = false
 build_property.IncludeAllContentForSelfExtract = 
+build_property.MvvmToolkitEnableINotifyPropertyChangingSupport = true
+build_property._MvvmToolkitIsUsingWindowsRuntimePack = false
+build_property.CsWinRTComponent = 
+build_property.CsWinRTAotOptimizerEnabled = 
+build_property.CsWinRTAotWarningLevel = 
 build_property.TargetFramework = net9.0-ios
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = 
@@ -30,12 +35,6 @@ build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.AppShell.xam
 build_metadata.AdditionalFiles.TargetPath = AppShell.xaml
 build_metadata.AdditionalFiles.RelativePath = AppShell.xaml
 
-[/Users/maxgo/Development/Repos/CharacterBook/CharacterBook/MainPage.xaml]
-build_metadata.AdditionalFiles.GenKind = Xaml
-build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.MainPage.xaml
-build_metadata.AdditionalFiles.TargetPath = MainPage.xaml
-build_metadata.AdditionalFiles.RelativePath = MainPage.xaml
-
 [/Users/maxgo/Development/Repos/CharacterBook/CharacterBook/Resources/Styles/Colors.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.Resources.Styles.Colors.xaml
@@ -47,3 +46,15 @@ build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.Resources.Styles.Styles.xaml
 build_metadata.AdditionalFiles.TargetPath = Resources/Styles/Styles.xaml
 build_metadata.AdditionalFiles.RelativePath = Resources/Styles/Styles.xaml
+
+[/Users/maxgo/Development/Repos/CharacterBook/CharacterBook/Views/CharacterDetailPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.Views.CharacterDetailPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views/CharacterDetailPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views/CharacterDetailPage.xaml
+
+[/Users/maxgo/Development/Repos/CharacterBook/CharacterBook/Views/MainPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = CharacterBook.Views.MainPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views/MainPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views/MainPage.xaml

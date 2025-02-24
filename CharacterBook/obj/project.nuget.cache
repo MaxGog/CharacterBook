@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "gqcc4j1PqRk=",
+  "dgSpecHash": "VQumlh0wmdg=",
   "success": true,
   "projectFilePath": "/Users/maxgo/Development/Repos/CharacterBook/CharacterBook/CharacterBook.csproj",
   "expectedPackageFiles": [
+    "/Users/maxgo/.nuget/packages/communitytoolkit.maui/9.1.0/communitytoolkit.maui.9.1.0.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/communitytoolkit.maui.core/9.1.0/communitytoolkit.maui.core.9.1.0.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/communitytoolkit.mvvm/8.4.0/communitytoolkit.mvvm.8.4.0.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/googlegson/2.11.0.3/googlegson.2.11.0.3.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.extensions.configuration/9.0.0/microsoft.extensions.configuration.9.0.0.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.0/microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
@@ -20,9 +23,20 @@
     "/Users/maxgo/.nuget/packages/microsoft.maui.controls.xaml/9.0.14/microsoft.maui.controls.xaml.9.0.14.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.maui.core/9.0.14/microsoft.maui.core.9.0.14.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.maui.essentials/9.0.14/microsoft.maui.essentials.9.0.14.nupkg.sha512",
-    "/Users/maxgo/.nuget/packages/microsoft.maui.graphics/9.0.14/microsoft.maui.graphics.9.0.14.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/microsoft.maui.graphics/9.0.40/microsoft.maui.graphics.9.0.40.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.maui.resizetizer/9.0.14/microsoft.maui.resizetizer.9.0.14.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/microsoft.net.illink.tasks/9.0.2/microsoft.net.illink.tasks.9.0.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlite-net-pcl/1.9.172/sqlite-net-pcl.1.9.172.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.bundle_green/2.1.2/sqlitepclraw.bundle_green.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.core/2.1.2/sqlitepclraw.core.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.2/sqlitepclraw.lib.e_sqlite3.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.lib.e_sqlite3.android/2.1.2/sqlitepclraw.lib.e_sqlite3.android.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.2/sqlitepclraw.provider.e_sqlite3.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/sqlitepclraw.provider.sqlite3/2.1.2/sqlitepclraw.provider.sqlite3.2.1.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/system.buffers/4.4.0/system.buffers.4.4.0.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/system.runtime.compilerservices.unsafe/4.5.2/system.runtime.compilerservices.unsafe.4.5.2.nupkg.sha512",
+    "/Users/maxgo/.nuget/packages/system.runtime.interopservices.nfloat.internal/6.0.1/system.runtime.interopservices.nfloat.internal.6.0.1.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/xamarin.android.glide/4.16.0.6/xamarin.android.glide.4.16.0.6.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/xamarin.android.glide.annotations/4.16.0.6/xamarin.android.glide.annotations.4.16.0.6.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/xamarin.android.glide.disklrucache/4.16.0.6/xamarin.android.glide.disklrucache.4.16.0.6.nupkg.sha512",
@@ -115,5 +129,30 @@
     "/Users/maxgo/.nuget/packages/xamarin.kotlinx.serialization.core/1.7.1.3/xamarin.kotlinx.serialization.core.1.7.1.3.nupkg.sha512",
     "/Users/maxgo/.nuget/packages/xamarin.kotlinx.serialization.core.jvm/1.7.1.3/xamarin.kotlinx.serialization.core.jvm.1.7.1.3.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "CharacterBook зависит от CommunityToolkit.Maui (>= 9.0.21), но версия CommunityToolkit.Maui 9.0.21 не найдена. Использовалась версия CommunityToolkit.Maui 9.1.0.",
+      "libraryId": "CommunityToolkit.Maui",
+      "targetGraphs": [
+        "net9.0-android35.0",
+        "net9.0-android35.0/android-arm64",
+        "net9.0-android35.0/android-x64",
+        "net9.0-android35.0/iossimulator-arm64",
+        "net9.0-android35.0/maccatalyst-arm64",
+        "net9.0-ios18.2",
+        "net9.0-ios18.2/android-arm64",
+        "net9.0-ios18.2/android-x64",
+        "net9.0-ios18.2/iossimulator-arm64",
+        "net9.0-ios18.2/maccatalyst-arm64",
+        "net9.0-maccatalyst18.2",
+        "net9.0-maccatalyst18.2/android-arm64",
+        "net9.0-maccatalyst18.2/android-x64",
+        "net9.0-maccatalyst18.2/iossimulator-arm64",
+        "net9.0-maccatalyst18.2/maccatalyst-arm64"
+      ]
+    }
+  ]
 }
