@@ -13,10 +13,11 @@
                   HeightRequest="40"/>
         
         <!-- Список персонажей -->
+        <!--SelectionChanged="OnSelectionChanged"-->
         <CollectionView x:Name="charactersCollection"
                        ItemsSource="{Binding Characters}"
-                       SelectionMode="Single"
-                       SelectionChanged="OnSelectionChanged">
+                       SelectionMode="Single">
+        
             
             <CollectionView.ItemTemplate>
                 <DataTemplate>

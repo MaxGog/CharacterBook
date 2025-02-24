@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 
 using CharacterBook.Models;
 using CharacterBook.Data;
+using CharacterBook.Views;
 
 namespace CharacterBook.ViewModels;
 
@@ -71,6 +72,6 @@ public class CharactersViewModel : BaseViewModel
 
     private async Task AddCharacter()
     {
-        //await Shell.Current.GoToAsync(nameof(CharacterDetailPage));
+        await Shell.Current.GoToAsync(nameof(CharacterDetailPage));
     }
 }
