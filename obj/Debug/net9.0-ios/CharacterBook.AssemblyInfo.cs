@@ -13,12 +13,12 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CharacterBook")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+e96f744150c59e342b2a88a035ce52f2ff154722")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e96f744150c59e342b2a88a035ce52f2ff154722")]
 [assembly: System.Reflection.AssemblyProductAttribute("CharacterBook")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CharacterBook")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-[assembly: System.Runtime.Versioning.TargetPlatformAttribute("MacCatalyst18.2")]
-[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("MacCatalyst15.0")]
+[assembly: System.Runtime.Versioning.TargetPlatformAttribute("ios0.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("ios15.0")]
 
 // Создано классом WriteCodeFragment MSBuild.
 
