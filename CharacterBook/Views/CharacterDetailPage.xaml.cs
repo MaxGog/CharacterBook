@@ -5,6 +5,7 @@ public partial class CharacterDetailPage : ContentPage
 	public CharacterDetailPage()
 	{
 		InitializeComponent();
+		BindingContext = new CharacterDetailPage();
 	}
 }
 

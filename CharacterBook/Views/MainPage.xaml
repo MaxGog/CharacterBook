@@ -72,13 +72,14 @@
                         </Grid>
                     </Grid>
                 </DataTemplate>
-            </CollectionView>
+            </CollectionView.ItemTemplate>
         </CollectionView>
-        
+
         <Button Text="Добавить персонажа"
-                Command="{Binding AddCommand}"
-                HorizontalOptions="Center"
-                Margin="0,10"/>
+            Command="{Binding AddCommand}"
+            HorizontalOptions="Center"
+            Margin="0,10"/>
+        
     </StackLayout>
 
 </ContentPage>
