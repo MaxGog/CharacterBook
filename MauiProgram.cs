@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CharacterBook.Interfaces;
+using CharacterBook.Services;
+using CharacterBook.ViewModels;
+
+using Microsoft.Extensions.Logging;
 
 namespace CharacterBook;
 
@@ -14,6 +18,11 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
+
+		builder.Services.AddSingleton<ICharacterService, CharacterService>();
+		builder.Services.AddSingleton<IImageService, ImageService>();
+		builder.Services.AddSingleton<CharacterViewModel>();
+		builder.Services.AddSingleton<CharacterEditViewModel>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

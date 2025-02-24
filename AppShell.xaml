@@ -9,7 +9,7 @@
 
     <TabBar>
         <Tab Title="Персонажи">
-            <ShellContent ContentTemplate="{DataTemplate views:ListCharacterPage}"/>
+            <ShellContent ContentTemplate="{DataTemplate views:MainPage}"/>
         </Tab>
     </TabBar>
 

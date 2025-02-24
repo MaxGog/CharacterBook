@@ -1,0 +1,76 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharacterBook.Views.MainPage"
+             Title="Персонажи">
+
+    <StackLayout>
+        <!-- Поисковая строка -->
+        <SearchBar x:Name="searchBar"
+                  Placeholder="Поиск персонажей..."
+                  SearchCommand="{Binding SearchCommand}"
+                  Text="{Binding SearchText, Mode=TwoWay}"
+                  HeightRequest="40"/>
+        
+        <!-- Список персонажей -->
+        <CollectionView x:Name="characterCollection"
+                       ItemsSource="{Binding Characters}"
+                       SelectionMode="Single"
+                       SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
+                       EmptyView="Нет персонажей">
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="10" RowSpacing="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" 
+                               Text="{Binding Name}"
+                               FontAttributes="Bold"
+                               FontSize="Medium"/>
+                        
+                        <HorizontalStackLayout Grid.Row="1"> 
+                            <Label Text="{Binding Gender}"/>
+                            <Label Text="{Binding Age}"/>
+                            <Label Text="{Binding Race}"/>
+                        </HorizontalStackLayout>
+                        
+                        <Grid Grid.Row="2" 
+                             HorizontalOptions="End"
+                             ColumnSpacing="5">
+                            <ImageButton Source="favorite.png"
+                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CharacterViewModel}}, Path=ToggleFavoriteCommand}"
+                                       CommandParameter="{Binding .}"
+                                       WidthRequest="30"
+                                       HeightRequest="30"
+                                       BackgroundColor="Transparent"/>
+                            
+                            <ImageButton Source="edit.png"
+                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CharacterViewModel}}, Path=EditCommand}"
+                                       CommandParameter="{Binding .}"
+                                       WidthRequest="30"
+                                       HeightRequest="30"
+                                       BackgroundColor="Transparent"/>
+                            
+                            <ImageButton Source="delete.png"
+                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:CharacterViewModel}}, Path=DeleteCommand}"
+                                       CommandParameter="{Binding .}"
+                                       WidthRequest="30"
+                                       HeightRequest="30"
+                                       BackgroundColor="Transparent"/>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        
+        <!-- Кнопка добавления -->
+        <Button Text="Добавить персонажа"
+                Command="{Binding AddCharacterCommand}"
+                HorizontalOptions="Center"
+                Margin="20"/>
+    </StackLayout>
+
+</ContentPage>
