@@ -15,10 +15,10 @@ public class NoteListViewModel : BaseViewModel
     private readonly NoteStorageService noteStorageService;
     private ObservableCollection<Note> notes;
 
-    public NoteListViewModel(INavigation navigation)
+    public NoteListViewModel(INavigation navigation, NoteStorageService storageService = null)
     {
         this.navigation = navigation;
-        noteStorageService = new NoteStorageService();
+        noteStorageService = storageService ?? new NoteStorageService();
         LoadNotesCommand = new Command(async () => await LoadNotesAsync());
         AddNoteCommand = new Command(async () => await AddNoteAsync());
         EditNoteCommand = new Command<Note>(async (note) => await EditNoteAsync(note));

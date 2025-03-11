@@ -13,8 +13,9 @@ public class CharacterListViewModel : BaseViewModel
     private string _searchText;
     private Character _selectedCharacter;
 
-    public CharacterListViewModel()
+    public CharacterListViewModel(CharacterStorageService storageService = null)
     {
+        characterStorageService = storageService ?? new CharacterStorageService();
         Characters = new ObservableCollection<Character>();
         LoadCharactersCommand = new Command(async () => await LoadCharacters());
         AddCommand = new Command(async () => await AddCharacter());
