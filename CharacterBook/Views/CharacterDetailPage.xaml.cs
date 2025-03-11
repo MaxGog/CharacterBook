@@ -1,13 +1,21 @@
 using CharacterBook.ViewModels;
+using CharacterBook.Models;
 
 namespace CharacterBook.Views;
 
 public partial class CharacterDetailPage : ContentPage
 {
+	private readonly CharacterDetailViewModel viewModel;
+	
 	public CharacterDetailPage()
 	{
 		InitializeComponent();
-		BindingContext = new CharacterDetailViewModel();
+		BindingContext = viewModel = new CharacterDetailViewModel();
+	}
+
+	public CharacterDetailPage(Character character) : this()
+	{
+		viewModel.Character = character;
 	}
 }
 

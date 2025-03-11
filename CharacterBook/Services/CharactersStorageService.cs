@@ -44,9 +44,7 @@ public class CharacterStorageService : IAsyncDisposable
         try
         {
             InitializeConnection();
-            return await connection.Table<Character>()
-                .Where(n => n.Id == id)
-                .FirstOrDefaultAsync();
+            return await connection.Table<Character>().Where(n => n.Id == id).FirstOrDefaultAsync();
         }
         catch (SQLiteException ex)
         {

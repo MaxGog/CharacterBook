@@ -11,15 +11,11 @@ using CharacterBook.Services;
 
 namespace CharacterBook.ViewModels;
 
-public partial class CharacterDetailViewModel : ObservableObject
+public partial class CharacterDetailViewModel : BaseViewModel
 {
-    [ObservableProperty]
     private Character _character;
-    [ObservableProperty]
     private bool _isEditMode;
-    [ObservableProperty]
     private string _title;
-    [ObservableProperty]
     private ICommand _selectImageCommand;
 
     private readonly CharacterStorageService characterStorageService;
@@ -42,28 +38,22 @@ public partial class CharacterDetailViewModel : ObservableObject
     public AsyncRelayCommand ToggleFavoriteCommand { get; }
     //public AsyncRelayCommand SelectImageCommand { get; }
 
+    public Character Character
+    {
+        get => _character;
+        set => SetProperty(ref _character, value);
+    }
+
     private async Task SaveAsync()
     {
         try
         {
-            if (Character == null)
-            {
-                await Shell.Current.DisplayAlert(
-                    "Ошибка",
-                    "Персонаж не инициализирован",
-                    "OK");
-                return;
-            }
-
-            await characterStorageService.UpdateCharacterAsync(Character);
+            await characterStorageService.SaveCharacterAsync(_character);
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert(
-                "Ошибка",
-                ex.Message,
-                "OK");
+            await Shell.Current.DisplayAlert("Ошибка при сохранении", ex.Message, "OK");
         }
     }
 
@@ -90,11 +80,8 @@ public partial class CharacterDetailViewModel : ObservableObject
 
     private async Task DeleteAsync()
     {
-        var result = await Shell.Current.DisplayAlert(
-            "Удаление персонажа",
-            "Вы уверены, что хотите удалить этого персонажа?",
-            "Да",
-            "Нет");
+        var result = await Shell.Current.DisplayAlert("Удаление персонажа", "Вы уверены, что хотите удалить этого персонажа?",
+            "Да", "Нет");
 
         if (result)
         {
