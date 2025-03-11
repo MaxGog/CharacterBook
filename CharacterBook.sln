@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharacterBook", "CharacterBook\CharacterBook.csproj", "{2BCCE501-8EB8-33F2-3DF1-62F689F28994}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharacterBook", "CharacterBook\CharacterBook.csproj", "{319BA339-11DC-8A79-2CCF-786AA9A33C03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,15 +10,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2BCCE501-8EB8-33F2-3DF1-62F689F28994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BCCE501-8EB8-33F2-3DF1-62F689F28994}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BCCE501-8EB8-33F2-3DF1-62F689F28994}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BCCE501-8EB8-33F2-3DF1-62F689F28994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{319BA339-11DC-8A79-2CCF-786AA9A33C03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{319BA339-11DC-8A79-2CCF-786AA9A33C03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{319BA339-11DC-8A79-2CCF-786AA9A33C03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{319BA339-11DC-8A79-2CCF-786AA9A33C03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A225C47A-C471-4992-AAF0-D2E0F9D2A251}
+		SolutionGuid = {AD445C76-9DC0-49D3-A3B1-E1A1785F6240}
 	EndGlobalSection
 EndGlobal

@@ -1,21 +1,20 @@
 using System.Collections.ObjectModel;
 
 using CharacterBook.Models;
-using CharacterBook.Data;
+using CharacterBook.Services;
 using CharacterBook.Views;
 
 namespace CharacterBook.ViewModels;
 
 public class CharactersViewModel : BaseViewModel
 {
-    private readonly CharacterManager _characterManager;
+    private readonly CharacterStorageService characterStorageService;
     private ObservableCollection<Character> _characters;
     private string _searchText;
     private Character _selectedCharacter;
 
-    public CharactersViewModel(CharacterManager characterManager)
+    public CharactersViewModel()
     {
-        _characterManager = characterManager;
         Characters = new ObservableCollection<Character>();
         LoadCharactersCommand = new Command(async () => await LoadCharacters());
         AddCommand = new Command(async () => await AddCharacter());
@@ -46,7 +45,7 @@ public class CharactersViewModel : BaseViewModel
     {
         try
         {
-            var characters = await _characterManager.GetCharactersAsync();
+            var characters = await characterStorageService.GetAllCharactersAsync();
             Characters = new ObservableCollection<Character>(characters);
         }
         catch (Exception ex)

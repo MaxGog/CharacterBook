@@ -5,7 +5,6 @@
              x:Class="CharacterBook.Views.MainPage">
 
     <StackLayout>
-        <!-- Поиск -->
         <SearchBar x:Name="searchBar"
                   Placeholder="Поиск персонажей..."
                   SearchCommand="{Binding SearchCommand}"
