@@ -17,11 +17,13 @@ public partial class CharacterDetailViewModel : BaseViewModel
     private bool _isEditMode;
     private string _title;
     private ICommand _selectImageCommand;
+    private readonly INavigation _navigation;
 
     private readonly CharacterStorageService characterStorageService;
 
-    public CharacterDetailViewModel(Character character = null, CharacterStorageService storageService = null)
+    public CharacterDetailViewModel(INavigation navigation, Character character = null, CharacterStorageService storageService = null)
     {
+        _navigation = navigation;
         characterStorageService = storageService ?? new CharacterStorageService();
         _character = character ?? new Character();
         _isEditMode = character != null;

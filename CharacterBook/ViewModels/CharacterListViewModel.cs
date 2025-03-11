@@ -12,9 +12,11 @@ public class CharacterListViewModel : BaseViewModel
     private ObservableCollection<Character> _characters;
     private string _searchText;
     private Character _selectedCharacter;
+    private readonly INavigation _navigation;
 
-    public CharacterListViewModel(CharacterStorageService storageService = null)
+    public CharacterListViewModel(INavigation navigation, CharacterStorageService storageService = null)
     {
+        _navigation = navigation;
         characterStorageService = storageService ?? new CharacterStorageService();
         Characters = new ObservableCollection<Character>();
         LoadCharactersCommand = new Command(async () => await LoadCharacters());
@@ -65,6 +67,17 @@ public class CharacterListViewModel : BaseViewModel
 
     private async Task AddCharacter()
     {
-        await Shell.Current.GoToAsync(nameof(CharacterDetailPage));
+        await _navigation.PushAsync(new CharacterDetailPage());
+    }
+
+    public async Task EditCharacterAsync(Character character)
+    {
+        if (_navigation == null)
+        {
+            await Application.Current.MainPage.DisplayAlert("Ошибка", "Навигация не инициализирована!", "OK");
+            return;
+        }
+        
+        await _navigation.PushAsync(new CharacterDetailPage(character));
     }
 }

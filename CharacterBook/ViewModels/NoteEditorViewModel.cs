@@ -11,16 +11,16 @@ namespace CharacterBook.ViewModels;
 
 public class NoteEditorViewModel : INotifyPropertyChanged
 {
-    private readonly INavigation navigation;
+    private readonly INavigation _navigation;
     private readonly NoteStorageService noteStorageService;
-    private readonly Editor editor;
+    private readonly Editor _editor;
     private string content;
     public string id;
     
     public NoteEditorViewModel(INavigation navigation, Editor editor)
     {
-        this.navigation = navigation;
-        this.editor = editor;
+        _navigation = navigation;
+        _editor = editor;
         noteStorageService = new NoteStorageService();
         SaveNoteCommand = new Command(async () => await SaveNoteAsync());
         RemoveNoteCommand = new Command(async () => await RemoveNoteAsync());
@@ -50,7 +50,7 @@ public class NoteEditorViewModel : INotifyPropertyChanged
             
             await noteStorageService.SaveNoteAsync(note);
             //MessagingCenter.Send(this, "NoteSaved");
-            await navigation.PopAsync();
+            await _navigation.PopAsync();
         }
         catch (Exception ex)
         {
@@ -72,7 +72,7 @@ public class NoteEditorViewModel : INotifyPropertyChanged
             };
             
             await noteStorageService.DeleteNoteAsync(note.Id);
-            await navigation.PopAsync();
+            await _navigation.PopAsync();
         }
         catch (Exception ex)
         {

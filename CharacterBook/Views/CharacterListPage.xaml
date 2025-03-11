@@ -15,11 +15,12 @@
                     SearchCommand="{Binding SearchCommand}"
                     Text="{Binding SearchText, Mode=TwoWay}"
                     HeightRequest="40"/>
-            <CollectionView x:Name="charactersCollection"
+            <ListView x:Name="charactersCollection"
                 ItemsSource="{Binding Characters}"
                 SelectionMode="Single"
-                BackgroundColor="transparent">
-                <CollectionView.ItemTemplate>
+                BackgroundColor="transparent"
+                SelectedItem="CharacterSelectionChanged">
+                <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid Padding="10" Margin="5">
                             <Grid.RowDefinitions>
@@ -61,8 +62,8 @@
                             </ImageButton>
                         </Grid>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </ListView.ItemTemplate>
+            </ListView>
         </StackLayout>
     </ContentPage.Content>
     

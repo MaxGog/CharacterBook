@@ -10,7 +10,7 @@ public partial class CharacterDetailPage : ContentPage
 	public CharacterDetailPage()
 	{
 		InitializeComponent();
-		BindingContext = viewModel = new CharacterDetailViewModel();
+		BindingContext = viewModel = new CharacterDetailViewModel(Navigation);
 	}
 
 	public CharacterDetailPage(Character character) : this()
