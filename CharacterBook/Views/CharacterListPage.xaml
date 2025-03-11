@@ -4,82 +4,67 @@
              xmlns:viewmodels="clr-namespace:CharacterBook.ViewModels"
              x:Class="CharacterBook.Views.CharacterListPage">
 
-    <StackLayout>
-        <SearchBar x:Name="searchBar"
-                  Placeholder="Поиск персонажей..."
-                  SearchCommand="{Binding SearchCommand}"
-                  Text="{Binding SearchText, Mode=TwoWay}"
-                  HeightRequest="40"/>
-        
-        <!-- Список персонажей -->
-        <!--SelectionChanged="OnSelectionChanged"-->
-        <CollectionView x:Name="charactersCollection"
-                       ItemsSource="{Binding Characters}"
-                       SelectionMode="Single">
-        
-            
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="60"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Image Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
-                               Source="{Binding ImageByte}"
-                               WidthRequest="60" HeightRequest="60"
-                               Aspect="AspectFill"/>
-                        
-                        <Label Grid.Row="0" Grid.Column="1"
-                               Text="{Binding Name}"
-                               FontAttributes="Bold"
-                               VerticalOptions="Center"/>
-                        
-                        <Label Grid.Row="1" Grid.Column="1"
-                               Text="{Binding Description}"
-                               VerticalOptions="Center"/>
-                        
-                        <ImageButton Grid.Row="0" Grid.Column="2"
-                                    Source="heart.png"
-                                    IsVisible="{Binding IsFavorite}"
-                                    Command="{Binding ToggleFavoriteCommand}"
-                                    WidthRequest="30" HeightRequest="30"/>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Добавить персонажа" Command="{Binding AddCommand}"/>
+    </ContentPage.ToolbarItems>
 
-                        <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+    <ContentPage.Content>
+        <StackLayout>
+            <SearchBar x:Name="searchBar"
+                    Placeholder="Поиск персонажей..."
+                    SearchCommand="{Binding SearchCommand}"
+                    Text="{Binding SearchText, Mode=TwoWay}"
+                    HeightRequest="40"/>
+            <CollectionView x:Name="charactersCollection"
+                ItemsSource="{Binding Characters}"
+                SelectionMode="Single"
+                BackgroundColor="transparent">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            
-                            <Button Grid.Column="0" Text="Редактировать"
-                                    Command="{Binding EditCommand}"
-                                    HorizontalOptions="Fill"/>
-                            <Button Grid.Column="1" Text="Экспорт"
-                                    Command="{Binding ExportCommand}"
-                                    HorizontalOptions="Fill"/>
-                            <Button Grid.Column="2" Text="Удалить"
-                                    Command="{Binding DeleteCommand}"
-                                    HorizontalOptions="Fill"
-                                    TextColor="Red"/>
-                        </Grid>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
 
-        <Button Text="Добавить персонажа"
-            Command="{Binding AddCommand}"
-            HorizontalOptions="Center"
-            Margin="0,10"/>
-        
-    </StackLayout>
+                            <Image Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
+                                Source="{Binding ImageByte}"
+                                WidthRequest="60" HeightRequest="60"
+                                Aspect="AspectFill">
+                            </Image>
+
+                            <Label Grid.Row="0" Grid.Column="1"
+                                Text="{Binding Name}"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="#333"
+                                VerticalOptions="Center"/>
+                            <Label Grid.Row="1" Grid.Column="1"
+                                Text="{Binding Description}"
+                                FontSize="14"
+                                TextColor="#666"
+                                VerticalOptions="Center"/>
+
+                            <ImageButton Grid.Row="0" Grid.Column="2"
+                                        Source="heart.png"
+                                        IsVisible="{Binding IsFavorite}"
+                                        Command="{Binding ToggleFavoriteCommand}"
+                                        WidthRequest="30" HeightRequest="30"
+                                        BackgroundColor="Transparent"
+                                        Padding="5">
+                            </ImageButton>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </StackLayout>
+    </ContentPage.Content>
+    
 
 </ContentPage>

@@ -44,15 +44,8 @@ public class CharacterListViewModel : BaseViewModel
 
     private async Task LoadCharacters()
     {
-        try
-        {
-            var characters = await characterStorageService.GetAllCharactersAsync();
-            Characters = new ObservableCollection<Character>(characters);
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK");
-        }
+        try { Characters = await characterStorageService.GetAllCharactersAsync(); }
+        catch (Exception ex) { await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK"); }
     }
 
     private void SearchCharacters(string searchText)
