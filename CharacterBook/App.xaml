@@ -9,6 +9,14 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="TagButtonStyle" TargetType="Button">
+                <Setter Property="CornerRadius" Value="20"/>
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="{AppThemeBinding Light=Gray, Dark=LightGray}"/>
+                <Setter Property="BorderWidth" Value="1"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

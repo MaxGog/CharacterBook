@@ -11,6 +11,8 @@ public static class ServiceRegistration
         mauiAppBuilder.Services.AddSingleton<BaseViewModel>();
         mauiAppBuilder.Services.AddSingleton<CharacterListViewModel>();
         mauiAppBuilder.Services.AddSingleton<CharacterDetailViewModel>();
+        mauiAppBuilder.Services.AddSingleton<NoteListViewModel>();
+        mauiAppBuilder.Services.AddSingleton<NoteEditorViewModel>();
         
         return mauiAppBuilder;
     }
@@ -28,6 +30,8 @@ public static class ServiceRegistration
     {
         mauiAppBuilder.Services.AddTransient<CharacterDetailPage>();
         mauiAppBuilder.Services.AddTransient<CharacterListPage>();
+        mauiAppBuilder.Services.AddTransient<NoteListPage>();
+        mauiAppBuilder.Services.AddTransient<NoteEditorPage>();
         
         return mauiAppBuilder;
     }

@@ -20,8 +20,9 @@ public partial class CharacterDetailViewModel : BaseViewModel
 
     private readonly CharacterStorageService characterStorageService;
 
-    public CharacterDetailViewModel(Character character = null)
+    public CharacterDetailViewModel(Character character = null, CharacterStorageService storageService = null)
     {
+        characterStorageService = storageService ?? new CharacterStorageService();
         _character = character ?? new Character();
         _isEditMode = character != null;
         _title = _isEditMode ? "Редактирование персонажа" : "Добавление персонажа";

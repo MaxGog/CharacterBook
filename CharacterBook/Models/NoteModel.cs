@@ -11,4 +11,5 @@ public class Note
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
     public string? Tags { get; set; }
+    public string? ConnectCharacterId { get; set; }
 }

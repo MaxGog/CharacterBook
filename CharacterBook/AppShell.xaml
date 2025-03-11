@@ -4,12 +4,13 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:CharacterBook.Views"
-    Shell.FlyoutBehavior="Flyout"
     Title="CharacterBook">
 
-    <ShellContent
-        Title="Персонажи"
-        ContentTemplate="{DataTemplate views:CharacterListPage}"
-        Route="CharacterListPage" />
+    <TabBar>
+        <ShellContent Title="Персонажи" Icon="character_icon.png"
+            ContentTemplate="{DataTemplate views:CharacterListPage}"/>
+        <ShellContent Title="Посты" Icon="note_icon.png"
+            ContentTemplate="{DataTemplate views:NoteListPage}"/>
+    </TabBar>
 
 </Shell>
