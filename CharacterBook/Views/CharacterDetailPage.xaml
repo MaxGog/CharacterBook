@@ -1,66 +1,51 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:CharacterBook.ViewModels"
              x:Class="CharacterBook.Views.CharacterDetailPage"
-             Title="Персонаж">
-
+             Title="{Binding Title}">
     <StackLayout Padding="20">
-        <!-- Изображение -->
         <Grid RowSpacing="10">
             <Image x:Name="characterImage"
-                   WidthRequest="200" HeightRequest="200"
+                   WidthRequest="200" 
+                   HeightRequest="200"
                    Aspect="AspectFill"
                    HorizontalOptions="Center"/>
             <Button Text="Выбрать изображение"
                     HorizontalOptions="Center"
-                    Command="{Binding SelectImageCommand}"/>
+                    Command="{Binding SelectImageCommand}"
+                    Margin="0,10"/>
         </Grid>
-        
-        <!-- Форма ввода данных -->
         <ScrollView>
             <StackLayout Spacing="10">
-                <!-- Имя -->
                 <Entry Placeholder="Имя"
                        Text="{Binding Character.Name}"
                        Keyboard="Text"/>
-                
-                <!-- Возраст -->
                 <Entry Placeholder="Возраст"
                        Text="{Binding Character.Age}"
                        Keyboard="Numeric"/>
-                
-                <!-- Пол -->
-                <Entry  Placeholder="Пол"
-                        Text="{Binding Character.Gender}"/>
-                
-                <!-- Вид -->
+                <Entry Placeholder="Пол"
+                       Text="{Binding Character.Gender}"/>
                 <Entry Placeholder="Вид"
                        Text="{Binding Character.Species}"/>
-                
-                <!-- Описание -->
                 <Editor Placeholder="Описание"
                         Text="{Binding Character.Description}"
                         HeightRequest="100"/>
-                
-                <!-- Биография -->
                 <Editor Placeholder="Биография"
                         Text="{Binding Character.Biography}"
                         HeightRequest="150"/>
-                
-                <!-- Кнопки действий -->
                 <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    
-                    <Button Grid.Column="0" Text="Сохранить"
-                            Command="{Binding SaveCommand}"
-                            HorizontalOptions="Fill"/>
-                    <Button Grid.Column="1" Text="Отмена"
-                            Command="{Binding CancelCommand}"
-                            HorizontalOptions="Fill"/>
+                    <Button Grid.Column="0" 
+                           Text="Сохранить"
+                           Command="{Binding SaveCommand}"
+                           HorizontalOptions="Fill"/>
+                    <Button Grid.Column="1" 
+                           Text="Отмена"
+                           Command="{Binding CancelCommand}"
+                           HorizontalOptions="Fill"/>
                 </Grid>
             </StackLayout>
         </ScrollView>

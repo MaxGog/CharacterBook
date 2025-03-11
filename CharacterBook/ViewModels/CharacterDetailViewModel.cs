@@ -12,43 +12,96 @@ using CharacterBook.Data;
 namespace CharacterBook.ViewModels;
 
 public partial class CharacterDetailViewModel : ObservableObject
+{
+    [ObservableProperty]
+    private Character _character;
+    [ObservableProperty]
+    private bool _isEditMode;
+    [ObservableProperty]
+    private string _title;
+    [ObservableProperty]
+    private ICommand _selectImageCommand;
+
+    public CharacterDetailViewModel(CharacterManager characterManager, Character character = null)
     {
-        [ObservableProperty]
-        private Character _character;
+        CharacterManager = characterManager;
+        _character = character ?? new Character();
+        _isEditMode = character != null;
+        _title = _isEditMode ? "Редактирование персонажа" : "Добавление персонажа";
+        
+        SaveCommand = new AsyncRelayCommand(SaveAsync);
+        CancelCommand = new RelayCommand(Cancel);
+        DeleteCommand = new AsyncRelayCommand(DeleteAsync);
+        ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
+        //SelectImageCommand = new AsyncRelayCommand(SelectImageAsync);
+    }
 
-        [ObservableProperty]
-        private bool _isEditMode;
+    public CharacterManager CharacterManager { get; }
+    public AsyncRelayCommand SaveCommand { get; }
+    public RelayCommand CancelCommand { get; }
+    public AsyncRelayCommand DeleteCommand { get; }
+    public AsyncRelayCommand ToggleFavoriteCommand { get; }
+    //public AsyncRelayCommand SelectImageCommand { get; }
 
-        [ObservableProperty]
-        private string _title;
-
-        public CharacterDetailViewModel(CharacterManager characterManager)
+    private async Task SaveAsync()
+    {
+        try
         {
-            CharacterManager = characterManager;
-            SaveCommand = new AsyncRelayCommand(SaveAsync);
-            CancelCommand = new RelayCommand(Cancel);
-            DeleteCommand = new AsyncRelayCommand(DeleteAsync);
-            ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
+            if (_character == null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Ошибка",
+                    "Персонаж не инициализирован",
+                    "OK");
+                return;
+            }
+
+            await CharacterManager.UpdateCharacterAsync(_character);
+            await Shell.Current.GoToAsync("..");
         }
-
-        public CharacterManager CharacterManager { get; }
-        public AsyncRelayCommand SaveCommand { get; }
-        public RelayCommand CancelCommand { get; }
-        public AsyncRelayCommand DeleteCommand { get; }
-        public AsyncRelayCommand ToggleFavoriteCommand { get; }
-
-        public void Initialize(Character character)
+        catch (Exception ex)
         {
-            Character = character ?? new Character();
-            IsEditMode = character != null;
-            Title = IsEditMode ? "Редактирование персонажа" : "Добавление персонажа";
+            await Shell.Current.DisplayAlert(
+                "Ошибка",
+                ex.Message,
+                "OK");
         }
+    }
 
-        private async Task SaveAsync()
+    /*private async Task SelectImageAsync()
+    {
+        var file = await FilePicker.Default.PickPhotoAsync();
+        if (file != null)
+        {
+            using var stream = await file.OpenReadAsync();
+            var bytes = (await stream.ReadAsync(new byte[stream.Length])).ToArray();
+            
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                Character.ImageData = bytes;
+                OnPropertyChanged(nameof(Character));
+            });
+        }
+    }*/
+
+    private void Cancel()
+    {
+        Shell.Current.GoToAsync("..");
+    }
+
+    private async Task DeleteAsync()
+    {
+        var result = await Shell.Current.DisplayAlert(
+            "Удаление персонажа",
+            "Вы уверены, что хотите удалить этого персонажа?",
+            "Да",
+            "Нет");
+
+        if (result)
         {
             try
             {
-                await CharacterManager.UpdateCharacterAsync(Character);
+                await CharacterManager.DeleteCharacterAsync(Character.Id);
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
@@ -56,37 +109,11 @@ public partial class CharacterDetailViewModel : ObservableObject
                 await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK");
             }
         }
-
-        private void Cancel()
-        {
-            Shell.Current.GoToAsync("..");
-        }
-
-        private async Task DeleteAsync()
-        {
-            var result = await Shell.Current.DisplayAlert(
-                "Удаление персонажа",
-                "Вы уверены, что хотите удалить этого персонажа?",
-                "Да",
-                "Нет");
-
-            if (result)
-            {
-                try
-                {
-                    await CharacterManager.DeleteCharacterAsync(Character.Id);
-                    await Shell.Current.GoToAsync("..");
-                }
-                catch (Exception ex)
-                {
-                    await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK");
-                }
-            }
-        }
-
-        private async Task ToggleFavoriteAsync()
-        {
-            Character.IsFavorite = !Character.IsFavorite;
-            await CharacterManager.UpdateCharacterAsync(Character);
-        }
     }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        Character.IsFavorite = !Character.IsFavorite;
+        await CharacterManager.UpdateCharacterAsync(Character);
+    }
+}
