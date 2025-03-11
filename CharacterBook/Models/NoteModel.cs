@@ -2,7 +2,7 @@ using SQLite;
 
 namespace CharacterBook.Models;
 
-public class Post
+public class Note
 {
     [PrimaryKey]
     public string? Id { get; set; }

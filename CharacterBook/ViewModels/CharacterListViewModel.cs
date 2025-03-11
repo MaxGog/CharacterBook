@@ -6,14 +6,14 @@ using CharacterBook.Views;
 
 namespace CharacterBook.ViewModels;
 
-public class CharactersViewModel : BaseViewModel
+public class CharacterListViewModel : BaseViewModel
 {
     private readonly CharacterStorageService characterStorageService;
     private ObservableCollection<Character> _characters;
     private string _searchText;
     private Character _selectedCharacter;
 
-    public CharactersViewModel()
+    public CharacterListViewModel()
     {
         Characters = new ObservableCollection<Character>();
         LoadCharactersCommand = new Command(async () => await LoadCharacters());

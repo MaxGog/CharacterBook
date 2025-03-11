@@ -8,8 +8,8 @@
     Title="CharacterBook">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate views:MainPage}"
-        Route="MainPage" />
+        Title="Персонажи"
+        ContentTemplate="{DataTemplate views:CharacterListPage}"
+        Route="CharacterListPage" />
 
 </Shell>

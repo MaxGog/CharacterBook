@@ -6,12 +6,12 @@ using CharacterBook.Models;
 
 namespace CharacterBook.Services;
 
-public class PostStorageService : IAsyncDisposable
+public class NoteStorageService : IAsyncDisposable
 {
     private readonly string databasePath;
     private SQLiteAsyncConnection connection;
 
-    public PostStorageService()
+    public NoteStorageService()
     {
         databasePath = Path.Combine(FileSystem.AppDataDirectory, "notes.db");
         InitializeDatabase();
@@ -20,18 +20,18 @@ public class PostStorageService : IAsyncDisposable
     private void InitializeDatabase()
     {
         connection = new SQLiteAsyncConnection(databasePath);
-        connection.CreateTableAsync<Post>().Wait();
+        connection.CreateTableAsync<Note>().Wait();
     }
 
-    public async Task<ObservableCollection<Post>> GetAllPostsAsync()
+    public async Task<ObservableCollection<Note>> GetAllNotesAsync()
     {
         try
         {
             InitializeConnection();
-            var notes = await connection.Table<Post>()
+            var notes = await connection.Table<Note>()
                 .OrderBy(n => n.CreatedAt)
                 .ToListAsync();
-            return new ObservableCollection<Post>(notes);
+            return new ObservableCollection<Note>(notes);
         }
         catch (SQLiteException ex)
         {
@@ -39,12 +39,12 @@ public class PostStorageService : IAsyncDisposable
         }
     }
 
-    public async Task<Post> GetPostAsync(string id)
+    public async Task<Note> GetNoteAsync(string id)
     {
         try
         {
             InitializeConnection();
-            return await connection.Table<Post>()
+            return await connection.Table<Note>()
                 .Where(n => n.Id == id)
                 .FirstOrDefaultAsync();
         }
@@ -54,7 +54,7 @@ public class PostStorageService : IAsyncDisposable
         }
     }
 
-    public async Task SavePostAsync(Post note)
+    public async Task SaveNoteAsync(Note note)
     {
         try
         {
@@ -75,12 +75,12 @@ public class PostStorageService : IAsyncDisposable
         }
     }
 
-    public async Task DeletePostAsync(string id)
+    public async Task DeleteNoteAsync(string id)
     {
         try
         {
             InitializeConnection();
-            await connection.DeleteAsync<Post>(id);
+            await connection.DeleteAsync<Note>(id);
         }
         catch (SQLiteException ex)
         {
@@ -88,7 +88,7 @@ public class PostStorageService : IAsyncDisposable
         }
     }
 
-    public async Task UpdateNoteAsync(Post note)
+    public async Task UpdateNoteAsync(Note note)
     {
         try
         {

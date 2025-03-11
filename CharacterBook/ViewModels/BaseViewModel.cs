@@ -5,20 +5,11 @@ namespace CharacterBook.ViewModels;
 
 public class BaseViewModel : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    protected void SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
     {
+        field = newValue;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-            return false;
-
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
+    public event PropertyChangedEventHandler PropertyChanged;
 }
