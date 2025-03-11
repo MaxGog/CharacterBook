@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using CharacterBook.Data;
+using CharacterBook.Services;
 using CharacterBook.ViewModels;
 using CommunityToolkit.Maui;
 
@@ -13,11 +13,11 @@ public static class MauiProgram
         {
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-        }).UseMauiCommunityToolkit();
-        builder.Services.AddSingleton<CharacterContext>();
-        builder.Services.AddSingleton<CharacterManager>();
-        builder.Services.AddSingleton<CharactersViewModel>();
-        builder.Services.AddSingleton<CharacterDetailViewModel>();
+        }).UseMauiCommunityToolkit()
+        .ConfigureViewModels()
+    	.ConfigureViews()
+		.ConfigureServices();
+        
 #if DEBUG
         builder.Logging.AddDebug();
 #endif

@@ -12,4 +12,6 @@ public class Character
     public DateTime CreatedAt { get; set; }
     public bool IsFavorite { get; set; }
     public byte[] ImageData { get; set; }
+    public DateTime ModifiedAt { get; set; }
+    public string Tags { get; set; }
 }

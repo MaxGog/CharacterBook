@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using CharacterBook.Models;
-using CharacterBook.Data;
+using CharacterBook.Services;
 
 namespace CharacterBook.ViewModels;
 
@@ -22,9 +22,10 @@ public partial class CharacterDetailViewModel : ObservableObject
     [ObservableProperty]
     private ICommand _selectImageCommand;
 
-    public CharacterDetailViewModel(CharacterManager characterManager, Character character = null)
+    private readonly CharacterStorageService characterStorageService;
+
+    public CharacterDetailViewModel(Character character = null)
     {
-        CharacterManager = characterManager;
         _character = character ?? new Character();
         _isEditMode = character != null;
         _title = _isEditMode ? "Редактирование персонажа" : "Добавление персонажа";
@@ -35,8 +36,6 @@ public partial class CharacterDetailViewModel : ObservableObject
         ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
         //SelectImageCommand = new AsyncRelayCommand(SelectImageAsync);
     }
-
-    public CharacterManager CharacterManager { get; }
     public AsyncRelayCommand SaveCommand { get; }
     public RelayCommand CancelCommand { get; }
     public AsyncRelayCommand DeleteCommand { get; }
@@ -47,7 +46,7 @@ public partial class CharacterDetailViewModel : ObservableObject
     {
         try
         {
-            if (_character == null)
+            if (Character == null)
             {
                 await Shell.Current.DisplayAlert(
                     "Ошибка",
@@ -56,7 +55,7 @@ public partial class CharacterDetailViewModel : ObservableObject
                 return;
             }
 
-            await CharacterManager.UpdateCharacterAsync(_character);
+            await characterStorageService.UpdateCharacterAsync(Character);
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
@@ -101,7 +100,7 @@ public partial class CharacterDetailViewModel : ObservableObject
         {
             try
             {
-                await CharacterManager.DeleteCharacterAsync(Character.Id);
+                await characterStorageService.DeleteCharacterAsync(Character.Id);
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
@@ -114,6 +113,6 @@ public partial class CharacterDetailViewModel : ObservableObject
     private async Task ToggleFavoriteAsync()
     {
         Character.IsFavorite = !Character.IsFavorite;
-        await CharacterManager.UpdateCharacterAsync(Character);
+        await characterStorageService.UpdateCharacterAsync(Character);
     }
 }
