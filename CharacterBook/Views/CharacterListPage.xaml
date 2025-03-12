@@ -19,7 +19,7 @@
                 ItemsSource="{Binding Characters}"
                 SelectionMode="Single"
                 EmptyView="Нет элементов"
-                SelectedItem="OnCharacterSelection">
+                SelectionChanged="OnCharacterSelection">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Grid Padding="10" Margin="5">
@@ -66,6 +66,4 @@
             </CollectionView>
         </StackLayout>
     </ContentPage.Content>
-    
-
 </ContentPage>

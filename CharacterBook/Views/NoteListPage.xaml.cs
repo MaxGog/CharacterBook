@@ -16,15 +16,12 @@ public partial class NoteListPage : ContentPage
         base.OnAppearing();
         await ((NoteListViewModel)BindingContext).LoadNotesAsync();
     }
-    private async void OnNoteSelected(object sender, SelectedItemChangedEventArgs e)
+    private async void OnNoteSelected(object sender, SelectionChangedEventArgs e)
     {
-        if (e.SelectedItem != null)
+        if (e.CurrentSelection != null)
         {
-            if (e.SelectedItem as Note != null)
-            {
-                await ((NoteListViewModel)BindingContext).EditNoteAsync((Note)e.SelectedItem);
-                ((ListView)sender).SelectedItem = null;
-            }
+            await ((NoteListViewModel)BindingContext).EditNoteAsync((Note)e.CurrentSelection.FirstOrDefault());
+            ((ListView)sender).SelectedItem = null;
         }
     }
 

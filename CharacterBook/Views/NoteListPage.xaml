@@ -22,7 +22,7 @@
                 <CollectionView ItemsSource="{Binding Notes}"
                     SelectionMode="Single"
                     EmptyView="Нет элементов"
-                    SelectedItem="OnNoteSelected">
+                    SelectionChanged="OnNoteSelected">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Border Padding="20" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">

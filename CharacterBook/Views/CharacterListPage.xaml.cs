@@ -21,7 +21,7 @@ public partial class CharacterListPage : ContentPage
     {
 		if (e.CurrentSelection != null)
         {
-            await ((CharacterListViewModel)BindingContext).EditCharacterAsync((Character)e.CurrentSelection);
+            await ((CharacterListViewModel)BindingContext).EditCharacterAsync((Character)e.CurrentSelection.FirstOrDefault());
             ((ListView)sender).SelectedItem = null;
         }
     }

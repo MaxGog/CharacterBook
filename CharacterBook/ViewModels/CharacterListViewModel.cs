@@ -74,7 +74,6 @@ public class CharacterListViewModel : BaseViewModel
             await Application.Current.MainPage.DisplayAlert("Ошибка", "Навигация не инициализирована!", "OK");
             return;
         }
-        
         await _navigation.PushAsync(new CharacterDetailPage(character));
     }
 }
