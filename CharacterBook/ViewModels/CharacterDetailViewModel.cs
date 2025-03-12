@@ -33,13 +33,13 @@ public partial class CharacterDetailViewModel : BaseViewModel
         CancelCommand = new RelayCommand(Cancel);
         DeleteCommand = new AsyncRelayCommand(DeleteAsync);
         ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
-        //SelectImageCommand = new AsyncRelayCommand(SelectImageAsync);
+        SelectImageCommand = new AsyncRelayCommand(SelectImageAsync);
     }
     public AsyncRelayCommand SaveCommand { get; }
     public RelayCommand CancelCommand { get; }
     public AsyncRelayCommand DeleteCommand { get; }
     public AsyncRelayCommand ToggleFavoriteCommand { get; }
-    //public AsyncRelayCommand SelectImageCommand { get; }
+    public AsyncRelayCommand SelectImageCommand { get; }
 
     public Character Character
     {
@@ -60,21 +60,30 @@ public partial class CharacterDetailViewModel : BaseViewModel
         }
     }
 
-    /*private async Task SelectImageAsync()
+    private async Task SelectImageAsync()
     {
-        var file = await FilePicker.Default.PickPhotoAsync();
-        if (file != null)
+        var options = new PickOptions
         {
-            using var stream = await file.OpenReadAsync();
-            var bytes = (await stream.ReadAsync(new byte[stream.Length])).ToArray();
-            
-            Device.BeginInvokeOnMainThread(() =>
+            FileTypes = FilePickerFileType.Images,
+            PickerTitle = "Выберите изображение"
+        };
+
+        try
+        {
+            var file = await FilePicker.Default.PickAsync(options);
+            if (file != null)
             {
+                using var stream = await file.OpenReadAsync();
+                var bytes = new byte[stream.Length];
+                await stream.ReadExactlyAsync(bytes);
                 Character.ImageData = bytes;
-                OnPropertyChanged(nameof(Character));
-            });
+            }
         }
-    }*/
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK");
+        }
+    }
 
     private void Cancel()
     {
