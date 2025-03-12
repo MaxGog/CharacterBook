@@ -8,23 +8,23 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Добавить новую заметку" Command="{Binding AddNoteCommand}"/>
     </ContentPage.ToolbarItems>
-    
-    <StackLayout Padding="20">
-        <SearchBar Placeholder="Поиск" TextChanged="SearchBarTextChanged"/>
-        <ScrollView Orientation="Horizontal">
-            <StackLayout Orientation="Horizontal" Spacing="10" Margin="10">
-                <Button x:Name="Name" Text="по названию" Command="{Binding sortNameCommand}" Style="{StaticResource TagButtonStyle}"/>
-                <Button x:Name="Date" Text="по дате" Command="{Binding sortDateCommand}" Style="{StaticResource TagButtonStyle}"/>
-            </StackLayout>
-        </ScrollView>
-        <ScrollView>
-            <ListView ItemsSource="{Binding Notes}"
-                HasUnevenRows="True"
-                SelectionMode="Single"
-                ItemSelected="OnNoteSelected">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <ViewCell>
+
+    <ContentPage.Content>
+        <StackLayout>
+            <SearchBar Placeholder="Поиск" TextChanged="SearchBarTextChanged"/>
+            <ScrollView Orientation="Horizontal">
+                <StackLayout Orientation="Horizontal" Spacing="10" Margin="10">
+                    <Button x:Name="Name" Text="по названию" Command="{Binding SortCommand}" CommandParameter="Name" Style="{StaticResource TagButtonStyle}"/>
+                    <Button x:Name="Date" Text="по дате" Command="{Binding SortCommand}" CommandParameter="Date" Style="{StaticResource TagButtonStyle}"/>
+                </StackLayout>
+            </ScrollView>
+            <ScrollView>
+                <CollectionView ItemsSource="{Binding Notes}"
+                    SelectionMode="Single"
+                    EmptyView="Нет элементов"
+                    SelectedItem="OnNoteSelected">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
                             <Border Padding="20" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                                 <StackLayout>
                                     <Label Text="{Binding Title}"
@@ -43,10 +43,10 @@
                                     </StackLayout>    
                                 </StackLayout>
                             </Border>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </ScrollView>
-    </StackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
+        </StackLayout>
+    </ContentPage.Content>
 </ContentPage>

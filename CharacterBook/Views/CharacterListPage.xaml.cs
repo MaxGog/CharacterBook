@@ -11,15 +11,18 @@ public partial class CharacterListPage : ContentPage
 		BindingContext = new CharacterListViewModel(Navigation);
 	}
 
-    private async void CharacterSelectionChanged(object sender, SelectionChangedEventArgs e)
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await ((CharacterListViewModel)BindingContext).LoadCharacters();
+    }
+
+    private async void OnCharacterSelection(object sender, SelectionChangedEventArgs e)
     {
 		if (e.CurrentSelection != null)
         {
-            if (e.CurrentSelection as Character != null)
-            {
-                await ((CharacterListViewModel)BindingContext).EditCharacterAsync((Character)e.CurrentSelection);
-                ((ListView)sender).SelectedItem = null;
-            }
+            await ((CharacterListViewModel)BindingContext).EditCharacterAsync((Character)e.CurrentSelection);
+            ((ListView)sender).SelectedItem = null;
         }
     }
 }

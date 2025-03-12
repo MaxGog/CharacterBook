@@ -15,17 +15,18 @@ public class NoteListViewModel : BaseViewModel
     private readonly NoteStorageService noteStorageService;
     private ObservableCollection<Note> notes;
 
+    public ICommand AddNoteCommand { get; }
+    public ICommand EditNoteCommand { get; }
+    public ICommand SortCommand { get; private set; }
+
     public NoteListViewModel(INavigation navigation, NoteStorageService storageService = null)
     {
         this.navigation = navigation;
         noteStorageService = storageService ?? new NoteStorageService();
-        LoadNotesCommand = new Command(async () => await LoadNotesAsync());
+        Notes = new ObservableCollection<Note>();
         AddNoteCommand = new Command(async () => await AddNoteAsync());
         EditNoteCommand = new Command<Note>(async (note) => await EditNoteAsync(note));
-
-        sortNameCommand = new Command(() => SortedByName());
-        sortDateCommand = new Command(() => SortedByDate());
-        LoadNotesCommand.Execute(null);
+        SortCommand = new Command(sortedBy => SortNotes((string)sortedBy));
     }
 
     public ObservableCollection<Note> Notes
@@ -34,24 +35,10 @@ public class NoteListViewModel : BaseViewModel
         set => SetProperty(ref notes, value);
     }
 
-    public ICommand LoadNotesCommand { get; }
-    public ICommand AddNoteCommand { get; }
-    public ICommand EditNoteCommand { get; }
-
-    public ICommand sortNameCommand { get; private set; }
-    public ICommand sortDateCommand { get; private set; }
-
     public async Task LoadNotesAsync()
     {
-        try
-        {
-            var loadedNotes = await noteStorageService.GetAllNotesAsync();
-            Notes = new ObservableCollection<Note>(loadedNotes);
-        }
-        catch (Exception ex)
-        {
-            await Application.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось загрузить заметки: {ex.Message}", "OK");
-        }
+        try { Notes = await noteStorageService.GetAllNotesAsync(); }
+        catch (Exception ex) { await Application.Current.MainPage.DisplayAlert("Ошибка", $"Не удалось загрузить заметки: {ex.Message}", "OK"); }
     }
 
     private async Task AddNoteAsync()
@@ -75,23 +62,23 @@ public class NoteListViewModel : BaseViewModel
         
         await navigation.PushAsync(new NoteEditorPage(note));
     }
-
-    protected void SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
+    private void SortNotes(string sortedBy)
     {
-        field = newValue;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private void SortedByName()
-    {
-        var sortedBooks = Notes.OrderBy(x => x.Title).ToList();
-        Notes = new ObservableCollection<Note>(sortedBooks);
-    }
-    private void SortedByDate()
-    {
-        var sortedBooks = Notes.OrderBy(x => x.CreatedAt).ToList();
-        Notes = new ObservableCollection<Note>(sortedBooks);
+        switch(sortedBy)
+        {
+            case "Name":
+            {
+                var sortedBooks = Notes.OrderBy(x => x.Title).ToList();
+                Notes = new ObservableCollection<Note>(sortedBooks);
+                break;
+            }
+            case "Date":
+            {
+                var sortedBooks = Notes.OrderBy(x => x.CreatedAt).ToList();
+                Notes = new ObservableCollection<Note>(sortedBooks);
+                break;
+            }
+        }
+        
     }
 }

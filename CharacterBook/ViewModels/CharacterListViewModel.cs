@@ -19,7 +19,6 @@ public class CharacterListViewModel : BaseViewModel
         _navigation = navigation;
         characterStorageService = storageService ?? new CharacterStorageService();
         Characters = new ObservableCollection<Character>();
-        LoadCharactersCommand = new Command(async () => await LoadCharacters());
         AddCommand = new Command(async () => await AddCharacter());
         SearchCommand = new Command<string>(SearchCharacters);
     }
@@ -39,12 +38,10 @@ public class CharacterListViewModel : BaseViewModel
             SearchCharacters(value);
         }
     }
-
-    public Command LoadCharactersCommand { get; }
     public Command AddCommand { get; }
     public Command<string> SearchCommand { get; }
 
-    private async Task LoadCharacters()
+    public async Task LoadCharacters()
     {
         try { Characters = await characterStorageService.GetAllCharactersAsync(); }
         catch (Exception ex) { await Shell.Current.DisplayAlert("Ошибка", ex.Message, "OK"); }
