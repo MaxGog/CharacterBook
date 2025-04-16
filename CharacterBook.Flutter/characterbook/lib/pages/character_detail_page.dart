@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
@@ -29,6 +31,18 @@ class CharacterDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: character.imageBytes != null
+                  ? CircleAvatar(
+                backgroundImage: MemoryImage(character.imageBytes! as Uint8List),
+                radius: 80,
+              )
+                  : const CircleAvatar(
+                radius: 80,
+                child: Icon(Icons.person, size: 60),
+              ),
+            ),
+            const SizedBox(height: 24),
             _buildInfoRow('Имя', character.name),
             _buildInfoRow('Возраст', '${character.age} лет'),
             _buildInfoRow('Пол', character.gender),

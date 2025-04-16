@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/character_model.dart';
 
 class CharacterEditPage extends StatefulWidget {
@@ -8,7 +11,7 @@ class CharacterEditPage extends StatefulWidget {
   const CharacterEditPage({super.key, this.character});
 
   @override
-  _CharacterEditPageState createState() => _CharacterEditPageState();
+  State<CharacterEditPage> createState() => _CharacterEditPageState();
 }
 
 class _CharacterEditPageState extends State<CharacterEditPage> {
@@ -19,9 +22,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   late String _biography;
   late String _personality;
   late String _appearance;
+  late Uint8List? _imageBytes;
 
   final List<String> _genders = ['Мужской', 'Женский', 'Другой'];
+  final ImagePicker _picker = ImagePicker();
 
+  @override
   @override
   void initState() {
     super.initState();
@@ -32,6 +38,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _biography = widget.character!.biography;
       _personality = widget.character!.personality;
       _appearance = widget.character!.appearance;
+      _imageBytes = widget.character!.imageBytes;
     } else {
       _name = '';
       _age = 20;
@@ -39,6 +46,67 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _biography = '';
       _personality = '';
       _appearance = '';
+      _imageBytes = null;
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _imageBytes = bytes;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка при выборе изображения: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _saveCharacter() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      final Uint8List? imageBytes = _imageBytes != null
+          ? Uint8List.fromList(_imageBytes!)
+          : null;
+
+      final box = Hive.box<Character>('characters');
+
+      try {
+        if (widget.character != null) {
+          await box.put(widget.character!.key, Character(
+            name: _name,
+            age: _age,
+            gender: _gender,
+            biography: _biography,
+            personality: _personality,
+            appearance: _appearance,
+            imageBytes: imageBytes,
+          ));
+        } else {
+          await box.add(Character(
+            name: _name,
+            age: _age,
+            gender: _gender,
+            biography: _biography,
+            personality: _personality,
+            appearance: _appearance,
+            imageBytes: imageBytes,
+          ));
+        }
+
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+          );
+        }
+      }
     }
   }
 
@@ -55,6 +123,25 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           key: _formKey,
           child: Column(
             children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: _imageBytes != null
+                      ? MemoryImage(_imageBytes!)
+                      : null,
+                  child: _imageBytes == null
+                      ? const Icon(Icons.add_a_photo, size: 40)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Нажмите для добавления фото',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 initialValue: _name,
                 decoration: const InputDecoration(labelText: 'Имя'),
@@ -115,41 +202,18 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 maxLines: 3,
                 onSaved: (value) => _appearance = value!,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               ElevatedButton(
-                child: const Text('Сохранить'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
                 onPressed: _saveCharacter,
+                child: const Text('Сохранить', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _saveCharacter() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      final character = Character(
-        name: _name,
-        age: _age,
-        gender: _gender,
-        biography: _biography,
-        personality: _personality,
-        appearance: _appearance,
-      );
-
-      final box = Hive.box<Character>('characters');
-
-      if (widget.character != null) {
-        final box = Hive.box<Character>('characters');
-        await box.add(character);
-      } else {
-        await box.add(character);
-      }
-
-      Navigator.pop(context);
-    }
   }
 }

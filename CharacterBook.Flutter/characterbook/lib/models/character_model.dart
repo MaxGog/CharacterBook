@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:hive/hive.dart';
 
 part 'character_model.g.dart';
@@ -22,6 +24,9 @@ class Character extends HiveObject {
   @HiveField(5)
   String appearance;
 
+  @HiveField(6)
+  Uint8List? imageBytes;
+
   Character({
     required this.name,
     required this.age,
@@ -29,5 +34,6 @@ class Character extends HiveObject {
     required this.biography,
     required this.personality,
     required this.appearance,
+    this.imageBytes,
   });
 }

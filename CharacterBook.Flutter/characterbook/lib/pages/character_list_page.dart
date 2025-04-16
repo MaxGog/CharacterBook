@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -38,6 +40,15 @@ class CharacterListPage extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
+                  leading: character.imageBytes != null
+                      ? CircleAvatar(
+                    backgroundImage: MemoryImage(character.imageBytes! as Uint8List),
+                    radius: 25,
+                  )
+                      : const CircleAvatar(
+                    radius: 25,
+                    child: Icon(Icons.person),
+                  ),
                   title: Text(character.name),
                   subtitle: Text('${character.age} лет, ${character.gender}'),
                   trailing: IconButton(
