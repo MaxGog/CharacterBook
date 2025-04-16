@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:docx_template/docx_template.dart' as docx;
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
 
@@ -8,6 +11,40 @@ class CharacterDetailPage extends StatelessWidget {
   final Character character;
 
   const CharacterDetailPage({super.key, required this.character});
+
+  Future<void> _exportToDocx(BuildContext context) async {
+    try {
+      final docxDoc = await docx.DocxTemplate.fromBytes(Uint8List(0));
+
+      final data = {
+        'name': character.name,
+        'age': character.age.toString(),
+        'gender': character.gender,
+        'biography': character.biography,
+        'personality': character.personality,
+        'appearance': character.appearance,
+      };
+
+      await docxDoc.generate(data as docx.Content);
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/${character.name}_character.docx';
+
+      final file = await File(filePath).writeAsBytes((await docxDoc) as List<int>);
+      await OpenFile.open(file.path);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Персонаж экспортирован в $filePath')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при экспорте: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +60,11 @@ class CharacterDetailPage extends StatelessWidget {
                 builder: (context) => CharacterEditPage(character: character),
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            onPressed: () => _exportToDocx(context),
+            tooltip: 'Экспорт в DOCX',
           ),
         ],
       ),

@@ -457,6 +457,62 @@
             </list>
           </value>
         </entry>
+        <entry key="open_file">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file-3.5.10/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_android">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_android-1.0.6/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_ios">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_ios-1.0.3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_linux">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_linux-0.0.5/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_mac">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_mac-1.0.3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_platform_interface">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_platform_interface-1.0.3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_web">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_web-0.0.4/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="open_file_windows">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_windows-0.0.3/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="package_config">
           <value>
             <list>
@@ -767,6 +823,14 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/material_color_utilities-0.11.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/meta-1.16.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/mime-2.0.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file-3.5.10/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_android-1.0.6/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_ios-1.0.3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_linux-0.0.5/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_mac-1.0.3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_platform_interface-1.0.3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_web-0.0.4/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_windows-0.0.3/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/package_config-2.2.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path-1.9.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider-2.1.5/lib" />

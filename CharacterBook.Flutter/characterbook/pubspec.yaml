@@ -14,7 +14,8 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.0.11
   image_picker: ^1.1.2
-
+  open_file: ^3.3.1
+  docx_template: ^0.4.0
 
 dev_dependencies:
   flutter_test:
