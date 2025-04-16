@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/character_model.dart';
+import 'package:flutter/services.dart'; // Added for Clipboard functionality
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
@@ -27,7 +28,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   final List<String> _genders = ['Мужской', 'Женский', 'Другой'];
   final ImagePicker _picker = ImagePicker();
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -110,12 +110,37 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     }
   }
 
+  Future<void> _copyToClipboard() async {
+    final characterInfo = '''
+Имя: $_name
+Возраст: $_age
+Пол: $_gender
+Биография: $_biography
+Характер: $_personality
+Внешность: $_appearance
+''';
+    await Clipboard.setData(ClipboardData(text: characterInfo));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Информация скопирована в буфер обмена')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.character == null ? 'Новый персонаж' : 'Редактировать'),
         centerTitle: true,
+        actions: [
+          if (widget.character != null) // Only show copy button when editing existing character
+            IconButton(
+              icon: const Icon(Icons.copy),
+              onPressed: _copyToClipboard,
+              tooltip: 'Копировать информацию',
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
