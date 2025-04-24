@@ -42,7 +42,7 @@ class CharacterListPage extends StatelessWidget {
                 child: ListTile(
                   leading: character.imageBytes != null
                       ? CircleAvatar(
-                    backgroundImage: MemoryImage(character.imageBytes! as Uint8List),
+                    backgroundImage: MemoryImage(character.imageBytes!),
                     radius: 25,
                   )
                       : const CircleAvatar(

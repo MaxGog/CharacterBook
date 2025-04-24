@@ -1,10 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+
 import 'package:hive/hive.dart';
+import '../generated/l10n.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../models/character_model.dart';
-import 'package:flutter/services.dart'; // Added for Clipboard functionality
+import 'package:flutter/services.dart';
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
@@ -25,12 +29,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   late String _appearance;
   late Uint8List? _imageBytes;
 
-  final List<String> _genders = ['Мужской', 'Женский', 'Другой'];
   final ImagePicker _picker = ImagePicker();
+
+  final List<String> _genders = ["male", "female", "another"];
 
   @override
   void initState() {
     super.initState();
+
     if (widget.character != null) {
       _name = widget.character!.name;
       _age = widget.character!.age;
@@ -111,14 +117,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   Future<void> _copyToClipboard() async {
-    final characterInfo = '''
-Имя: $_name
-Возраст: $_age
-Пол: $_gender
-Биография: $_biography
-Характер: $_personality
-Внешность: $_appearance
-''';
+    final characterInfo = '${S.of(context).name}: ${_name}\n'
+        '${S.of(context).age}: ${_age}\n'
+        '${S.of(context).gender}: ${_gender}\n'
+        '${S.of(context).biography}: ${_biography}\n'
+        '${S.of(context).appearance}: ${_appearance}\n'
+        '${S.of(context).personality}: ${_personality}\n';
     await Clipboard.setData(ClipboardData(text: characterInfo));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -131,14 +135,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.character == null ? 'Новый персонаж' : 'Редактировать'),
+        title: Text(widget.character == null ? S.of(context).new_character : S.of(context).edit),
         centerTitle: true,
         actions: [
           if (widget.character != null) // Only show copy button when editing existing character
             IconButton(
               icon: const Icon(Icons.copy),
               onPressed: _copyToClipboard,
-              tooltip: 'Копировать информацию',
+              tooltip: S.of(context).copy,
             ),
         ],
       ),
@@ -163,13 +167,13 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Нажмите для добавления фото',
+                S.of(context).add_picture,
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 24),
               TextFormField(
                 initialValue: _name,
-                decoration: const InputDecoration(labelText: 'Имя'),
+                decoration: const InputDecoration(labelText: "Имя"),
                 validator: (value) => value?.isEmpty ?? true ? 'Введите имя' : null,
                 onSaved: (value) => _name = value!,
               ),

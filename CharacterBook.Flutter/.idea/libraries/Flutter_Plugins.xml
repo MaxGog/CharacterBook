@@ -8,10 +8,8 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_linux-0.2.1+2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_ios-0.8.12+2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker-1.1.2" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_android-2.2.16" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/file_selector_windows-0.9.3+4" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_android-0.8.12+22" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/file_selector_linux-0.9.3+2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_macos-0.2.1+2" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_windows-0.2.1+1" />
@@ -23,6 +21,8 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_android-1.0.6" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_web-0.0.4" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/open_file_ios-1.0.3" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_android-2.2.17" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_android-0.8.12+23" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

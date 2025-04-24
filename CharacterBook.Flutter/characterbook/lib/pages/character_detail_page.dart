@@ -1,9 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+
 import 'package:docx_template/docx_template.dart' as docx;
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+
+import '../generated/l10n.dart';
+
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
 
@@ -29,7 +34,7 @@ class CharacterDetailPage extends StatelessWidget {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/${character.name}_character.docx';
 
-      final file = await File(filePath).writeAsBytes((await docxDoc) as List<int>);
+      final file = await File(filePath).writeAsBytes((docxDoc) as List<int>);
       await OpenFile.open(file.path);
 
       if (context.mounted) {
@@ -43,6 +48,23 @@ class CharacterDetailPage extends StatelessWidget {
           SnackBar(content: Text('Ошибка при экспорте: ${e.toString()}')),
         );
       }
+    }
+  }
+
+  Future<void> _copyToClipboard(BuildContext context) async {
+
+    final characterInfo = '${S.of(context).name}: ${character.name}\n'
+        '${S.of(context).age}: ${character.age}\n'
+        '${S.of(context).gender}: ${character.gender}\n'
+        '${S.of(context).biography}: ${character.biography}\n'
+        '${S.of(context).appearance}: ${character.appearance}\n'
+        '${S.of(context).personality}: ${character.personality}\n';
+
+    await Clipboard.setData(ClipboardData(text: characterInfo));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Информация скопирована в буфер обмена')),
+      );
     }
   }
 
@@ -64,8 +86,13 @@ class CharacterDetailPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.file_download),
             onPressed: () => _exportToDocx(context),
-            tooltip: 'Экспорт в DOCX',
+            tooltip: S.of(context).export,
           ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: () => _copyToClipboard(context),
+            tooltip: S.of(context).copy,
+          )
         ],
       ),
       body: SingleChildScrollView(
@@ -76,7 +103,7 @@ class CharacterDetailPage extends StatelessWidget {
             Center(
               child: character.imageBytes != null
                   ? CircleAvatar(
-                backgroundImage: MemoryImage(character.imageBytes! as Uint8List),
+                backgroundImage: MemoryImage(character.imageBytes!),
                 radius: 80,
               )
                   : const CircleAvatar(
