@@ -1,42 +1,104 @@
 import 'dart:typed_data';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import '../models/character_model.dart';
 import 'character_detail_page.dart';
 import 'character_edit_page.dart';
 
-class CharacterListPage extends StatelessWidget {
+class CharacterListPage extends StatefulWidget {
   const CharacterListPage({super.key});
+
+  @override
+  State<CharacterListPage> createState() => _CharacterListPageState();
+}
+
+class _CharacterListPageState extends State<CharacterListPage> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Character> _filteredCharacters = [];
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterCharacters(String query, List<Character> allCharacters) {
+    setState(() {
+      _filteredCharacters = allCharacters.where((character) {
+        final nameLower = character.name.toLowerCase();
+        final ageLower = character.age.toString().toLowerCase();
+        final genderLower = character.gender.toLowerCase();
+        final searchLower = query.toLowerCase();
+
+        return nameLower.contains(searchLower) ||
+            ageLower.contains(searchLower) ||
+            genderLower.contains(searchLower);
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мои персонажи'),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Поиск персонажей...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.black),
+          ),
+          style: const TextStyle(color: Colors.black),
+          onChanged: (query) {
+            final box = Hive.box<Character>('characters');
+            final allCharacters = box.values.toList().cast<Character>();
+            _filterCharacters(query, allCharacters);
+          },
+        )
+            : const Text('Мои персонажи'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  _filteredCharacters = [];
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: ValueListenableBuilder<Box<Character>>(
         valueListenable: Hive.box<Character>('characters').listenable(),
         builder: (context, box, _) {
-          final characters = box.values.toList().cast<Character>();
+          final allCharacters = box.values.toList().cast<Character>();
+          final charactersToDisplay =
+          _isSearching && _searchController.text.isNotEmpty
+              ? _filteredCharacters
+              : allCharacters;
 
-          if (characters.isEmpty) {
-            return const Center(
+          if (charactersToDisplay.isEmpty) {
+            return Center(
               child: Text(
-                'Нет персонажей',
-                style: TextStyle(fontSize: 18),
+                _isSearching && _searchController.text.isNotEmpty
+                    ? 'Ничего не найдено'
+                    : 'Нет персонажей',
+                style: const TextStyle(fontSize: 18),
               ),
             );
           }
 
           return ListView.builder(
-            itemCount: characters.length,
+            itemCount: charactersToDisplay.length,
             itemBuilder: (context, index) {
-              final character = characters[index];
+              final character = charactersToDisplay[index];
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
