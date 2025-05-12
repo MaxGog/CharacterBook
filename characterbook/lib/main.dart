@@ -3,12 +3,9 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
 import 'generated/l10n.dart';
 
 import 'models/character_model.dart';
-import 'pages/character_detail_page.dart';
-import 'pages/character_edit_page.dart';
 import 'pages/character_list_page.dart';
 
 
