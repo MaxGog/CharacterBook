@@ -27,8 +27,6 @@
 - **UI**: Adaptive Design, Material 3.
 
 ## 📸 Скриншоты
-*(Добавьте несколько превью интерфейса)*
-
 | Главный экран | Создание персонажа | Экспорт |  
 |--------------|-------------------|---------|  
 | ![Главный экран](https://play-lh.googleusercontent.com/-y1romlFaXEzwBo8pT0XOto_PM2BWmrk8EZ9Ax-qk41W6zToI9FSjEYTfoxCwNLZhx4=w5120-h2880) | ![Создание](https://play-lh.googleusercontent.com/JPxZ6-nUxotrLGXVQuBzTurZbXl7QcuNC_O-Cgap3DDIOJlPRjsfFl7D6weBMb0NXBc7=w5120-h2880) | ![Экспорт](https://play-lh.googleusercontent.com/eI1tfIuAT2q18LAImzaQuC3mO2HMFooXsl5bwqRBz8pQnGriXyGeiyFTf3Fr_MtbhQ=w5120-h2880) |  
