@@ -165,11 +165,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                       : null,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                S.of(context).add_picture,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
               const SizedBox(height: 24),
               TextFormField(
                 initialValue: _name,
