@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -28,6 +27,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   late String _personality;
   late String _appearance;
   late Uint8List? _imageBytes;
+  late String _abilities;
+  late String _other;
+  late Uint8List? _referenceImageBytes;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -45,6 +47,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _personality = widget.character!.personality;
       _appearance = widget.character!.appearance;
       _imageBytes = widget.character!.imageBytes;
+      _abilities = widget.character!.abilities;
+      _other = widget.character!.other;
+      _referenceImageBytes = widget.character!.referenceImageBytes;
     } else {
       _name = '';
       _age = 20;
@@ -53,6 +58,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _personality = '';
       _appearance = '';
       _imageBytes = null;
+      _abilities = '';
+      _other = '';
+      _referenceImageBytes = null;
     }
   }
 
@@ -63,6 +71,22 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         final bytes = await image.readAsBytes();
         setState(() {
           _imageBytes = bytes;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка при выборе изображения: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _pickReferenceImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _referenceImageBytes = bytes;
         });
       }
     } catch (e) {
@@ -92,6 +116,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             personality: _personality,
             appearance: _appearance,
             imageBytes: imageBytes,
+            abilities: _abilities,
+            other: _other,
+            referenceImageBytes: _referenceImageBytes,
           ));
         } else {
           await box.add(Character(
@@ -102,6 +129,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             personality: _personality,
             appearance: _appearance,
             imageBytes: imageBytes,
+            abilities: _abilities,
+            other: _other,
+            referenceImageBytes: _referenceImageBytes,
           ));
         }
 
@@ -122,7 +152,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         '${S.of(context).gender}: ${_gender}\n'
         '${S.of(context).biography}: ${_biography}\n'
         '${S.of(context).appearance}: ${_appearance}\n'
-        '${S.of(context).personality}: ${_personality}\n';
+        '${S.of(context).personality}: ${_personality}\n'
+        '${"Способности: "}: ${_abilities}\n'
+        '${"Прочее: "}: ${_other}\n';
     await Clipboard.setData(ClipboardData(text: characterInfo));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -144,6 +176,11 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               onPressed: _copyToClipboard,
               tooltip: S.of(context).copy,
             ),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _saveCharacter,
+            tooltip: S.of(context).save,
+          )
         ],
       ),
       body: SingleChildScrollView(
@@ -220,11 +257,41 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 onSaved: (value) => _personality = value!,
               ),
               const SizedBox(height: 16),
+              const Text("Референс персонажа"),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _pickReferenceImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: _referenceImageBytes != null
+                      ? MemoryImage(_referenceImageBytes!)
+                      : null,
+                  child: _referenceImageBytes == null
+                      ? const Icon(Icons.add_a_photo, size: 40)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 initialValue: _appearance,
                 decoration: const InputDecoration(labelText: 'Внешность'),
                 maxLines: 3,
                 onSaved: (value) => _appearance = value!,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _abilities,
+                decoration: const InputDecoration(labelText: 'Способности'),
+                maxLines: 3,
+                onSaved: (value) => _abilities = value!,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _other,
+                decoration: const InputDecoration(labelText: 'Прочее'),
+                maxLines: 3,
+                onSaved: (value) => _other = value!,
               ),
               const SizedBox(height: 32),
               ElevatedButton(

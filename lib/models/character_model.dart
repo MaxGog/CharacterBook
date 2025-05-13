@@ -27,6 +27,15 @@ class Character extends HiveObject {
   @HiveField(6)
   Uint8List? imageBytes;
 
+  @HiveField(7)
+  String abilities;
+
+  @HiveField(8)
+  String other;
+
+  @HiveField(9)
+  Uint8List? referenceImageBytes;
+
   Character({
     required this.name,
     required this.age,
@@ -34,6 +43,10 @@ class Character extends HiveObject {
     required this.biography,
     required this.personality,
     required this.appearance,
+    required this.abilities,
+    required this.other,
+
     this.imageBytes,
+    this.referenceImageBytes,
   });
 }

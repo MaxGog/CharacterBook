@@ -20,5 +20,7 @@
   "create": "Create",
   "new_character": "New character",
   "add_picture": "Add picture",
-  "save": "Save"
+  "save": "Save",
+  "abilities": "Abilities",
+  "other": "Other"
 }

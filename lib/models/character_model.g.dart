@@ -23,14 +23,17 @@ class CharacterAdapter extends TypeAdapter<Character> {
       biography: fields[3] as String,
       personality: fields[4] as String,
       appearance: fields[5] as String,
-      imageBytes: fields[6] as dynamic,
+      abilities: fields[7] as String,
+      other: fields[8] as String,
+      imageBytes: fields[6] as Uint8List?,
+      referenceImageBytes: fields[9] as Uint8List?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Character obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -44,7 +47,13 @@ class CharacterAdapter extends TypeAdapter<Character> {
       ..writeByte(5)
       ..write(obj.appearance)
       ..writeByte(6)
-      ..write(obj.imageBytes);
+      ..write(obj.imageBytes)
+      ..writeByte(7)
+      ..write(obj.abilities)
+      ..writeByte(8)
+      ..write(obj.other)
+      ..writeByte(9)
+      ..write(obj.referenceImageBytes);
   }
 
   @override
