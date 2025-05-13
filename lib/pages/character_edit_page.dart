@@ -33,7 +33,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  final List<String> _genders = ["male", "female", "another"];
+  final List<String> _genders = ["male", "female", "other"];
 
   @override
   void initState() {
@@ -261,14 +261,21 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickReferenceImage,
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: _referenceImageBytes != null
-                      ? MemoryImage(_referenceImageBytes!)
-                      : null,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                    image: _referenceImageBytes != null
+                        ? DecorationImage(
+                      image: MemoryImage(_referenceImageBytes!),
+                      fit: BoxFit.cover,
+                    )
+                        : null,
+                  ),
                   child: _referenceImageBytes == null
-                      ? const Icon(Icons.add_a_photo, size: 40)
+                      ? const Center(child: Icon(Icons.add_a_photo, size: 40))
                       : null,
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:characterbook/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -99,6 +100,15 @@ class _CharacterListPageState extends State<CharacterListPage> {
                 }
               });
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+              builder: (context) => const SettingsPage(),
+              ),
+            )
           ),
         ],
       ),
