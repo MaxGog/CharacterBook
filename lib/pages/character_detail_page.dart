@@ -20,7 +20,6 @@ class CharacterDetailPage extends StatelessWidget {
   Future<void> _exportToDocx(BuildContext context) async {
     try {
       final docxDoc = await docx.DocxTemplate.fromBytes(Uint8List(0));
-
       final data = {
         'name': character.name,
         'age': character.age.toString(),
@@ -39,104 +38,159 @@ class CharacterDetailPage extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Персонаж экспортирован в $filePath')),
+          SnackBar(
+            content: Text('Персонаж экспортирован в $filePath'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка при экспорте: ${e.toString()}')),
+          SnackBar(
+            content: Text('Ошибка при экспорте: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         );
       }
     }
   }
 
   Future<void> _copyToClipboard(BuildContext context) async {
-
-    final characterInfo = '${S.of(context).name}: ${character.name}\n'
-        '${S.of(context).age}: ${character.age}\n'
-        '${S.of(context).gender}: ${character.gender}\n'
-        '${S.of(context).biography}: ${character.biography}\n'
-        '${S.of(context).appearance}: ${character.appearance}\n'
-        '${S.of(context).personality}: ${character.personality}\n';
+    final characterInfo = '''
+Имя: ${character.name}
+Возраст: ${character.age} лет
+Пол: ${character.gender}
+Биография: ${character.biography}
+Внешность: ${character.appearance}
+Характер: ${character.personality}
+Способности: ${character.abilities}
+Прочее: ${character.other}
+''';
 
     await Clipboard.setData(ClipboardData(text: characterInfo));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Информация скопирована в буфер обмена')),
+        SnackBar(
+          content: const Text('Информация скопирована в буфер обмена'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(character.name),
+        title: Text(
+          character.name,
+          style: textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: Icon(Icons.edit, color: colorScheme.onSurface),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => CharacterEditPage(character: character),
               ),
             ),
+            tooltip: 'Редактировать',
           ),
           IconButton(
-            icon: const Icon(Icons.file_download),
+            icon: Icon(Icons.file_download, color: colorScheme.onSurface),
             onPressed: () => _exportToDocx(context),
-            tooltip: S.of(context).export,
+            tooltip: 'Экспорт в DOCX',
           ),
           IconButton(
-            icon: const Icon(Icons.copy),
+            icon: Icon(Icons.copy, color: colorScheme.onSurface),
             onPressed: () => _copyToClipboard(context),
-            tooltip: S.of(context).copy,
-          )
+            tooltip: 'Копировать',
+          ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Аватар персонажа
             Center(
               child: character.imageBytes != null
                   ? CircleAvatar(
+                radius: 80,
                 backgroundImage: MemoryImage(character.imageBytes!),
-                radius: 80,
               )
-                  : const CircleAvatar(
+                  : CircleAvatar(
                 radius: 80,
-                child: Icon(Icons.person, size: 60),
+                backgroundColor: colorScheme.surfaceVariant,
+                child: Icon(
+                  Icons.person,
+                  size: 60,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(height: 24),
-            _buildInfoRow('Имя', character.name),
-            _buildInfoRow('Возраст', '${character.age} лет'),
-            _buildInfoRow('Пол', character.gender),
+
+            // Основная информация
+            _buildInfoRow(context, 'Имя', character.name),
+            _buildInfoRow(context, 'Возраст', '${character.age} лет'),
+            _buildInfoRow(context, 'Пол', character.gender),
             const SizedBox(height: 16),
-            _buildSectionTitle('Биография'),
-            _buildSectionContent(character.biography),
+
+            // Биография
+            _buildSectionTitle(context, 'Биография'),
+            _buildSectionContent(context, character.biography),
             const SizedBox(height: 16),
-            _buildSectionTitle('Характер'),
-            _buildSectionContent(character.personality),
+
+            // Характер
+            _buildSectionTitle(context, 'Характер'),
+            _buildSectionContent(context, character.personality),
             const SizedBox(height: 16),
-            _buildSectionTitle('Внешность'),
-            _buildSectionContent(character.appearance),
+
+            // Внешность
+            _buildSectionTitle(context, 'Внешность'),
+            _buildSectionContent(context, character.appearance),
             const SizedBox(height: 16),
-            _buildSectionTitle('Способности'),
-            _buildSectionContent(character.abilities),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Прочее'),
-            _buildSectionContent(character.other),
+
+            // Способности
+            if (character.abilities.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Способности'),
+              _buildSectionContent(context, character.abilities),
+              const SizedBox(height: 16),
+            ],
+
+            // Прочее
+            if (character.other.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Прочее'),
+              _buildSectionContent(context, character.other),
+              const SizedBox(height: 16),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -146,33 +200,51 @@ class CharacterDetailPage extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: textTheme.bodyLarge,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
   }
 
-  Widget _buildSectionContent(String content) {
-    return Text(
-      content,
-      style: const TextStyle(fontSize: 16),
+  Widget _buildSectionContent(BuildContext context, String content) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        content.isNotEmpty ? content : 'Нет информации',
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }

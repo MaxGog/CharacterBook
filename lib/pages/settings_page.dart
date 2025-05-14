@@ -31,6 +31,10 @@ class SettingsPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -129,6 +133,45 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ),*/
+          const SizedBox(height: 16),
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'О приложении',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Это приложение разработано для демонстрации возможностей Flutter. '
+                        'Здесь вы можете настроить внешний вид приложения под свои предпочтения.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _launchUrl('https://github.com/yourusername/yourrepository'),
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceVariant,
+                      ),
+                      child: Image.asset('assets/underdeveloped.png'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -154,5 +197,12 @@ class SettingsPage extends StatelessWidget {
       default:
         return languageCode.toUpperCase();
     }
+  }
+}
+
+Future<void> _launchUrl(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (!await launchUrl(uri)) {
+    throw Exception('Could not launch $url');
   }
 }

@@ -73,17 +73,26 @@ class _CharacterListPageState extends State<CharacterListPage> {
             ? TextField(
           controller: _searchController,
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Поиск персонажей...',
             border: InputBorder.none,
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
+          style: Theme.of(context).textTheme.bodyLarge,
           onChanged: (query) {
             final box = Hive.box<Character>('characters');
             final allCharacters = box.values.toList().cast<Character>();
             _filterCharacters(query, allCharacters);
           },
         )
-            : const Text('Мои персонажи'),
+            : Text(
+          'Мои персонажи',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -100,13 +109,13 @@ class _CharacterListPageState extends State<CharacterListPage> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-              builder: (context) => const SettingsPage(),
+                builder: (context) => const SettingsPage(),
               ),
-            )
+            ),
           ),
         ],
       ),
@@ -119,8 +128,9 @@ class _CharacterListPageState extends State<CharacterListPage> {
           return Column(
             children: [
               if (tags.isNotEmpty)
-                SizedBox(
-                  height: 50,
+                Container(
+                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: tags.length,
@@ -137,12 +147,30 @@ class _CharacterListPageState extends State<CharacterListPage> {
                               _filterCharacters(_searchController.text, allCharacters);
                             });
                           },
+                          shape: StadiumBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                          ),
+                          showCheckmark: false,
+                          side: BorderSide.none,
+                          selectedColor:
+                          Theme.of(context).colorScheme.secondaryContainer,
+                          labelStyle: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(
+                            color: _selectedTag == tag
+                                ? Theme.of(context)
+                                .colorScheme
+                                .onSecondaryContainer
+                                : Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
-
               Expanded(
                 child: _buildCharactersList(
                   _isSearching || _selectedTag != null
@@ -155,6 +183,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
         child: const Icon(Icons.add),
         onPressed: () => Navigator.push(
           context,
@@ -169,41 +198,98 @@ class _CharacterListPageState extends State<CharacterListPage> {
   Widget _buildCharactersList(List<Character> characters) {
     if (characters.isEmpty) {
       return Center(
-        child: Text(
-          _isSearching && _searchController.text.isNotEmpty
-              ? 'Ничего не найдено'
-              : 'Нет персонажей',
-          style: const TextStyle(fontSize: 18),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_search,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _isSearching && _searchController.text.isNotEmpty
+                  ? 'Ничего не найдено'
+                  : 'Нет персонажей',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+          ],
         ),
       );
     }
 
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: characters.length,
       itemBuilder: (context, index) {
         final character = characters[index];
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: ListTile(
-            leading: character.imageBytes != null
-                ? CircleAvatar(
-              backgroundImage: MemoryImage(character.imageBytes!),
-              radius: 25,
-            )
-                : const CircleAvatar(
-              radius: 25,
-              child: Icon(Icons.person),
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 1,
             ),
-            title: Text(character.name),
-            subtitle: Text('${character.age} лет, ${character.gender}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _deleteCharacter(context, character),
-            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => CharacterDetailPage(character: character),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  character.imageBytes != null
+                      ? CircleAvatar(
+                    backgroundImage: MemoryImage(character.imageBytes!),
+                    radius: 28,
+                  )
+                      : CircleAvatar(
+                    radius: 28,
+                    backgroundColor:
+                    Theme.of(context).colorScheme.surfaceVariant,
+                    child: Icon(
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          character.name,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        Text(
+                          '${character.age} лет, ${character.gender}',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () => _deleteCharacter(context, character),
+                  ),
+                ],
               ),
             ),
           ),
@@ -216,7 +302,13 @@ class _CharacterListPageState extends State<CharacterListPage> {
     final box = Hive.box<Character>('characters');
     await box.delete(character.key);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Персонаж удален')),
+      SnackBar(
+        content: const Text('Персонаж удален'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
     );
   }
 }
