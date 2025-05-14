@@ -8,6 +8,7 @@ import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'pages/character_list_page.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(settingsBox),
         ),
+        ChangeNotifierProvider(
+          create: (_) => LocaleProvider(settingsBox),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -35,6 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(
       localizationsDelegates: [
@@ -44,7 +49,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      locale: const Locale('ru'),
+      locale: localeProvider.locale ?? const Locale('ru'),
       title: 'CharacterBook',
       theme: ThemeData(
         primarySwatch: Colors.blue,

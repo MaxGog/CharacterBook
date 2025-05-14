@@ -2,30 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../generated/l10n.dart';
+import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
-
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  ThemeMode _themeMode = ThemeMode.system;
-  String _currentLanguage = 'ru';
-
-  final Map<String, String> _supportedLanguages = const {
-    'ru': 'Русский',
-    'en': 'English',
-  };
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    final s = S.of(context)!;
+
+    final currentLocale = localeProvider.locale ?? const Locale('ru');
+
+    final supportedLocales = S.delegate.supportedLocales;
+    final effectiveLocale = supportedLocales.contains(currentLocale)
+        ? currentLocale
+        : const Locale('ru');
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Настройки'),
+        title: Text("Параметры"),
         centerTitle: true,
       ),
       body: ListView(
@@ -37,15 +36,18 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Цветовая схема',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    "Цветовая схема",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Column(
                     children: [
                       RadioListTile<ThemeMode>(
-                        title: const Text('Системная'),
+                        title: Text("Системная"),
                         value: ThemeMode.system,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) {
@@ -55,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                       ),
                       RadioListTile<ThemeMode>(
-                        title: const Text('Светлая'),
+                        title: Text("Светлая"),
                         value: ThemeMode.light,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) {
@@ -65,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                       ),
                       RadioListTile<ThemeMode>(
-                        title: const Text('Тёмная'),
+                        title: Text("Тёмная"),
                         value: ThemeMode.dark,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) {
@@ -80,93 +82,77 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-          Card(
+          /*Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Язык приложения',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    "Параметры языка",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  DropdownButton<String>(
-                    value: _currentLanguage,
+                  DropdownButton<Locale>(
+                    value: effectiveLocale,
                     isExpanded: true,
-                    items: _supportedLanguages.entries.map((entry) {
-                      return DropdownMenuItem<String>(
-                        value: entry.key,
-                        child: Text(entry.value),
+                    items: S.delegate.supportedLocales.map((locale) {
+                      final languageCode = locale.languageCode;
+                      final flag = _getFlag(languageCode);
+                      final languageName = _getLanguageName(
+                        languageCode,
+                        effectiveLocale.languageCode,
+                      );
+
+                      return DropdownMenuItem<Locale>(
+                        value: locale,
+                        child: Row(
+                          children: [
+                            Text(flag),
+                            const SizedBox(width: 8),
+                            Text(languageName),
+                          ],
+                        ),
                       );
                     }).toList(),
-                    onChanged: (String? newLanguage) {
-                      if (newLanguage != null) {
-                        setState(() {
-                          _currentLanguage = newLanguage;
-                        });
+                    onChanged: (Locale? newLocale) {
+                      if (newLocale != null) {
+                        localeProvider.setLocale(newLocale);
                       }
                     },
                   ),
                 ],
               ),
             ),
-          ),
-
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'О приложении',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Это приложение разработано для демонстрации возможностей Flutter. '
-                        'Здесь вы можете настроить внешний вид приложения под свои предпочтения.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  InkWell(
-                    onTap: () => _launchUrl('https://github.com/yourusername/yourrepository'),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'GitHub проекта',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Image.asset(
-                          'assets/underdeveloped.png',
-                          width: 256,
-                          height: 64,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          ),*/
         ],
       ),
     );
   }
 
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $url');
+  String _getFlag(String languageCode) {
+    switch (languageCode) {
+      case 'en':
+        return '🇺🇸';
+      case 'ru':
+        return '🇷🇺';
+      default:
+        return '🌐';
+    }
+  }
+
+  String _getLanguageName(String languageCode, String currentLanguageCode) {
+    switch (languageCode) {
+      case 'en':
+        return currentLanguageCode == 'ru' ? 'Английский' : 'English';
+      case 'ru':
+        return currentLanguageCode == 'ru' ? 'Русский' : 'Russian';
+      default:
+        return languageCode.toUpperCase();
     }
   }
 }

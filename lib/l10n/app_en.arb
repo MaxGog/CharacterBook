@@ -22,5 +22,11 @@
   "add_picture": "Add picture",
   "save": "Save",
   "abilities": "Abilities",
-  "other": "Other"
+  "other": "Other",
+  "settings": "Settings",
+  "colorScheme": "Color scheme",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "appLanguage": "App language"
 }
