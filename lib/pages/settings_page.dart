@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../providers/theme_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -19,6 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Настройки'),
@@ -38,43 +42,37 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: RadioListTile<ThemeMode>(
-                          title: const Text('Системная'),
-                          value: ThemeMode.system,
-                          groupValue: _themeMode,
-                          onChanged: (value) {
-                            setState(() {
-                              _themeMode = value!;
-                            });
-                          },
-                        ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Системная'),
+                        value: ThemeMode.system,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
                       ),
-                      Expanded(
-                        child: RadioListTile<ThemeMode>(
-                          title: const Text('Светлая'),
-                          value: ThemeMode.light,
-                          groupValue: _themeMode,
-                          onChanged: (value) {
-                            setState(() {
-                              _themeMode = value!;
-                            });
-                          },
-                        ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Светлая'),
+                        value: ThemeMode.light,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
                       ),
-                      Expanded(
-                        child: RadioListTile<ThemeMode>(
-                          title: const Text('Тёмная'),
-                          value: ThemeMode.dark,
-                          groupValue: _themeMode,
-                          onChanged: (value) {
-                            setState(() {
-                              _themeMode = value!;
-                            });
-                          },
-                        ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Тёмная'),
+                        value: ThemeMode.dark,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -137,14 +135,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: () => _launchUrl('https://github.com/yourusername/yourrepository'),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Image.asset(
-                          'assets/underdeveloped.png',
-                          width: 24,
-                          height: 24,
-                        ),
-                        const SizedBox(width: 8),
                         const Text(
                           'GitHub проекта',
                           style: TextStyle(
@@ -152,6 +144,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             color: Colors.blue,
                             decoration: TextDecoration.underline,
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        Image.asset(
+                          'assets/underdeveloped.png',
+                          width: 256,
+                          height: 64,
                         ),
                       ],
                     ),

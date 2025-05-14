@@ -76,9 +76,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
           decoration: const InputDecoration(
             hintText: 'Поиск персонажей...',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white70),
           ),
-          style: const TextStyle(color: Colors.white),
           onChanged: (query) {
             final box = Hive.box<Character>('characters');
             final allCharacters = box.values.toList().cast<Character>();
