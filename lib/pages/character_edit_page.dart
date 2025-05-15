@@ -187,38 +187,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
 
-              // Биография
-              TextFormField(
-                initialValue: _biography,
-                decoration: InputDecoration(
-                  labelText: 'Биография',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                style: textTheme.bodyLarge,
-                maxLines: 3,
-                onSaved: (value) => _biography = value!,
-              ),
-              const SizedBox(height: 16),
 
-              // Характер
-              TextFormField(
-                initialValue: _personality,
-                decoration: InputDecoration(
-                  labelText: 'Характер',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                style: textTheme.bodyLarge,
-                maxLines: 3,
-                onSaved: (value) => _personality = value!,
-              ),
               const SizedBox(height: 16),
 
               // Референс изображение
@@ -267,9 +237,44 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   alignLabelWithHint: true,
                 ),
                 style: textTheme.bodyLarge,
-                maxLines: 3,
+                maxLines: 5,
                 onSaved: (value) => _appearance = value!,
               ),
+
+              const SizedBox(height: 16),
+
+              // Характер
+              TextFormField(
+                initialValue: _personality,
+                decoration: InputDecoration(
+                  labelText: 'Характер',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignLabelWithHint: true,
+                ),
+                style: textTheme.bodyLarge,
+                maxLines: 4,
+                onSaved: (value) => _personality = value!,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Биография
+              TextFormField(
+                initialValue: _biography,
+                decoration: InputDecoration(
+                  labelText: 'Биография',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignLabelWithHint: true,
+                ),
+                style: textTheme.bodyLarge,
+                maxLines: 7,
+                onSaved: (value) => _biography = value!,
+              ),
+
               const SizedBox(height: 16),
 
               // Способности
@@ -286,8 +291,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 maxLines: 3,
                 onSaved: (value) => _abilities = value!,
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
               // Прочее
               TextFormField(
                 initialValue: _other,
@@ -299,7 +304,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   alignLabelWithHint: true,
                 ),
                 style: textTheme.bodyLarge,
-                maxLines: 3,
+                maxLines: 5,
                 onSaved: (value) => _other = value!,
               ),
               const SizedBox(height: 32),

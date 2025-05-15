@@ -154,9 +154,37 @@ class CharacterDetailPage extends StatelessWidget {
             _buildInfoRow(context, 'Пол', character.gender),
             const SizedBox(height: 16),
 
-            // Биография
-            _buildSectionTitle(context, 'Биография'),
-            _buildSectionContent(context, character.biography),
+            _buildSectionTitle(context, 'Референс персонажа'),
+            Center(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                child: Ink(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                    image: character.referenceImageBytes != null
+                        ? DecorationImage(
+                      image: MemoryImage(character.referenceImageBytes!),
+                      fit: BoxFit.cover,
+                    )
+                        : null,
+                  ),
+                  child: character.referenceImageBytes == null
+                      ? Icon(
+                    Icons.people,
+                    size: 40,
+                    color: colorScheme.onSurfaceVariant,
+                  )
+                      : null,
+                ),
+              ),
+            ),
+
+            // Внешность
+            _buildSectionTitle(context, 'Внешность'),
+            _buildSectionContent(context, character.appearance),
             const SizedBox(height: 16),
 
             // Характер
@@ -164,9 +192,9 @@ class CharacterDetailPage extends StatelessWidget {
             _buildSectionContent(context, character.personality),
             const SizedBox(height: 16),
 
-            // Внешность
-            _buildSectionTitle(context, 'Внешность'),
-            _buildSectionContent(context, character.appearance),
+            // Биография
+            _buildSectionTitle(context, 'Биография'),
+            _buildSectionContent(context, character.biography),
             const SizedBox(height: 16),
 
             // Способности
