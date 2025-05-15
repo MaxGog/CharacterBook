@@ -17,7 +17,7 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.1.1
   image_picker: ^1.1.2
-  open_file: ^3.3.1
+  open_filex: ^4.7.0
   docx_template: ^0.4.0
   url_launcher: ^6.1.11
   json_annotation: ^4.8.1
@@ -42,6 +42,7 @@ flutter:
   assets:
     - assets/icon.png
     - assets/underdeveloped.png
+    - assets/character_template.docx
 
 flutter_launcher_icons:
   android: true

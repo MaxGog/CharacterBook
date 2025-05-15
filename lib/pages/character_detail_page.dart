@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'package:docx_template/docx_template.dart' as docx;
 import 'package:flutter/services.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 
 import '../generated/l10n.dart';
 
@@ -19,31 +19,36 @@ class CharacterDetailPage extends StatelessWidget {
 
   Future<void> _exportToDocx(BuildContext context) async {
     try {
-      final docxDoc = await docx.DocxTemplate.fromBytes(Uint8List(0));
-      final data = {
-        'name': character.name,
-        'age': character.age.toString(),
-        'gender': character.gender,
-        'biography': character.biography,
-        'personality': character.personality,
-        'appearance': character.appearance,
-      };
+      final ByteData templateData = await rootBundle.load('assets/character_template.docx');
+      final Uint8List templateBytes = templateData.buffer.asUint8List();
 
-      await docxDoc.generate(data as docx.Content);
+      final docxDoc = await docx.DocxTemplate.fromBytes(templateBytes);
+
+      final data = docx.Content()
+        ..add(docx.TextContent('name', character.name))
+        ..add(docx.TextContent('age', character.age.toString()))
+        ..add(docx.TextContent('gender', character.gender))
+        ..add(docx.TextContent('biography', character.biography))
+        ..add(docx.TextContent('personality', character.personality))
+        ..add(docx.TextContent('appearance', character.appearance))
+        ..add(docx.TextContent('other', character.other))
+        ..add(docx.TextContent('abilities', character.abilities));
+
+      final generatedDoc = await docxDoc.generate(data);
+      if (generatedDoc == null) throw Exception('Не удалось сгенерировать документ');
+
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/${character.name}_character.docx';
+      final file = File(filePath);
+      await file.writeAsBytes(generatedDoc);
 
-      final file = await File(filePath).writeAsBytes((docxDoc) as List<int>);
-      await OpenFile.open(file.path);
+      await OpenFilex.open(file.path);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Персонаж экспортирован в $filePath'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
           ),
         );
       }
@@ -52,10 +57,8 @@ class CharacterDetailPage extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Ошибка при экспорте: ${e.toString()}'),
+            backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
           ),
         );
       }

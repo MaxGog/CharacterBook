@@ -163,14 +163,14 @@ class SettingsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Это приложение разработано для демонстрации возможностей Flutter. '
+                    'Это приложение разработано на платформе Flutter. '
                         'Здесь вы можете настроить внешний вид приложения под свои предпочтения.',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 24),
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () => _launchUrl('https://github.com/yourusername/yourrepository'),
+                    onTap: () => _launchUrl('https://github.com/maxgog'),
                     child: Ink(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
