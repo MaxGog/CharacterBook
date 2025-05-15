@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSDocumentsFolderUsageDescription</key>
+    <string>Для сохранения резервных копий</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Для загрузки резервных копий</string>
 </dict>
 </plist>

@@ -49,4 +49,38 @@ class Character extends HiveObject {
     this.imageBytes,
     this.referenceImageBytes,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'age': age,
+      'gender': gender,
+      'biography': biography,
+      'personality': personality,
+      'appearance': appearance,
+      'abilities': abilities,
+      'other': other,
+      'imageBytes': imageBytes?.toList(),
+      'referenceImageBytes': referenceImageBytes?.toList(),
+    };
+  }
+
+  factory Character.fromJson(Map<String, dynamic> json) {
+    return Character(
+      name: json['name'] ?? '',
+      age: json['age'] ?? '',
+      gender: json['gender'] ?? '',
+      biography: json['biography'] ?? '',
+      personality: json['personality'] ?? '',
+      appearance: json['appearance'] ?? '',
+      abilities: json['abilities'] ?? '',
+      other: json['other'] ?? '',
+      imageBytes: json['imageBytes'] != null
+          ? Uint8List.fromList(List<int>.from(json['imageBytes']))
+          : null,
+      referenceImageBytes: json['referenceImageBytes'] != null
+          ? Uint8List.fromList(List<int>.from(json['referenceImageBytes']))
+          : null,
+    );
+  }
 }

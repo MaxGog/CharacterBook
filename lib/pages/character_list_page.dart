@@ -299,16 +299,55 @@ class _CharacterListPageState extends State<CharacterListPage> {
   }
 
   void _deleteCharacter(BuildContext context, Character character) async {
-    final box = Hive.box<Character>('characters');
-    await box.delete(character.key);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Персонаж удален'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+    final confirmed = await _showDeleteConfirmationDialog(context);
+    if (confirmed ?? false) {
+      final box = Hive.box<Character>('characters');
+      await box.delete(character.key);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Персонаж удален'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
-      ),
+      );
+    }
+  }
+
+  Future<bool?> _showDeleteConfirmationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Удаление персонажа'),
+          content: const Text('Вы уверены, что хотите удалить этого персонажа?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Отмена',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Удалить',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
