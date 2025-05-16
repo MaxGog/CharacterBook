@@ -3,8 +3,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'generated/l10n.dart';
 
+import 'adapters/custom_field_adapter.dart';
+import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'pages/character_list_page.dart';
 import 'providers/theme_provider.dart';
@@ -15,7 +16,9 @@ void main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(CharacterAdapter());
-  final charactersBox = await Hive.openBox<Character>('characters');
+  Hive.registerAdapter(CustomFieldAdapter());
+  await Hive.openBox<Character>('characters');
+
   final settingsBox = await Hive.openBox('settings');
 
   runApp(
@@ -33,8 +36,33 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      Hive.box<Character>('characters').flush();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -19,51 +19,45 @@ class CharacterDetailPage extends StatelessWidget {
 
   Future<void> _exportToDocx(BuildContext context) async {
     try {
-      final ByteData templateData = await rootBundle.load('assets/character_template.docx');
-      final Uint8List templateBytes = templateData.buffer.asUint8List();
-
+      final templateData = await rootBundle.load('assets/character_template.docx');
+      final templateBytes = templateData.buffer.asUint8List();
       final docxDoc = await docx.DocxTemplate.fromBytes(templateBytes);
 
-      final data = docx.Content()
+      final content = docx.Content()
         ..add(docx.TextContent('name', character.name))
         ..add(docx.TextContent('age', character.age.toString()))
         ..add(docx.TextContent('gender', character.gender))
         ..add(docx.TextContent('biography', character.biography))
         ..add(docx.TextContent('personality', character.personality))
         ..add(docx.TextContent('appearance', character.appearance))
-        ..add(docx.TextContent('other', character.other))
-        ..add(docx.TextContent('abilities', character.abilities));
+        ..add(docx.TextContent('abilities', character.abilities))
+        ..add(docx.TextContent('other', character.other));
 
-      for (var entry in character.customFields.entries) {
-        data.add(docx.TextContent(entry.key, entry.value));
+      for (var i = 0; i < character.customFields.length; i++) {
+        final field = character.customFields[i];
+        content
+          ..add(docx.TextContent('custom_key_$i', field.key))
+          ..add(docx.TextContent('custom_value_$i', field.value));
       }
 
-      final generatedDoc = await docxDoc.generate(data);
-      if (generatedDoc == null) throw Exception('Не удалось сгенерировать документ');
+      final generatedDoc = await docxDoc.generate(content);
+      if (generatedDoc == null) throw Exception('Ошибка генерации документа');
 
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/${character.name}_character.docx';
-      final file = File(filePath);
-      await file.writeAsBytes(generatedDoc);
+      await File(filePath).writeAsBytes(generatedDoc);
 
-      await OpenFilex.open(file.path);
+      await OpenFilex.open(filePath);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Персонаж экспортирован в $filePath'),
-            behavior: SnackBarBehavior.floating,
-          ),
+          SnackBar(content: Text('Экспортировано в $filePath')),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка при экспорте: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+          SnackBar(content: Text('Ошибка экспорта: $e')),
         );
       }
     }
@@ -81,31 +75,28 @@ class CharacterDetailPage extends StatelessWidget {
   }
 
   Future<void> _copyToClipboard(BuildContext context) async {
-    var characterInfo = '''
-Имя: ${character.name}
-Возраст: ${character.age} лет
-Пол: ${character.gender}
-Биография: ${character.biography}
-Внешность: ${character.appearance}
-Характер: ${character.personality}
-Способности: ${character.abilities}
-Прочее: ${character.other}
-''';
+    final buffer = StringBuffer()
+      ..writeln('Имя: ${character.name}')
+      ..writeln('Возраст: ${character.age}')
+      ..writeln('Пол: ${character.gender}')
+      ..writeln('Биография: ${character.biography}')
+      ..writeln('Внешность: ${character.appearance}')
+      ..writeln('Характер: ${character.personality}')
+      ..writeln('Способности: ${character.abilities}')
+      ..writeln('Прочее: ${character.other}');
 
-    for (var entry in character.customFields.entries) {
-      characterInfo += '${entry.key}: ${entry.value}\n';
+    if (character.customFields.isNotEmpty) {
+      buffer.writeln('\nДополнительные поля:');
+      for (final field in character.customFields) {
+        buffer.writeln('${field.key}: ${field.value}');
+      }
     }
 
-    await Clipboard.setData(ClipboardData(text: characterInfo));
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Информация скопирована в буфер обмена'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
+        const SnackBar(content: Text('Скопировано в буфер обмена')),
       );
     }
   }
@@ -261,40 +252,13 @@ class CharacterDetailPage extends StatelessWidget {
             ],
 
             if (character.customFields.isNotEmpty) ...[
-              _buildSectionTitle(context, 'Дополнительная информация'),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: character.customFields.entries.map((entry) {
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            entry.key,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            entry.value,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+              Text('Дополнительные поля', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...character.customFields.map((field) =>
+                  ListTile(
+                    title: Text(field.key),
+                    subtitle: Text(field.value),
+                  ),
               ),
-              const SizedBox(height: 16),
             ],
           ],
         ),

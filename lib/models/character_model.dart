@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
 
+import 'custom_field_model.dart';
+
 part 'character_model.g.dart';
 
 @HiveType(typeId: 0)
@@ -37,7 +39,7 @@ class Character extends HiveObject {
   Uint8List? referenceImageBytes;
 
   @HiveField(10)
-  Map<String, String> customFields;
+  List<CustomField> customFields;
 
   @HiveField(11)
   List<Uint8List> additionalImages = [];
@@ -53,10 +55,10 @@ class Character extends HiveObject {
     this.other = '',
     this.imageBytes,
     this.referenceImageBytes,
-    Map<String, String>? customFields,
+    List<CustomField>? customFields,
     List<Uint8List>? additionalImages,
   }) :
-      customFields = customFields ?? <String, String>{},
+      customFields = customFields ?? [],
       additionalImages = additionalImages ?? [];
 
 
@@ -72,14 +74,15 @@ class Character extends HiveObject {
       'other': other,
       'imageBytes': imageBytes?.toList(),
       'referenceImageBytes': referenceImageBytes?.toList(),
-      'customFields': customFields,
+      'customFields': customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
+      'additionalImages': additionalImages.map((img) => img.toList()).toList(),
     };
   }
 
   factory Character.fromJson(Map<String, dynamic> json) {
     return Character(
       name: json['name'] ?? '',
-      age: json['age'] ?? '',
+      age: json['age'] ?? 0,
       gender: json['gender'] ?? '',
       biography: json['biography'] ?? '',
       personality: json['personality'] ?? '',
@@ -92,7 +95,10 @@ class Character extends HiveObject {
       referenceImageBytes: json['referenceImageBytes'] != null
           ? Uint8List.fromList(List<int>.from(json['referenceImageBytes']))
           : null,
-      customFields: Map<String, String>.from(json['customFields'] ?? {}),
+      customFields: (json['customFields'] as List?)?.map((e) =>
+          CustomField(e['key'] ?? '', e['value'] ?? '')).toList() ?? [],
+      additionalImages: (json['additionalImages'] as List?)?.map((e) =>
+          Uint8List.fromList(List<int>.from(e))).toList() ?? [],
     );
   }
 }

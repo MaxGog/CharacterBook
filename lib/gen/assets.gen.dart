@@ -12,12 +12,13 @@ import 'package:flutter/widgets.dart';
 class Assets {
   const Assets._();
 
+  static const String characterTemplate = 'assets/character_template.docx';
   static const AssetGenImage icon = AssetGenImage('assets/icon.png');
   static const AssetGenImage underdeveloped =
       AssetGenImage('assets/underdeveloped.png');
 
   /// List of all assets
-  static List<AssetGenImage> get values => [icon, underdeveloped];
+  static List<dynamic> get values => [characterTemplate, icon, underdeveloped];
 }
 
 class AssetGenImage {
