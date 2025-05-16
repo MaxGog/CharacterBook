@@ -34,11 +34,15 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   final ImagePicker _picker = ImagePicker();
   final List<String> _genders = ["Мужской", "Женский", "Другой"];
 
+  late List<MapEntry<String, String>> _customFields;
+
   @override
   void initState() {
     super.initState();
     _initializeFields();
   }
+
+
 
   void _initializeFields() {
     if (widget.character != null) {
@@ -52,6 +56,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _abilities = widget.character!.abilities;
       _other = widget.character!.other;
       _referenceImageBytes = widget.character!.referenceImageBytes;
+      _customFields = widget.character!.customFields.entries.toList();
     } else {
       _name = '';
       _age = 20;
@@ -63,7 +68,32 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _abilities = '';
       _other = '';
       _referenceImageBytes = null;
+      _customFields = [];
     }
+  }
+
+  void _addCustomField() {
+    setState(() {
+      _customFields.add(MapEntry('', ''));
+    });
+  }
+
+  void _removeCustomField(int index) {
+    setState(() {
+      _customFields.removeAt(index);
+    });
+  }
+
+  void _updateCustomFieldKey(int index, String newKey) {
+    setState(() {
+      _customFields[index] = MapEntry(newKey, _customFields[index].value);
+    });
+  }
+
+  void _updateCustomFieldValue(int index, String newValue) {
+    setState(() {
+      _customFields[index] = MapEntry(_customFields[index].key, newValue);
+    });
   }
 
   @override
@@ -309,6 +339,68 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               ),
               const SizedBox(height: 32),
 
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Дополнительные поля',
+                        style: textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _addCustomField,
+                        tooltip: 'Добавить поле',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ..._customFields.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final field = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              initialValue: field.key,
+                              decoration: InputDecoration(
+                                labelText: 'Название поля',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onChanged: (value) => _updateCustomFieldKey(index, value),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 3,
+                            child: TextFormField(
+                              initialValue: field.value,
+                              decoration: InputDecoration(
+                                labelText: 'Значение',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onChanged: (value) => _updateCustomFieldValue(index, value),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _removeCustomField(index),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+
               // Кнопка сохранения
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -383,6 +475,11 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       final box = Hive.box<Character>('characters');
 
       try {
+        final customFields = {
+          for (var entry in _customFields)
+            if (entry.key.isNotEmpty) entry.key: entry.value
+        };
+
         final character = Character(
           name: _name,
           age: _age,
@@ -394,6 +491,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           abilities: _abilities,
           other: _other,
           referenceImageBytes: _referenceImageBytes,
+          customFields: customFields,
         );
 
         if (widget.character != null) {
@@ -420,7 +518,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   Future<void> _copyToClipboard() async {
-    final characterInfo = '''
+    var characterInfo = '''
 Имя: $_name
 Возраст: $_age
 Пол: $_gender
@@ -430,6 +528,13 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 Способности: $_abilities
 Прочее: $_other
 ''';
+
+    // Добавляем кастомные поля
+    for (var entry in _customFields) {
+      if (entry.key.isNotEmpty) {
+        characterInfo += '${entry.key}: ${entry.value}\n';
+      }
+    }
 
     await Clipboard.setData(ClipboardData(text: characterInfo));
 

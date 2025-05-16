@@ -36,6 +36,9 @@ class Character extends HiveObject {
   @HiveField(9)
   Uint8List? referenceImageBytes;
 
+  @HiveField(10)
+  Map<String, String> customFields = {};
+
   Character({
     required this.name,
     required this.age,
@@ -48,7 +51,9 @@ class Character extends HiveObject {
 
     this.imageBytes,
     this.referenceImageBytes,
-  });
+    Map<String, String>? customFields,
+  }) : customFields = customFields ?? {};
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -62,6 +67,7 @@ class Character extends HiveObject {
       'other': other,
       'imageBytes': imageBytes?.toList(),
       'referenceImageBytes': referenceImageBytes?.toList(),
+      'customFields': customFields,
     };
   }
 
@@ -81,6 +87,7 @@ class Character extends HiveObject {
       referenceImageBytes: json['referenceImageBytes'] != null
           ? Uint8List.fromList(List<int>.from(json['referenceImageBytes']))
           : null,
+      customFields: Map<String, String>.from(json['customFields'] ?? {}),
     );
   }
 }
