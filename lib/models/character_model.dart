@@ -37,22 +37,27 @@ class Character extends HiveObject {
   Uint8List? referenceImageBytes;
 
   @HiveField(10)
-  Map<String, String> customFields = {};
+  Map<String, String> customFields;
+
+  @HiveField(11)
+  List<Uint8List> additionalImages = [];
 
   Character({
-    required this.name,
-    required this.age,
-    required this.gender,
-    required this.biography,
-    required this.personality,
-    required this.appearance,
-    required this.abilities,
-    required this.other,
-
+    this.name = '',
+    this.age = 0,
+    this.gender = '',
+    this.biography = '',
+    this.personality = '',
+    this.appearance = '',
+    this.abilities = '',
+    this.other = '',
     this.imageBytes,
     this.referenceImageBytes,
     Map<String, String>? customFields,
-  }) : customFields = customFields ?? {};
+    List<Uint8List>? additionalImages,
+  }) :
+      customFields = customFields ?? <String, String>{},
+      additionalImages = additionalImages ?? [];
 
 
   Map<String, dynamic> toJson() {

@@ -35,6 +35,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   final List<String> _genders = ["Мужской", "Женский", "Другой"];
 
   late List<MapEntry<String, String>> _customFields;
+  late List<Uint8List> _additionalImages;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _other = widget.character!.other;
       _referenceImageBytes = widget.character!.referenceImageBytes;
       _customFields = widget.character!.customFields.entries.toList();
+      _additionalImages = List.from(widget.character!.additionalImages);
     } else {
       _name = '';
       _age = 20;
@@ -69,6 +71,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _other = '';
       _referenceImageBytes = null;
       _customFields = [];
+      _additionalImages = [];
     }
   }
 
@@ -271,6 +274,66 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 onSaved: (value) => _appearance = value!,
               ),
 
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Дополнительные изображения',
+                        style: textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_photo_alternate),
+                        onPressed: _pickAdditionalImage,
+                        tooltip: 'Добавить изображение',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_additionalImages.isEmpty)
+                    Text(
+                      'Нет дополнительных изображений',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: _additionalImages.length,
+                    itemBuilder: (context, index) {
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(
+                              _additionalImages[index],
+                              fit: BoxFit.cover,
+                              height: 120,
+                              width: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _removeAdditionalImage(index),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 16),
 
               // Характер
@@ -468,6 +531,31 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     }
   }
 
+  Future<void> _pickAdditionalImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() => _additionalImages.add(bytes));
+      }
+    } catch (e) {
+      _showError('Ошибка при выборе изображения: ${e.toString()}');
+    }
+  }
+
+  void _removeAdditionalImage(int index) {
+    setState(() => _additionalImages.removeAt(index));
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   void _saveCharacter() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -475,9 +563,10 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       final box = Hive.box<Character>('characters');
 
       try {
-        final customFields = {
+        final customFields = <String, String>{
           for (var entry in _customFields)
-            if (entry.key.isNotEmpty) entry.key: entry.value
+            if (entry.key.trim().isNotEmpty && entry.value.trim().isNotEmpty)
+              entry.key.trim(): entry.value.trim()
         };
 
         final character = Character(
@@ -487,11 +576,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           biography: _biography,
           personality: _personality,
           appearance: _appearance,
-          imageBytes: _imageBytes,
           abilities: _abilities,
           other: _other,
+          imageBytes: _imageBytes,
           referenceImageBytes: _referenceImageBytes,
           customFields: customFields,
+          additionalImages: _additionalImages,
         );
 
         if (widget.character != null) {
@@ -506,10 +596,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Ошибка сохранения: ${e.toString()}'),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
           );
         }
@@ -529,7 +615,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 Прочее: $_other
 ''';
 
-    // Добавляем кастомные поля
     for (var entry in _customFields) {
       if (entry.key.isNotEmpty) {
         characterInfo += '${entry.key}: ${entry.value}\n';

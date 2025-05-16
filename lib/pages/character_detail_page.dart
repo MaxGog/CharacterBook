@@ -34,6 +34,10 @@ class CharacterDetailPage extends StatelessWidget {
         ..add(docx.TextContent('other', character.other))
         ..add(docx.TextContent('abilities', character.abilities));
 
+      for (var entry in character.customFields.entries) {
+        data.add(docx.TextContent(entry.key, entry.value));
+      }
+
       final generatedDoc = await docxDoc.generate(data);
       if (generatedDoc == null) throw Exception('Не удалось сгенерировать документ');
 
@@ -65,8 +69,19 @@ class CharacterDetailPage extends StatelessWidget {
     }
   }
 
+  void _showFullImage(BuildContext context, Uint8List imageBytes) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: InteractiveViewer(
+          child: Image.memory(imageBytes),
+        ),
+      ),
+    );
+  }
+
   Future<void> _copyToClipboard(BuildContext context) async {
-    final characterInfo = '''
+    var characterInfo = '''
 Имя: ${character.name}
 Возраст: ${character.age} лет
 Пол: ${character.gender}
@@ -76,6 +91,10 @@ class CharacterDetailPage extends StatelessWidget {
 Способности: ${character.abilities}
 Прочее: ${character.other}
 ''';
+
+    for (var entry in character.customFields.entries) {
+      characterInfo += '${entry.key}: ${entry.value}\n';
+    }
 
     await Clipboard.setData(ClipboardData(text: characterInfo));
     if (context.mounted) {
@@ -188,6 +207,33 @@ class CharacterDetailPage extends StatelessWidget {
             // Внешность
             _buildSectionTitle(context, 'Внешность'),
             _buildSectionContent(context, character.appearance),
+
+            const SizedBox(height: 16),
+
+            if (character.additionalImages.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Дополнительные изображения'),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: character.additionalImages.length,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      character.additionalImages[index],
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+
             const SizedBox(height: 16),
 
             // Характер
@@ -211,6 +257,43 @@ class CharacterDetailPage extends StatelessWidget {
             if (character.other.isNotEmpty) ...[
               _buildSectionTitle(context, 'Прочее'),
               _buildSectionContent(context, character.other),
+              const SizedBox(height: 16),
+            ],
+
+            if (character.customFields.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Дополнительная информация'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: character.customFields.entries.map((entry) {
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.key,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            entry.value,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
               const SizedBox(height: 16),
             ],
           ],
