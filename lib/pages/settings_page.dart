@@ -162,9 +162,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Это приложение разработано на платформе Flutter. '
-                        'Здесь вы можете настроить внешний вид приложения под свои предпочтения.',
+                  Text('Версия: 1.4.1',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 24),
