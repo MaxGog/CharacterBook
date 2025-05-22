@@ -47,24 +47,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   void initState() {
     super.initState();
     _initializeFields();
-    _createTempCharacter();
-  }
-
-  void _createTempCharacter() {
-    _tempCharacter = Character(
-      name: _name,
-      age: _age,
-      gender: _gender,
-      biography: _biography,
-      abilities: _abilities,
-      personality: _personality,
-      imageBytes: _imageBytes,
-      referenceImageBytes: _referenceImageBytes,
-      other: _other,
-      appearance: _appearance,
-      customFields: List.from(_customFields),
-      additionalImages: List.from(_additionalImages),
-    );
   }
 
   void _initializeFields() {
@@ -97,16 +79,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _customFields = [];
       _additionalImages = [];
     }
-  }
-
-  Future<void> _saveToHive() async {
-    final box = Hive.box<Character>('characters');
-    if (widget.character != null) {
-      await box.put(widget.character!.key, _tempCharacter);
-    } else {
-      await box.add(_tempCharacter);
-    }
-    await box.flush();
   }
 
   Future<void> _saveChanges() async {
@@ -159,14 +131,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   void _updateCustomField(int index, String key, String value) {
-    if (key.trim().isEmpty && value.trim().isEmpty) {
-      _removeCustomField(index);
-      return;
-    }
-
     setState(() {
-      _customFields[index] = CustomField(key.trim(), value.trim());
-      _saveChanges();
+      if (key.trim().isEmpty && value.trim().isEmpty) {
+        _customFields.removeAt(index);
+      } else {
+        _customFields[index] = CustomField(key.trim(), value.trim());
+      }
     });
   }
 
@@ -184,7 +154,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _saveToHive();
         return true;
       },
       child: Scaffold(
@@ -673,7 +642,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           await box.add(character);
         }
 
-        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          Navigator.pop(context);
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -61,6 +61,17 @@ class Character extends HiveObject {
       customFields = customFields ?? [],
       additionalImages = additionalImages ?? [];
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Character &&
+              runtimeType == other.runtimeType &&
+              name == other.name &&
+              age == other.age;
+
+  @override
+  int get hashCode => name.hashCode ^ age.hashCode;
+
 
   Map<String, dynamic> toJson() {
     return {
