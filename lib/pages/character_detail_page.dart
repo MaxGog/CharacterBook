@@ -162,7 +162,20 @@ class CharacterDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Аватар персонажа
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Обновлено: ${character.lastEdited}',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ),
+            ),
+
             Center(
               child: character.imageBytes != null
                   ? InkWell(
@@ -293,13 +306,40 @@ class CharacterDetailPage extends StatelessWidget {
             ],
 
             if (character.customFields.isNotEmpty) ...[
-              Text('Дополнительные поля', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...character.customFields.map((field) =>
-                  ListTile(
-                    title: Text(field.key),
-                    subtitle: Text(field.value),
+              _buildSectionTitle(context, 'Дополнительные поля'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: character.customFields.map((field) => Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          field.key,
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          field.value,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )).toList(),
               ),
+              const SizedBox(height: 16),
             ],
           ],
         ),

@@ -44,6 +44,9 @@ class Character extends HiveObject {
   @HiveField(11)
   List<Uint8List> additionalImages = [];
 
+  @HiveField(12)
+  DateTime lastEdited;
+
   Character({
     this.name = '',
     this.age = 0,
@@ -57,9 +60,11 @@ class Character extends HiveObject {
     this.referenceImageBytes,
     List<CustomField>? customFields,
     List<Uint8List>? additionalImages,
+    DateTime? lastEdited,
   }) :
       customFields = customFields ?? [],
-      additionalImages = additionalImages ?? [];
+      additionalImages = additionalImages ?? [],
+      lastEdited = lastEdited ?? DateTime.now();
 
   @override
   bool operator ==(Object other) =>
@@ -87,6 +92,7 @@ class Character extends HiveObject {
       'referenceImageBytes': referenceImageBytes?.toList(),
       'customFields': customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
       'additionalImages': additionalImages.map((img) => img.toList()).toList(),
+      'lastEdited': lastEdited.toIso8601String(),
     };
   }
 
@@ -110,6 +116,13 @@ class Character extends HiveObject {
           CustomField(e['key'] ?? '', e['value'] ?? '')).toList() ?? [],
       additionalImages: (json['additionalImages'] as List?)?.map((e) =>
           Uint8List.fromList(List<int>.from(e))).toList() ?? [],
+      lastEdited: json['lastEdited'] != null
+          ? DateTime.parse(json['lastEdited'])
+          : DateTime.now(),
     );
+  }
+
+  void updateLastEdited() {
+    lastEdited = DateTime.now();
   }
 }

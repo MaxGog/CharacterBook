@@ -634,6 +634,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           referenceImageBytes: _referenceImageBytes,
           customFields: _customFields.where((f) => f.key.isNotEmpty).toList(),
           additionalImages: _additionalImages,
+          lastEdited: DateTime.now(),
         );
 
         if (widget.character != null && widget.character!.key != null) {
