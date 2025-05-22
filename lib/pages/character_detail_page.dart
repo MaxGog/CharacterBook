@@ -63,12 +63,32 @@ class CharacterDetailPage extends StatelessWidget {
     }
   }
 
-  void _showFullImage(BuildContext context, Uint8List imageBytes) {
+  void _showFullImage(BuildContext context, Uint8List imageBytes, String title) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: InteractiveViewer(
-          child: Image.memory(imageBytes),
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBar(
+              backgroundColor: Colors.black.withOpacity(0.5),
+              title: Text(title),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 0.1,
+              maxScale: 4.0,
+              child: Image.memory(imageBytes),
+            ),
+          ],
         ),
       ),
     );
@@ -145,9 +165,16 @@ class CharacterDetailPage extends StatelessWidget {
             // Аватар персонажа
             Center(
               child: character.imageBytes != null
-                  ? CircleAvatar(
-                radius: 80,
-                backgroundImage: MemoryImage(character.imageBytes!),
+                  ? InkWell(
+                onTap: () => _showFullImage(
+                  context,
+                  character.imageBytes!,
+                  'Аватар персонажа',
+                ),
+                child: CircleAvatar(
+                  radius: 80,
+                  backgroundImage: MemoryImage(character.imageBytes!),
+                ),
               )
                   : CircleAvatar(
                 radius: 80,
@@ -170,6 +197,13 @@ class CharacterDetailPage extends StatelessWidget {
             _buildSectionTitle(context, 'Референс персонажа'),
             Center(
               child: InkWell(
+                onTap: character.referenceImageBytes != null
+                    ? () => _showFullImage(
+                  context,
+                  character.referenceImageBytes!,
+                  'Референс персонажа',
+                )
+                    : null,
                 borderRadius: BorderRadius.circular(12),
                 child: Ink(
                   width: 120,
@@ -213,11 +247,18 @@ class CharacterDetailPage extends StatelessWidget {
                 ),
                 itemCount: character.additionalImages.length,
                 itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(
+                  return InkWell(
+                    onTap: () => _showFullImage(
+                      context,
                       character.additionalImages[index],
-                      fit: BoxFit.cover,
+                      'Дополнительное изображение ${index + 1}',
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.memory(
+                        character.additionalImages[index],
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   );
                 },
