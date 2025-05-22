@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../generated/l10n.dart';
 
+import '../models/custom_field_model.dart';
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
 
@@ -23,6 +24,9 @@ class CharacterDetailPage extends StatelessWidget {
       final templateBytes = templateData.buffer.asUint8List();
       final docxDoc = await docx.DocxTemplate.fromBytes(templateBytes);
 
+      final customFields = List<CustomField>.from(character.customFields);
+      final additionalImages = List<Uint8List>.from(character.additionalImages);
+
       final content = docx.Content()
         ..add(docx.TextContent('name', character.name))
         ..add(docx.TextContent('age', character.age.toString()))
@@ -33,8 +37,8 @@ class CharacterDetailPage extends StatelessWidget {
         ..add(docx.TextContent('abilities', character.abilities))
         ..add(docx.TextContent('other', character.other));
 
-      for (var i = 0; i < character.customFields.length; i++) {
-        final field = character.customFields[i];
+      for (var i = 0; i < customFields.length; i++) {
+        final field = customFields[i];
         content
           ..add(docx.TextContent('custom_key_$i', field.key))
           ..add(docx.TextContent('custom_value_$i', field.value));
@@ -55,9 +59,10 @@ class CharacterDetailPage extends StatelessWidget {
         );
       }
     } catch (e) {
+      debugPrint('Ошибка экспорта: $e'); // Добавьте логирование
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка экспорта: $e')),
+          SnackBar(content: Text('Ошибка экспорта: ${e.toString()}')),
         );
       }
     }
