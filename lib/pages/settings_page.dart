@@ -32,6 +32,8 @@ class SettingsPage extends StatelessWidget {
         : const Locale('ru');
 
     final CloudBackupService cloudBackupService = CloudBackupService();
+    bool isBackingUp = false;
+    bool isRestoring = false;
 
     return Scaffold(
       appBar: AppBar(
@@ -144,43 +146,6 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ),*/
-          const SizedBox(height: 16),
-          Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'О приложении',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Версия: 1.4.1',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => _launchUrl('https://github.com/maxgog'),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Theme.of(context).colorScheme.surfaceVariant,
-                      ),
-                      child: Image.asset('assets/underdeveloped.png'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
           const SizedBox(height: 16),
           Card(
@@ -201,21 +166,94 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.save_alt),
-                    label: const Text('Экспорт в Google Drive'),
-                    onPressed: () => cloudBackupService.exportToCloud(context),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.restore),
-                    label: const Text('Импорт из Google Drive'),
-                    onPressed: () => cloudBackupService.importFromCloud(context),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return Column(
+                        children: [
+                          if (isBackingUp) ...[
+                            const LinearProgressIndicator(),
+                            const SizedBox(height: 8),
+                          ],
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.save_alt),
+                            label: const Text('Экспорт в Google Drive'),
+                            onPressed: isBackingUp || isRestoring
+                                ? null
+                                : () async {
+                              setState(() => isBackingUp = true);
+                              try {
+                                await cloudBackupService.exportToCloud(context);
+                              } finally {
+                                setState(() => isBackingUp = false);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          if (isRestoring) ...[
+                            const LinearProgressIndicator(),
+                            const SizedBox(height: 8),
+                          ],
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.restore),
+                            label: const Text('Импорт из Google Drive'),
+                            onPressed: isBackingUp || isRestoring
+                                ? null
+                                : () async {
+                              setState(() => isRestoring = true);
+                              try {
+                                await cloudBackupService.importFromCloud(context);
+                              } finally {
+                                setState(() => isRestoring = false);
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
             ),
           ),
+
+          const SizedBox(height: 16),
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'О приложении',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Версия: 1.4.2',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _launchUrl('https://github.com/maxgog'),
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceVariant,
+                      ),
+                      child: Image.asset('assets/underdeveloped.png'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
 
         ],
       ),
