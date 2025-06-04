@@ -443,6 +443,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                   )).toList(),
                 ),
                 const SizedBox(height: 16),
+
               ],
             ],
           ],

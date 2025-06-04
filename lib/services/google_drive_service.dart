@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:hive/hive.dart';
 import '../models/character_model.dart';
+import '../models/note_model.dart';
 
 class CloudBackupService {
   static const List<String> _scopes = [drive.DriveApi.driveFileScope];

@@ -1,3 +1,4 @@
+import 'package:characterbook/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'adapters/custom_field_adapter.dart';
 import 'generated/l10n.dart';
 import 'models/character_model.dart';
+import 'models/note_model.dart';
 import 'pages/character_list_page.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
@@ -17,7 +19,10 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(CharacterAdapter());
   Hive.registerAdapter(CustomFieldAdapter());
+  Hive.registerAdapter(NoteAdapter());
+
   await Hive.openBox<Character>('characters');
+  await Hive.openBox<Note>('notes');
 
   final settingsBox = await Hive.openBox('settings');
 
@@ -88,7 +93,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       themeMode: themeProvider.themeMode,
-      home: const CharacterListPage(),
+      home: const HomePage(),
     );
   }
 }
