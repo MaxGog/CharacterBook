@@ -182,7 +182,7 @@ class SettingsPage extends StatelessWidget {
                                 : () async {
                               setState(() => isBackingUp = true);
                               try {
-                                await cloudBackupService.exportToCloud(context);
+                                await cloudBackupService.exportAllToCloud(context);
                               } finally {
                                 setState(() => isBackingUp = false);
                               }
@@ -201,7 +201,7 @@ class SettingsPage extends StatelessWidget {
                                 : () async {
                               setState(() => isRestoring = true);
                               try {
-                                await cloudBackupService.importFromCloud(context);
+                                await cloudBackupService.importAllFromCloud(context);
                               } finally {
                                 setState(() => isRestoring = false);
                               }

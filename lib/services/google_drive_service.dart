@@ -13,17 +13,29 @@ class CloudBackupService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: _scopes);
   drive.DriveApi? _driveApi;
 
-  Future<void> exportToCloud(BuildContext context) async {
+  Future<void> exportAllToCloud(BuildContext context) async {
     try {
-      final box = Hive.box<Character>('characters');
-      final characters = box.values.toList();
-      final jsonStr = jsonEncode(characters.map((c) => c.toJson()).toList());
+      final charactersBox = Hive.box<Character>('characters');
+      final characters = charactersBox.values.toList();
+      final charactersJson = jsonEncode(characters.map((c) => c.toJson()).toList());
 
-      await _exportToGoogleDrive(jsonStr);
+      final notesBox = Hive.box<Note>('notes');
+      final notes = notesBox.values.toList();
+      final notesJson = jsonEncode(notes.map((n) => n.toJson()).toList());
+
+      final backupData = {
+        'characters': characters,
+        'notes': notes,
+      };
+      final backupJson = jsonEncode(backupData);
+
+      await _exportToGoogleDrive(backupJson, 'full_backup');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Резервная копия успешно создана в Google Drive')),
+          const SnackBar(
+            content: Text('Полная резервная копия успешно создана в Google Drive'),
+          ),
         );
       }
     } catch (e) {
@@ -35,7 +47,51 @@ class CloudBackupService {
     }
   }
 
-  Future<void> _exportToGoogleDrive(String jsonStr) async {
+  Future<void> exportCharactersToCloud(BuildContext context) async {
+    try {
+      final box = Hive.box<Character>('characters');
+      final characters = box.values.toList();
+      final jsonStr = jsonEncode(characters.map((c) => c.toJson()).toList());
+
+      await _exportToGoogleDrive(jsonStr, 'characters_backup');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Резервная копия персонажей успешно создана')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при создании резервной копии персонажей: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> exportNotesToCloud(BuildContext context) async {
+    try {
+      final box = Hive.box<Note>('notes');
+      final notes = box.values.toList();
+      final jsonStr = jsonEncode(notes.map((n) => n.toJson()).toList());
+
+      await _exportToGoogleDrive(jsonStr, 'notes_backup');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Резервная копия заметок успешно создана')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при создании резервной копии заметок: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportToGoogleDrive(String jsonStr, String prefix) async {
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) throw Exception('Авторизация отменена');
@@ -46,7 +102,7 @@ class CloudBackupService {
       _driveApi = drive.DriveApi(client);
 
       final fileMetadata = drive.File()
-        ..name = 'characters_backup_${DateTime.now().toIso8601String()}.json'
+        ..name = '${prefix}_${DateTime.now().toIso8601String()}.json'
         ..mimeType = 'application/json';
 
       final bytes = Uint8List.fromList(utf8.encode(jsonStr));
@@ -61,9 +117,48 @@ class CloudBackupService {
     }
   }
 
-  Future<void> importFromCloud(BuildContext context) async {
+  Future<void> importAllFromCloud(BuildContext context) async {
     try {
-      final jsonStr = await _importFromGoogleDrive();
+      final jsonStr = await _importFromGoogleDrive('full_backup');
+      final Map<String, dynamic> data = jsonDecode(jsonStr);
+
+      // Восстановление персонажей
+      final charactersBox = Hive.box<Character>('characters');
+      await charactersBox.clear();
+      final List<dynamic> charactersJson = data['characters'];
+      for (final json in charactersJson) {
+        await charactersBox.add(Character.fromJson(json));
+      }
+
+      // Восстановление заметок
+      final notesBox = Hive.box<Note>('notes');
+      await notesBox.clear();
+      final List<dynamic> notesJson = data['notes'];
+      for (final json in notesJson) {
+        await notesBox.add(Note.fromJson(json));
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Успешно восстановлено ${charactersJson.length} персонажей и ${notesJson.length} заметок',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при восстановлении данных: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> importCharactersFromCloud(BuildContext context) async {
+    try {
+      final jsonStr = await _importFromGoogleDrive('characters_backup');
 
       final box = Hive.box<Character>('characters');
       await box.clear();
@@ -81,13 +176,39 @@ class CloudBackupService {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка при восстановлении данных: $e')),
+          SnackBar(content: Text('Ошибка при восстановлении персонажей: $e')),
         );
       }
     }
   }
 
-  Future<String> _importFromGoogleDrive() async {
+  Future<void> importNotesFromCloud(BuildContext context) async {
+    try {
+      final jsonStr = await _importFromGoogleDrive('notes_backup');
+
+      final box = Hive.box<Note>('notes');
+      await box.clear();
+
+      final List<dynamic> jsonList = jsonDecode(jsonStr);
+      for (final json in jsonList) {
+        await box.add(Note.fromJson(json));
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Успешно восстановлено ${jsonList.length} заметок')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при восстановлении заметок: $e')),
+        );
+      }
+    }
+  }
+
+  Future<String> _importFromGoogleDrive(String prefix) async {
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) throw Exception('Авторизация отменена');
@@ -98,7 +219,7 @@ class CloudBackupService {
       _driveApi = drive.DriveApi(client);
 
       final files = await _driveApi!.files.list(
-        q: "name contains 'characters_backup' and mimeType='application/json'",
+        q: "name contains '$prefix' and mimeType='application/json'",
         orderBy: 'createdTime desc',
         pageSize: 1,
       );
