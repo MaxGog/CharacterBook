@@ -183,7 +183,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
         child: const Icon(Icons.add),
         onPressed: () => Navigator.push(
           context,
