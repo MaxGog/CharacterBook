@@ -85,6 +85,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       locale: localeProvider.locale ?? const Locale('ru'),
       title: 'CharacterBook',
       theme: ThemeData(
+        useMaterial3: true,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
