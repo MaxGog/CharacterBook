@@ -22,7 +22,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
-    final s = S.of(context)!;
+    final s = S.of(context);
 
     final currentLocale = localeProvider.locale ?? const Locale('ru');
 
@@ -234,7 +234,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Версия: 1.4.2',
+                  Text('Версия: 1.5.0',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 24),

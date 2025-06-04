@@ -112,7 +112,6 @@ class CloudBackupService {
         downloadOptions: drive.DownloadOptions.fullMedia,
       ) as drive.Media;
 
-      // Исправление для метода toBytes()
       final bytes = await _readStream(response.stream);
       return utf8.decode(bytes);
     } catch (e) {
@@ -120,7 +119,6 @@ class CloudBackupService {
     }
   }
 
-  // Новый вспомогательный метод для чтения потока
   Future<Uint8List> _readStream(Stream<List<int>> stream) async {
     final bytesBuilder = BytesBuilder();
     await for (final chunk in stream) {
