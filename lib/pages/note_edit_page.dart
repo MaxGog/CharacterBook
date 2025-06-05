@@ -57,7 +57,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final now = DateTime.now();
 
     if (widget.note != null && !widget.isCopyMode) {
-      // Редактирование существующей заметки
       widget.note!
         ..title = title
         ..content = content
@@ -65,7 +64,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
         ..characterId = _selectedCharacterId;
       await notesBox.put(widget.note!.key, widget.note!);
     } else {
-      // Создание новой заметки или копии
       final note = Note(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: title,
@@ -105,21 +103,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
           ),
         ),
         actions: [
-          if (widget.note != null && !widget.isCopyMode)
-            IconButton(
-              icon: Icon(Icons.copy),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NoteEditPage(
-                      note: widget.note,
-                      isCopyMode: true,
-                    ),
-                  ),
-                );
-              },
-            ),
           IconButton(
             icon: Icon(Icons.copy_all),
             onPressed: _copyToClipboard,
