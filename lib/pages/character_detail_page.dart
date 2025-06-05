@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import 'package:docx_template/docx_template.dart' as docx;
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../generated/l10n.dart';
 import '../models/custom_field_model.dart';
+import '../models/note_model.dart';
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
 
@@ -32,7 +34,10 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     'other': true,
     'customFields': true,
     'additionalImages': true,
+    'notes': true,
   };
+
+  List<Note> _relatedNotes = [];
 
   Future<void> _exportToDocx() async {
     try {
@@ -40,7 +45,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       final templateBytes = templateData.buffer.asUint8List();
       final docxDoc = await docx.DocxTemplate.fromBytes(templateBytes);
 
-      // Создаем новые изменяемые списки из оригинальных данных
       final customFields = widget.character.customFields.toList();
       final additionalImages = widget.character.additionalImages.toList();
 
@@ -172,6 +176,20 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     );
   }
 
+  Future<void> _loadRelatedNotes() async {
+    try {
+      final notesBox = await Hive.openBox<Note>('notes');
+      final notes = notesBox.values
+          .where((note) => note.characterId == widget.character)
+          .toList();
+      setState(() {
+        _relatedNotes = notes;
+      });
+    } catch (e) {
+      debugPrint('Error loading notes: $e');
+    }
+  }
+
   Widget _buildSelectableSectionContent(BuildContext context, String content) {
     return Container(
       width: double.infinity,
@@ -184,6 +202,69 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         content.isNotEmpty ? content : 'Нет информации',
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoteCard(BuildContext context, Note note) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    note.title,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '${note.updatedAt.day}.${note.updatedAt.month}.${note.updatedAt.year}',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              note.content.length > 100
+                  ? '${note.content.substring(0, 100)}...'
+                  : note.content,
+              style: textTheme.bodyMedium,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (note.tags.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 4,
+                children: note.tags
+                    .map((tag) => Chip(
+                  label: Text(tag),
+                  visualDensity: VisualDensity.compact,
+                ))
+                    .toList(),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -444,6 +525,19 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                 ),
                 const SizedBox(height: 16),
 
+              ],
+            ],
+
+            if (_relatedNotes.isNotEmpty) ...[
+              _buildSectionTitle(context, 'Связанные посты', 'notes'),
+              if (_expandedSections['notes']!) ...[
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _relatedNotes.length,
+                  itemBuilder: (context, index) => _buildNoteCard(context, _relatedNotes[index]),
+                ),
+                const SizedBox(height: 16),
               ],
             ],
           ],
