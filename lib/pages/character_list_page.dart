@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/character_model.dart';
+import '../services/character_qr_service.dart';
 import 'character_detail_page.dart';
 import 'character_edit_page.dart';
 
@@ -182,16 +183,52 @@ class _CharacterListPageState extends State<CharacterListPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CharacterEditPage(),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'scan_btn',
+            child: const Icon(Icons.qr_code_scanner),
+            onPressed: () => _scanCharacterQR(context),
+            mini: true,
+            tooltip: 'Сканировать персонажа',
           ),
-        ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: 'add_btn',
+            child: const Icon(Icons.add),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CharacterEditPage(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _scanCharacterQR(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+    );
+
+    if (result != null && result is Character) {
+      final box = Hive.box<Character>('characters');
+      await box.add(result);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Персонаж "${result.name}" успешно импортирован'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildCharactersList(List<Character> characters) {

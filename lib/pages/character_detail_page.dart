@@ -13,6 +13,7 @@ import '../models/custom_field_model.dart';
 import '../models/note_model.dart';
 import 'character_edit_page.dart';
 import '../models/character_model.dart';
+import '../services/character_qr_service.dart'; // Добавляем импорт сервиса QR
 
 class CharacterDetailPage extends StatefulWidget {
   final Character character;
@@ -87,6 +88,39 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         );
       }
     }
+  }
+
+  void _showShareQRDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Поделиться персонажем'),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Отсканируйте этот QR-код, чтобы получить персонажа:'),
+                const SizedBox(height: 20),
+                Center(
+                  child: CharacterQRService.generateQRCode(widget.character, size: 200),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Закрыть'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showFullImage(Uint8List imageBytes, String title) {
@@ -315,6 +349,11 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         ),
         actions: [
           IconButton(
+            icon: Icon(Icons.qr_code, color: colorScheme.onSurface),
+            onPressed: _showShareQRDialog,
+            tooltip: 'Поделиться QR-кодом',
+          ),
+          IconButton(
             icon: Icon(Icons.edit, color: colorScheme.onSurface),
             onPressed: () => Navigator.push(
               context,
@@ -324,11 +363,11 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ),
             tooltip: 'Редактировать',
           ),
-          IconButton(
+          /*IconButton(
             icon: Icon(Icons.file_download, color: colorScheme.onSurface),
             onPressed: _exportToDocx,
             tooltip: 'Экспорт в DOCX',
-          ),
+          ),*/
           IconButton(
             icon: Icon(Icons.copy, color: colorScheme.onSurface),
             onPressed: _copyToClipboard,
@@ -429,7 +468,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ],
 
             if (widget.character.additionalImages.isNotEmpty) ...[
-              _buildSectionTitle(context, 'Дополнительные изображения', 'additionalImages'),
+              _buildSectionTitle(context, 'Галерея персонажа', 'additionalImages'),
               if (_expandedSections['additionalImages']!) ...[
                 GridView.builder(
                   shrinkWrap: true,
@@ -444,7 +483,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                     return InkWell(
                       onTap: () => _showFullImage(
                         widget.character.additionalImages[index],
-                        'Дополнительное изображение ${index + 1}',
+                        'Галерея персонажа ${index + 1}',
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),

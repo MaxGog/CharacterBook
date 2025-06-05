@@ -317,7 +317,7 @@ class _NotesListPageState extends State<NotesListPage> {
                         ),
                         IconButton(
                           icon: Icon(Icons.delete,
-                              color: colorScheme.onSurface.withOpacity(0.5)),
+                              color: colorScheme.onSurface),
                           onPressed: () => _deleteNote(note, context),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
