@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
           NavigationDestination(
             icon: Icon(Icons.note_alt_outlined),
             selectedIcon: Icon(Icons.note_alt),
-            label: 'Заметки',
+            label: 'Посты',
           ),
         ],
       ),

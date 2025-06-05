@@ -22,12 +22,16 @@ class Note extends HiveObject {
   @HiveField(5)
   String? characterId;
 
+  @HiveField(6)
+  final List<String> tags;
+
   Note({
     required this.id,
     required this.title,
     required this.content,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.tags = const [],
     this.characterId,
   }) :
         createdAt = createdAt ?? DateTime.now(),

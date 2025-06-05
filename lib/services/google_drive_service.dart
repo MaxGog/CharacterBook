@@ -29,7 +29,7 @@ class CloudBackupService {
       };
       final backupJson = jsonEncode(backupData);
 
-      await _exportToGoogleDrive(backupJson, 'full_backup');
+      await _exportToGoogleDrive(backupJson, 'characterbook_backup');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,10 +119,9 @@ class CloudBackupService {
 
   Future<void> importAllFromCloud(BuildContext context) async {
     try {
-      final jsonStr = await _importFromGoogleDrive('full_backup');
+      final jsonStr = await _importFromGoogleDrive('characterbook_backup');
       final Map<String, dynamic> data = jsonDecode(jsonStr);
 
-      // Восстановление персонажей
       final charactersBox = Hive.box<Character>('characters');
       await charactersBox.clear();
       final List<dynamic> charactersJson = data['characters'];
@@ -130,7 +129,6 @@ class CloudBackupService {
         await charactersBox.add(Character.fromJson(json));
       }
 
-      // Восстановление заметок
       final notesBox = Hive.box<Note>('notes');
       await notesBox.clear();
       final List<dynamic> notesJson = data['notes'];
@@ -142,7 +140,7 @@ class CloudBackupService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Успешно восстановлено ${charactersJson.length} персонажей и ${notesJson.length} заметок',
+              'Успешно восстановлено ${charactersJson.length} персонажей и ${notesJson.length} постов',
             ),
           ),
         );
