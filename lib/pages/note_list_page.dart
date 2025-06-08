@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/note_model.dart';
-import 'note_edit_page.dart';
+import 'note_management_page.dart';
 import 'settings_page.dart';
 
 class NotesListPage extends StatefulWidget {
