@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -86,6 +87,38 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка экспорта: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportToJson() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/${widget.character.name}_${DateTime.now().millisecondsSinceEpoch}.character';
+
+      final jsonStr = jsonEncode(widget.character.toJson());
+      await File(filePath).writeAsString(jsonStr);
+
+      await OpenFilex.open(filePath);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Экспортировано в $filePath'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка экспорта: ${e.toString()}'),
+          ),
         );
       }
     }
@@ -349,10 +382,36 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.qr_code, color: colorScheme.onSurface),
-            onPressed: _showShareQRDialog,
-            tooltip: 'Поделиться QR-кодом',
+          PopupMenuButton<String>(
+            icon: Icon(Icons.share, color: colorScheme.onSurface),
+            tooltip: 'Поделиться',
+            onSelected: (value) {
+              switch (value) {
+                case 'qr':
+                  _showShareQRDialog();
+                  break;
+                case 'file':
+                  _exportToJson();
+                  break;
+                case 'docx':
+                  _exportToDocx();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'qr',
+                child: Text('QR-код'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'file',
+                child: Text('Файлом (.character)'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'docx',
+                child: Text('Документ Word (.docx)'),
+              ),
+            ],
           ),
           IconButton(
             icon: Icon(Icons.edit, color: colorScheme.onSurface),
@@ -364,11 +423,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ),
             tooltip: 'Редактировать',
           ),
-          /*IconButton(
-            icon: Icon(Icons.file_download, color: colorScheme.onSurface),
-            onPressed: _exportToDocx,
-            tooltip: 'Экспорт в DOCX',
-          ),*/
           IconButton(
             icon: Icon(Icons.copy, color: colorScheme.onSurface),
             onPressed: _copyToClipboard,

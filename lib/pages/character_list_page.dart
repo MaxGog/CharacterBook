@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/character_model.dart';
 import '../services/character_qr_service.dart';
 import 'character_detail_page.dart';
+import 'character_import_page.dart';
 import 'character_management_page.dart';
 
 class CharacterListPage extends StatefulWidget {
@@ -64,6 +65,25 @@ class _CharacterListPageState extends State<CharacterListPage> {
         return matchesSearch && matchesTag;
       }).toList();
     });
+  }
+
+  Future<void> _importCharacterFromFile(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CharacterImportPage()),
+    );
+
+    if (result != null && result is Character && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Персонаж "${result.name}" успешно импортирован'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -187,11 +207,19 @@ class _CharacterListPageState extends State<CharacterListPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
+            heroTag: 'import_btn',
+            onPressed: () => _importCharacterFromFile(context),
+            mini: true,
+            tooltip: 'Импорт из файла',
+            child: const Icon(Icons.file_upload),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
             heroTag: 'scan_btn',
-            child: const Icon(Icons.qr_code_scanner),
             onPressed: () => _scanCharacterQR(context),
             mini: true,
-            tooltip: 'Сканировать персонажа',
+            tooltip: 'Сканировать QR-код',
+            child: const Icon(Icons.qr_code_scanner),
           ),
           const SizedBox(height: 16),
           FloatingActionButton(
