@@ -476,7 +476,8 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               _buildInfoRow(context, 'Имя', widget.character.name),
               _buildInfoRow(context, 'Возраст', '${widget.character.age} лет'),
               _buildInfoRow(context, 'Пол', widget.character.gender),
-              _buildInfoRow(context, 'Раса', widget.character.race!.name),
+              if (widget.character.race != null)
+                _buildInfoRow(context, 'Раса', widget.character.race!.name),
               const SizedBox(height: 16),
             ],
 
