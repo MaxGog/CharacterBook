@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../generated/l10n.dart';
 import '../models/character_model.dart';
@@ -34,6 +35,8 @@ class SettingsPage extends StatelessWidget {
     final CloudBackupService cloudBackupService = CloudBackupService();
     bool isBackingUp = false;
     bool isRestoring = false;
+
+    final packageInfo = PackageInfo.fromPlatform();
 
     return Scaffold(
       appBar: AppBar(
@@ -145,9 +148,9 @@ class SettingsPage extends StatelessWidget {
                 ],
               ),
             ),
-          ),*/
+          ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 16),*/
           Card(
             elevation: 1,
             shape: RoundedRectangleBorder(
@@ -234,7 +237,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Версия: 1.5.1',
+                  Text('Версия: 1.5.2',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 24),
@@ -254,6 +257,32 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 16),
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Благодарность',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Данила Ганьков | Makoto🐼 | Максим Семенков | Артём Голубев | Евгений Стратий | '
+                      'Никита Жевнерович | Участники EnA',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              ),
+            ),
+          ),
 
         ],
       ),
