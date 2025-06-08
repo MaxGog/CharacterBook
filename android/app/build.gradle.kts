@@ -23,8 +23,8 @@ android {
         applicationId = "ru.maxgog.listcharacters"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 9
-        versionName = "1.5.1"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
     signingConfigs {
         create("release") {

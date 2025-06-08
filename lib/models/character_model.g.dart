@@ -27,6 +27,7 @@ class CharacterAdapter extends TypeAdapter<Character> {
       other: fields[8] as String,
       imageBytes: fields[6] as Uint8List?,
       referenceImageBytes: fields[9] as Uint8List?,
+      race: fields[13] as Race?,
       customFields: (fields[10] as List?)?.cast<CustomField>(),
       additionalImages: (fields[11] as List?)?.cast<Uint8List>(),
       lastEdited: fields[12] as DateTime?,
@@ -36,7 +37,7 @@ class CharacterAdapter extends TypeAdapter<Character> {
   @override
   void write(BinaryWriter writer, Character obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class CharacterAdapter extends TypeAdapter<Character> {
       ..writeByte(11)
       ..write(obj.additionalImages)
       ..writeByte(12)
-      ..write(obj.lastEdited);
+      ..write(obj.lastEdited)
+      ..writeByte(13)
+      ..write(obj.race);
   }
 
   @override

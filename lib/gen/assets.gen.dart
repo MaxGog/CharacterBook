@@ -13,7 +13,7 @@ class Assets {
   const Assets._();
 
   static const String characterTemplate = 'assets/character_template.docx';
-  static const AssetGenImage icon = AssetGenImage('assets/icon.png');
+  static const String icon = 'assets/icon.svg';
   static const AssetGenImage underdeveloped =
       AssetGenImage('assets/underdeveloped.png');
 

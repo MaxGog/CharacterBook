@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart'; // Для Clipboard
+import 'package:flutter/services.dart';
 
 import '../models/character_model.dart';
 import '../models/note_model.dart';
@@ -46,8 +46,11 @@ class _NoteEditPageState extends State<NoteEditPage> {
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Заголовок не может быть пустым'),
+          content: const Text('Заголовок не может быть пустым'),
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
       return;
@@ -73,19 +76,26 @@ class _NoteEditPageState extends State<NoteEditPage> {
       await notesBox.add(note);
     }
 
-    Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _copyToClipboard() async {
     await Clipboard.setData(ClipboardData(
       text: '${_titleController.text}\n\n${_contentController.text}',
     ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Заметка скопирована в буфер'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Заметка скопирована в буфер'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -96,25 +106,31 @@ class _NoteEditPageState extends State<NoteEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.note == null ? 'Новая заметка' :
-          widget.isCopyMode ? 'Копировать заметку' : 'Редактировать заметку',
+          widget.note == null
+              ? 'Новая заметка'
+              : widget.isCopyMode
+              ? 'Копировать заметку'
+              : 'Редактировать заметку',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.copy_all),
+            icon: const Icon(Icons.copy_all),
             onPressed: _copyToClipboard,
+            tooltip: 'Копировать в буфер',
           ),
           IconButton(
-            icon: Icon(Icons.save),
+            icon: const Icon(Icons.save),
             onPressed: _saveNote,
+            tooltip: 'Сохранить',
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -123,16 +139,23 @@ class _NoteEditPageState extends State<NoteEditPage> {
               decoration: InputDecoration(
                 labelText: 'Заголовок',
                 border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 filled: true,
                 fillColor: colorScheme.surfaceVariant,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
               ),
               style: textTheme.titleLarge,
               maxLines: 1,
@@ -145,21 +168,42 @@ class _NoteEditPageState extends State<NoteEditPage> {
               decoration: InputDecoration(
                 labelText: 'Содержание',
                 border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 filled: true,
                 fillColor: colorScheme.surfaceVariant,
                 contentPadding: const EdgeInsets.all(16),
+                alignLabelWithHint: true,
               ),
               style: textTheme.bodyLarge,
               maxLines: null,
               keyboardType: TextInputType.multiline,
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: _saveNote,
+              child: Text(
+                'Сохранить заметку',
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onPrimary,
+                ),
+              ),
             ),
           ],
         ),
@@ -169,48 +213,62 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   Widget _buildCharacterSelector(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final charactersBox = Hive.box<Character>('characters');
     final characters = charactersBox.values.toList().cast<Character>();
 
-    return DropdownButtonFormField<String>(
-      value: _selectedCharacterId,
-      decoration: InputDecoration(
-        labelText: 'Персонаж (необязательно)',
-        border: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.outline),
-        ),
-        filled: true,
-        fillColor: colorScheme.surfaceVariant,
-      ),
-      dropdownColor: colorScheme.surfaceVariant,
-      style: TextStyle(color: colorScheme.onSurface),
-      items: [
-        DropdownMenuItem(
-          value: null,
-          child: Text(
-            'Не привязано к персонажу',
-            style: TextStyle(color: colorScheme.onSurface),
-          ),
-        ),
-        ...characters.map((character) {
-          final characterKey = charactersBox.keyAt(characters.indexOf(character)).toString();
-          return DropdownMenuItem(
-            value: characterKey,
-            child: Text(
-              character.name,
-              style: TextStyle(color: colorScheme.onSurface),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedCharacterId,
+          decoration: InputDecoration(
+            labelText: 'Персонаж (необязательно)',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          );
-        }),
+            filled: true,
+            fillColor: colorScheme.surfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+          dropdownColor: colorScheme.surfaceVariant,
+          style: textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text(
+                'Не привязано к персонажу',
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            ...characters.map((character) {
+              final characterKey = charactersBox.keyAt(characters.indexOf(character)).toString();
+              return DropdownMenuItem(
+                value: characterKey,
+                child: Text(
+                  character.name,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              );
+            }),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedCharacterId = value;
+            });
+          },
+        ),
       ],
-      onChanged: (value) {
-        setState(() {
-          _selectedCharacterId = value;
-        });
-      },
     );
   }
 }

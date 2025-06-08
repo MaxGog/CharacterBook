@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/character_model.dart';
 import '../services/character_qr_service.dart';
 import 'character_detail_page.dart';
-import 'character_edit_page.dart';
+import 'character_management_page.dart';
 
 class CharacterListPage extends StatefulWidget {
   const CharacterListPage({super.key});

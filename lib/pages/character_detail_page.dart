@@ -11,9 +11,9 @@ import 'package:path_provider/path_provider.dart';
 import '../generated/l10n.dart';
 import '../models/custom_field_model.dart';
 import '../models/note_model.dart';
-import 'character_edit_page.dart';
+import 'character_management_page.dart';
 import '../models/character_model.dart';
-import '../services/character_qr_service.dart'; // Добавляем импорт сервиса QR
+import '../services/character_qr_service.dart';
 
 class CharacterDetailPage extends StatefulWidget {
   final Character character;
@@ -36,6 +36,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     'customFields': true,
     'additionalImages': true,
     'notes': true,
+    'race': true,
   };
 
   List<Note> _relatedNotes = [];
@@ -421,6 +422,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               _buildInfoRow(context, 'Имя', widget.character.name),
               _buildInfoRow(context, 'Возраст', '${widget.character.age} лет'),
               _buildInfoRow(context, 'Пол', widget.character.gender),
+              _buildInfoRow(context, 'Раса', widget.character.race!.name),
               const SizedBox(height: 16),
             ],
 

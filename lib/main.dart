@@ -9,6 +9,7 @@ import 'adapters/custom_field_adapter.dart';
 import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'models/note_model.dart';
+import 'models/race_model.dart';
 import 'pages/character_list_page.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
@@ -20,9 +21,11 @@ void main() async {
   Hive.registerAdapter(CharacterAdapter());
   Hive.registerAdapter(CustomFieldAdapter());
   Hive.registerAdapter(NoteAdapter());
+  Hive.registerAdapter(RaceAdapter());
 
   await Hive.openBox<Character>('characters');
   await Hive.openBox<Note>('notes');
+  await Hive.openBox<Race>('races');
 
   final settingsBox = await Hive.openBox('settings');
 

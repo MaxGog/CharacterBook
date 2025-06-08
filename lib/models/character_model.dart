@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:characterbook/models/race_model.dart';
 import 'package:hive/hive.dart';
 
 import 'custom_field_model.dart';
@@ -47,6 +48,9 @@ class Character extends HiveObject {
   @HiveField(12)
   DateTime lastEdited;
 
+  @HiveField(13)
+  Race? race;
+
   Character({
     this.name = '',
     this.age = 0,
@@ -58,6 +62,7 @@ class Character extends HiveObject {
     this.other = '',
     this.imageBytes,
     this.referenceImageBytes,
+    this.race,
     List<CustomField>? customFields,
     List<Uint8List>? additionalImages,
     DateTime? lastEdited,
@@ -93,6 +98,7 @@ class Character extends HiveObject {
       'customFields': customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
       'additionalImages': additionalImages.map((img) => img.toList()).toList(),
       'lastEdited': lastEdited.toIso8601String(),
+      'race': race?.name,
     };
   }
 
@@ -119,6 +125,7 @@ class Character extends HiveObject {
       lastEdited: json['lastEdited'] != null
           ? DateTime.parse(json['lastEdited'])
           : DateTime.now(),
+      race: json['race'] != null ? Race(name: json['race']) : null,
     );
   }
 
