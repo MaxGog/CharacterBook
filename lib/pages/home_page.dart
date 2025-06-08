@@ -1,3 +1,4 @@
+import 'package:characterbook/pages/race_list_page.dart';
 import 'package:flutter/material.dart';
 
 import 'character_list_page.dart';
@@ -15,6 +16,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     CharacterListPage(),
+    RaceListPage(),
     NotesListPage(),
   ];
 
@@ -37,6 +39,11 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.people_alt_outlined),
             selectedIcon: Icon(Icons.people_alt),
             label: 'Персонажи',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emoji_people_outlined),
+            selectedIcon: Icon(Icons.emoji_people),
+            label: 'Расы',
           ),
           NavigationDestination(
             icon: Icon(Icons.note_alt_outlined),

@@ -7,6 +7,7 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 import 'package:hive/hive.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
+import '../models/race_model.dart';
 
 class CloudBackupService {
   static const List<String> _scopes = [drive.DriveApi.driveFileScope];
@@ -23,9 +24,14 @@ class CloudBackupService {
       final notes = notesBox.values.toList();
       final notesJson = jsonEncode(notes.map((n) => n.toJson()).toList());
 
+      final racesBox = Hive.box<Race>('races');
+      final races = racesBox.values.toList();
+      final racesJson = jsonEncode(races.map((r) => r.toJson()).toList());
+
       final backupData = {
         'characters': characters,
         'notes': notes,
+        'races': races,
       };
       final backupJson = jsonEncode(backupData);
 
@@ -91,6 +97,28 @@ class CloudBackupService {
     }
   }
 
+  Future<void> exportRacesToCloud(BuildContext context) async {
+    try {
+      final box = Hive.box<Race>('races');
+      final races = box.values.toList();
+      final jsonStr = jsonEncode(races.map((r) => r.toJson()).toList());
+
+      await _exportToGoogleDrive(jsonStr, 'races_backup');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Резервная копия рас успешно создана')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при создании резервной копии рас: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _exportToGoogleDrive(String jsonStr, String prefix) async {
     try {
       final account = await _googleSignIn.signIn();
@@ -122,16 +150,26 @@ class CloudBackupService {
       final jsonStr = await _importFromGoogleDrive('characterbook_backup');
       final Map<String, dynamic> data = jsonDecode(jsonStr);
 
+      // Импорт рас (должен быть перед персонажами, так как персонажи ссылаются на расы)
+      final racesBox = Hive.box<Race>('races');
+      await racesBox.clear();
+      final List<dynamic> racesJson = data['races'] ?? [];
+      for (final json in racesJson) {
+        await racesBox.add(Race.fromJson(json));
+      }
+
+      // Импорт персонажей
       final charactersBox = Hive.box<Character>('characters');
       await charactersBox.clear();
-      final List<dynamic> charactersJson = data['characters'];
+      final List<dynamic> charactersJson = data['characters'] ?? [];
       for (final json in charactersJson) {
         await charactersBox.add(Character.fromJson(json));
       }
 
+      // Импорт заметок
       final notesBox = Hive.box<Note>('notes');
       await notesBox.clear();
-      final List<dynamic> notesJson = data['notes'];
+      final List<dynamic> notesJson = data['notes'] ?? [];
       for (final json in notesJson) {
         await notesBox.add(Note.fromJson(json));
       }
@@ -140,7 +178,8 @@ class CloudBackupService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Успешно восстановлено ${charactersJson.length} персонажей и ${notesJson.length} постов',
+              'Успешно восстановлено ${charactersJson.length} персонажей, '
+                  '${notesJson.length} заметок и ${racesJson.length} рас',
             ),
           ),
         );
@@ -201,6 +240,32 @@ class CloudBackupService {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка при восстановлении заметок: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> importRacesFromCloud(BuildContext context) async {
+    try {
+      final jsonStr = await _importFromGoogleDrive('races_backup');
+
+      final box = Hive.box<Race>('races');
+      await box.clear();
+
+      final List<dynamic> jsonList = jsonDecode(jsonStr);
+      for (final json in jsonList) {
+        await box.add(Race.fromJson(json));
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Успешно восстановлено ${jsonList.length} рас')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при восстановлении рас: $e')),
         );
       }
     }
