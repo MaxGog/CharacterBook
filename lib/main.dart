@@ -33,7 +33,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ThemeProvider(settingsBox),
+          create: (_) => ThemeProvider(),
         ),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(settingsBox),
@@ -87,16 +87,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       supportedLocales: S.delegate.supportedLocales,
       locale: localeProvider.locale ?? const Locale('ru'),
       title: 'CharacterBook',
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      darkTheme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      themeMode: themeProvider.themeMode,
+      theme: context.watch<ThemeProvider>().lightTheme,
+      darkTheme: context.watch<ThemeProvider>().darkTheme,
+      themeMode: context.watch<ThemeProvider>().themeMode,
       home: const HomePage(),
     );
   }

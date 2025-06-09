@@ -42,6 +42,18 @@ class SettingsPage extends StatelessWidget {
       version = packageInfo.version;
     });
 
+    final Map<String, Color> accentColors = {
+      'Синий': Color(0xFF1E88E5),
+      'Зеленый': Color(0xFF43A047),
+      'Красный': Color(0xFFE53935),
+      'Оранжевый': Color(0xFFFB8C00),
+      'Фиолетовый': Color(0xFF8E24AA),
+      'Розовый': Color(0xFFD81B60),
+      'Бирюзовый': Color(0xFF00ACC1),
+      'Голубой': Color(0xFF039BE5),
+    };
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Параметры"),
@@ -99,6 +111,36 @@ class SettingsPage extends StatelessWidget {
                             themeProvider.setThemeMode(value);
                           }
                         },
+                      ),
+                      const SizedBox(height: 8),
+                      Divider(),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Цветовой акцент",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: accentColors.entries.map((entry) {
+                          return ChoiceChip(
+                            label: Text(entry.key),
+                            selected: themeProvider.seedColor == entry.value,
+                            onSelected: (selected) {
+                              themeProvider.setSeedColor(entry.value);
+                            },
+                            selectedColor: entry.value,
+                            labelStyle: TextStyle(
+                              color: themeProvider.seedColor == entry.value
+                                  ? Colors.white
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
