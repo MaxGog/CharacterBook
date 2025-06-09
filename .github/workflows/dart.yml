@@ -13,22 +13,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      # Установка Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.1'
           channel: 'stable'
           
+      # Очистка кэша (новая команда)
       - name: Clean Flutter cache
-        run: flutter cache clean
-
+        run: flutter precache --clean
+          
+      # Проверка версий
       - name: Verify versions
         run: |
           flutter --version
           dart --version
           
+      # Установка зависимостей
       - name: Install dependencies
         run: flutter pub get
           
+      # Запуск тестов
       - name: Run tests
         run: flutter test
