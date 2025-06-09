@@ -20,10 +20,6 @@ jobs:
           flutter-version: '3.22.1'
           channel: 'stable'
           
-      # Очистка кэша (новая команда)
-      - name: Clean Flutter cache
-        run: flutter precache --clean
-          
       # Проверка версий
       - name: Verify versions
         run: |
