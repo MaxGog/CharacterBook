@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:docx_template/docx_template.dart' as docx;
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../generated/l10n.dart';
 import '../models/custom_field_model.dart';
@@ -133,12 +135,17 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       final jsonStr = jsonEncode(widget.character.toJson());
       await File(filePath).writeAsString(jsonStr);
 
-      await OpenFilex.open(filePath);
+      final file = XFile(filePath);
+      await Share.shareXFiles(
+        [file],
+        text: 'Персонаж: ${widget.character.name}',
+        subject: 'Экспорт персонажа',
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Экспортировано в $filePath'),
+            content: Text('Файл готов к отправке'),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
