@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Clean Flutter cache
+        run: |
+          rm -rf /opt/hostedtoolcache/flutter
+          flutter cache clean
+      - uses: actions/checkout@v4
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
