@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../models/character_model.dart';
 import '../models/note_model.dart';
 import 'note_management_page.dart';
 import 'settings_page.dart';
@@ -18,10 +19,18 @@ class _NotesListPageState extends State<NotesListPage> {
   List<Note> _filteredNotes = [];
   bool _isSearching = false;
   String? _selectedTag;
+  String? _selectedCharacter;
 
   List<String> _getAllTags(List<Note> notes) {
     final tags = notes.expand((note) => note.tags).toSet().toList()..sort();
     return tags;
+  }
+
+  List<String> _getAllCharacterNames(List<Note> notes) {
+    final characterBox = Hive.box<Character>('characters');
+    final characterIds = notes.expand((note) => note.characterIds).toSet();
+    final characters = characterIds.map((id) => characterBox.get(id)).whereType<Character>();
+    return characters.map((c) => c.name).toList()..sort();
   }
 
   void _filterNotes(String query, List<Note> allNotes) {
@@ -33,7 +42,13 @@ class _NotesListPageState extends State<NotesListPage> {
 
         final matchesTag = _selectedTag == null || note.tags.contains(_selectedTag);
 
-        return matchesSearch && matchesTag;
+        final matchesCharacter = _selectedCharacter == null ||
+            note.characterIds.any((id) {
+              final character = Hive.box<Character>('characters').get(id);
+              return character?.name == _selectedCharacter;
+            });
+
+        return matchesSearch && matchesTag && matchesCharacter;
       }).toList();
     });
   }
@@ -118,6 +133,7 @@ class _NotesListPageState extends State<NotesListPage> {
                 if (!_isSearching) {
                   _searchController.clear();
                   _selectedTag = null;
+                  _selectedCharacter = null;
                   _filteredNotes = [];
                 }
               });
@@ -140,50 +156,135 @@ class _NotesListPageState extends State<NotesListPage> {
           final allNotes = box.values.toList().cast<Note>();
           allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
           final tags = _getAllTags(allNotes);
+          final characterNames = _getAllCharacterNames(allNotes);
 
           return Column(
             children: [
-              if (tags.isNotEmpty)
+              if (tags.isNotEmpty || characterNames.isNotEmpty)
                 Container(
                   height: 56,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ListView.builder(
+                  child: ListView(
                     scrollDirection: Axis.horizontal,
-                    itemCount: tags.length,
-                    itemBuilder: (context, index) {
-                      final tag = tags[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FilterChip(
-                          label: Text(tag),
-                          selected: _selectedTag == tag,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedTag = selected ? tag : null;
-                              _filterNotes(_searchController.text, allNotes);
-                            });
-                          },
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: colorScheme.outline,
+                    children: [
+                      if (characterNames.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: const Text('Все персонажи'),
+                            selected: _selectedCharacter == null,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCharacter = null;
+                                _filterNotes(_searchController.text, allNotes);
+                              });
+                            },
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide.none,
+                            selectedColor: colorScheme.secondaryContainer,
+                            labelStyle: textTheme.labelLarge?.copyWith(
+                              color: _selectedCharacter == null
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurface,
                             ),
                           ),
-                          showCheckmark: false,
-                          side: BorderSide.none,
-                          selectedColor: colorScheme.secondaryContainer,
-                          labelStyle: textTheme.labelLarge?.copyWith(
-                            color: _selectedTag == tag
-                                ? colorScheme.onSecondaryContainer
-                                : colorScheme.onSurface,
+                        ),
+                      ...characterNames.map((name) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: Text(name),
+                            selected: _selectedCharacter == name,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCharacter = selected ? name : null;
+                                _filterNotes(_searchController.text, allNotes);
+                              });
+                            },
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide.none,
+                            selectedColor: colorScheme.secondaryContainer,
+                            labelStyle: textTheme.labelLarge?.copyWith(
+                              color: _selectedCharacter == name
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      if (tags.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: const Text('Все теги'),
+                            selected: _selectedTag == null,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedTag = null;
+                                _filterNotes(_searchController.text, allNotes);
+                              });
+                            },
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide.none,
+                            selectedColor: colorScheme.secondaryContainer,
+                            labelStyle: textTheme.labelLarge?.copyWith(
+                              color: _selectedTag == null
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurface,
+                            ),
                           ),
                         ),
-                      );
-                    },
+                      ...tags.map((tag) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: Text(tag),
+                            selected: _selectedTag == tag,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedTag = selected ? tag : null;
+                                _filterNotes(_searchController.text, allNotes);
+                              });
+                            },
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide.none,
+                            selectedColor: colorScheme.secondaryContainer,
+                            labelStyle: textTheme.labelLarge?.copyWith(
+                              color: _selectedTag == tag
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
                   ),
                 ),
               Expanded(
                 child: _buildNotesList(
-                  _isSearching || _selectedTag != null ? _filteredNotes : allNotes,
+                  _isSearching || _selectedTag != null || _selectedCharacter != null
+                      ? _filteredNotes
+                      : allNotes,
                 ),
               ),
             ],
@@ -244,6 +345,11 @@ class _NotesListPageState extends State<NotesListPage> {
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
+        final characters = note.characterIds
+            .map((id) => Hive.box<Character>('characters').get(id))
+            .whereType<Character>()
+            .toList();
+
         return Dismissible(
           key: Key(note.id),
           background: Container(
@@ -316,8 +422,7 @@ class _NotesListPageState extends State<NotesListPage> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete,
-                              color: colorScheme.onSurface),
+                          icon: Icon(Icons.delete, color: colorScheme.onSurface),
                           onPressed: () => _deleteNote(note, context),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -333,6 +438,23 @@ class _NotesListPageState extends State<NotesListPage> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (characters.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 4,
+                        children: characters.map((character) {
+                          return Chip(
+                            label: Text(character.name),
+                            labelStyle: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSecondaryContainer,
+                            ),
+                            backgroundColor: colorScheme.secondaryContainer,
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          );
+                        }).toList(),
+                      ),
+                    ],
                     if (note.tags.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Wrap(
