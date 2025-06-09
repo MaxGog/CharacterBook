@@ -58,8 +58,8 @@ class _NotesListPageState extends State<NotesListPage> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удалить заметку?'),
-        content: Text('Заметка "${note.title}" будет удалена безвозвратно'),
+        title: const Text('Удалить пост?'),
+        content: Text('Пост "${note.title}" будет удалён безвозвратно'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -80,7 +80,7 @@ class _NotesListPageState extends State<NotesListPage> {
       await box.delete(note.key);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Заметка "${note.title}" удалена'),
+          content: Text('Пост "${note.title}" удалён'),
           action: SnackBarAction(
             label: 'Отменить',
             onPressed: () {
@@ -104,7 +104,7 @@ class _NotesListPageState extends State<NotesListPage> {
           controller: _searchController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: 'Поиск по заметкам...',
+            hintText: 'Поиск по постам...',
             border: InputBorder.none,
             hintStyle: textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
@@ -345,8 +345,9 @@ class _NotesListPageState extends State<NotesListPage> {
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
+        final characterBox = Hive.box<Character>('characters');
         final characters = note.characterIds
-            .map((id) => Hive.box<Character>('characters').get(id))
+            .map((id) => characterBox.get(id))
             .whereType<Character>()
             .toList();
 

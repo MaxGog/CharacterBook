@@ -41,6 +41,39 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
   };
 
   List<Note> _relatedNotes = [];
+  bool _isLoadingNotes = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRelatedNotes();
+  }
+
+  Future<void> _loadRelatedNotes() async {
+    if (!mounted) return;
+
+    setState(() => _isLoadingNotes = true);
+
+    try {
+      final notesBox = await Hive.openBox<Note>('notes');
+      final allNotes = notesBox.values.toList();
+
+      _relatedNotes = allNotes.where((note) =>
+          note.characterIds.contains(widget.character.key.toString())
+      ).toList();
+
+      _relatedNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+      if (mounted) {
+        setState(() => _isLoadingNotes = false);
+      }
+    } catch (e) {
+      debugPrint('Ошибка загрузки связанных постов: $e');
+      if (mounted) {
+        setState(() => _isLoadingNotes = false);
+      }
+    }
+  }
 
   Future<void> _exportToDocx() async {
     try {
