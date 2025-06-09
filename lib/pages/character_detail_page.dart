@@ -244,20 +244,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     );
   }
 
-  Future<void> _loadRelatedNotes() async {
-    try {
-      final notesBox = await Hive.openBox<Note>('notes');
-      final notes = notesBox.values
-          .where((note) => note.characterId == widget.character)
-          .toList();
-      setState(() {
-        _relatedNotes = notes;
-      });
-    } catch (e) {
-      debugPrint('Error loading notes: $e');
-    }
-  }
-
   Widget _buildSelectableSectionContent(BuildContext context, String content) {
     return Container(
       width: double.infinity,

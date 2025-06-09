@@ -36,7 +36,11 @@ class SettingsPage extends StatelessWidget {
     bool isBackingUp = false;
     bool isRestoring = false;
 
-    final packageInfo = PackageInfo.fromPlatform();
+    String version = '1.5.4';
+
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      version = packageInfo.version;
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -237,7 +241,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Версия: 1.5.3',
+                  Text('Версия: $version',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 24),

@@ -23,7 +23,7 @@ class NoteAdapter extends TypeAdapter<Note> {
       createdAt: fields[3] as DateTime?,
       updatedAt: fields[4] as DateTime?,
       tags: (fields[6] as List).cast<String>(),
-      characterId: fields[5] as String?,
+      characterIds: fields[5] == null ? [] : (fields[5] as List).cast<String>(),
     );
   }
 
@@ -42,7 +42,7 @@ class NoteAdapter extends TypeAdapter<Note> {
       ..writeByte(4)
       ..write(obj.updatedAt)
       ..writeByte(5)
-      ..write(obj.characterId)
+      ..write(obj.characterIds)
       ..writeByte(6)
       ..write(obj.tags);
   }
