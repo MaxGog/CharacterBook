@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -46,11 +47,10 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
         await reader.onLoadEnd.first;
         jsonStr = reader.result as String;
       } else {
-        final filePath = await _pickFile(context);
-        if (filePath == null) return;
+        final file = await _pickFileNative();
+        if (file == null) return;
 
-        final file = File(filePath);
-        fileName = file.path.split('/').last;
+        fileName = file.path.split(Platform.pathSeparator).last;
         jsonStr = await file.readAsString();
       }
 
@@ -75,6 +75,52 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
         _isImporting = false;
       });
     }
+  }
+
+  Future<File?> _pickFileNative() async {
+    if (kIsWeb) return null;
+
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        const channel = MethodChannel('file_picker');
+        final filePath = await channel.invokeMethod<String>('pickFile');
+        if (filePath == null || filePath.isEmpty) return null;
+        return File(filePath);
+      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        final filePath = await _showDesktopFilePicker();
+        if (filePath == null) return null;
+        return File(filePath);
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Failed to pick file: ${e.message}');
+      return null;
+    } catch (e) {
+      debugPrint('Error picking file: $e');
+      return null;
+    }
+    return null;
+  }
+
+  Future<String?> _showDesktopFilePicker() async {
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
+      return null;
+    }
+
+    final completer = Completer<String?>();
+    final filePickerChannel = const MethodChannel('file_picker');
+
+    try {
+      final result = await filePickerChannel.invokeMethod<String>('pickFile', {
+        'dialogTitle': 'Выберите файл персонажа',
+        'fileExtension': '.character',
+      });
+      completer.complete(result);
+    } on PlatformException catch (e) {
+      debugPrint('Failed to pick file: ${e.message}');
+      completer.complete(null);
+    }
+
+    return completer.future;
   }
 
   Future<void> _shareFile(BuildContext context, String content, String fileName) async {
@@ -105,47 +151,6 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
         );
       }
     }
-  }
-
-  Future<String?> _pickFile(BuildContext context) async {
-    if (kIsWeb) return null;
-
-    if (Platform.isAndroid || Platform.isIOS) {
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = await _showFileSelectionDialog(context, initialPath: directory.path);
-      return filePath;
-    } else {
-      return await _showFileSelectionDialog(context);
-    }
-  }
-
-  Future<String?> _showFileSelectionDialog(BuildContext context, {String? initialPath}) async {
-    if (kIsWeb) return null;
-
-    final controller = TextEditingController(text: initialPath);
-    return await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Выберите файл'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'Путь к файлу',
-            hintText: 'Введите путь к файлу .character',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text('Выбрать'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
