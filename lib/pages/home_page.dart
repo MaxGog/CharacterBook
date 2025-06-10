@@ -22,12 +22,45 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final bool isLargeScreen = MediaQuery.of(context).size.width >= 600;
 
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
+      body: Row(
+        children: [
+          if (isLargeScreen)
+            NavigationRail(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.people_alt_outlined),
+                  selectedIcon: Icon(Icons.people_alt),
+                  label: Text('Персонажи'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.emoji_people_outlined),
+                  selectedIcon: Icon(Icons.emoji_people),
+                  label: Text('Расы'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.note_alt_outlined),
+                  selectedIcon: Icon(Icons.note_alt),
+                  label: Text('Посты'),
+                ),
+              ],
+            ),
+          Expanded(
+            child: _pages[_currentIndex],
+          ),
+        ],
+      ),
+      bottomNavigationBar: !isLargeScreen
+          ? NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (int index) {
           setState(() {
@@ -51,7 +84,8 @@ class _HomePageState extends State<HomePage> {
             label: 'Посты',
           ),
         ],
-      ),
+      )
+          : null,
     );
   }
 }
