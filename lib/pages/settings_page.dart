@@ -36,7 +36,7 @@ class SettingsPage extends StatelessWidget {
     bool isBackingUp = false;
     bool isRestoring = false;
 
-    String version = '1.5.4';
+    String version = '1.5.5';
 
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       version = packageInfo.version;
