@@ -21,18 +21,24 @@ class _NotesListPageState extends State<NotesListPage> {
   String? _selectedCharacter;
 
   List<String> _getAllTags(List<Note> notes) {
-    final tags = notes.expand((note) => note.tags).toSet().toList()..sort();
-    return tags;
+    return notes.expand((note) => note.tags).toSet().toList()..sort();
   }
 
   List<String> _getAllCharacterNames(List<Note> notes) {
     final characterBox = Hive.box<Character>('characters');
     final characterIds = notes.expand((note) => note.characterIds).toSet();
-    final characters = characterIds.map((id) => characterBox.get(id)).whereType<Character>();
-    return characters.map((c) => c.name).toList()..sort();
+    return characterIds
+        .map((id) => characterBox.get(id))
+        .whereType<Character>()
+        .map((c) => c.name)
+        .toSet()
+        .toList()
+      ..sort();
   }
 
   void _filterNotes(String query, List<Note> allNotes) {
+    final characterBox = Hive.box<Character>('characters');
+
     setState(() {
       _filteredNotes = allNotes.where((note) {
         final matchesSearch = query.isEmpty ||
@@ -43,7 +49,7 @@ class _NotesListPageState extends State<NotesListPage> {
 
         final matchesCharacter = _selectedCharacter == null ||
             note.characterIds.any((id) {
-              final character = Hive.box<Character>('characters').get(id);
+              final character = characterBox.get(id);
               return character?.name == _selectedCharacter;
             });
 
@@ -52,7 +58,7 @@ class _NotesListPageState extends State<NotesListPage> {
     });
   }
 
-  Future<void> _deleteNote(Note note, BuildContext context) async {
+  Future<void> _deleteNote(Note note) async {
     final box = Hive.box<Note>('notes');
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -73,22 +79,302 @@ class _NotesListPageState extends State<NotesListPage> {
           ),
         ],
       ),
-    ) ?? false;
+    ) ??
+        false;
 
     if (shouldDelete) {
       await box.delete(note.key);
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Пост "${note.title}" удалён'),
           action: SnackBarAction(
             label: 'Отменить',
-            onPressed: () {
-              box.add(note);
-            },
+            onPressed: () => box.add(note),
           ),
         ),
       );
     }
+  }
+
+  Widget _buildSearchField(TextTheme textTheme, ColorScheme colorScheme) {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      decoration: InputDecoration(
+        hintText: 'Поиск по постам...',
+        border: InputBorder.none,
+        hintStyle: textTheme.bodyLarge?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      style: textTheme.bodyLarge,
+      onChanged: (query) {
+        final allNotes = Hive.box<Note>('notes').values.toList().cast<Note>();
+        _filterNotes(query, allNotes);
+      },
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: onSelected,
+        shape: StadiumBorder(
+          side: BorderSide(color: colorScheme.outline),
+        ),
+        showCheckmark: false,
+        side: BorderSide.none,
+        selectedColor: colorScheme.secondaryContainer,
+        labelStyle: textTheme.labelLarge?.copyWith(
+          color: selected
+              ? colorScheme.onSecondaryContainer
+              : colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltersRow(
+      List<String> tags,
+      List<String> characterNames,
+      TextTheme textTheme,
+      ColorScheme colorScheme,
+      ) {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          if (characterNames.isNotEmpty)
+            _buildFilterChip(
+              label: 'Все персонажи',
+              selected: _selectedCharacter == null,
+              onSelected: (isSelected) {
+                setState(() {
+                  _selectedCharacter = null;
+                  _filterNotes(_searchController.text,
+                      Hive.box<Note>('notes').values.toList().cast<Note>());
+                });
+              },
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
+          ...characterNames.map((name) => _buildFilterChip(
+            label: name,
+            selected: _selectedCharacter == name,
+            onSelected: (isSelected) {
+              setState(() {
+                _selectedCharacter = _selectedCharacter == name ? null : name;
+                _filterNotes(_searchController.text,
+                    Hive.box<Note>('notes').values.toList().cast<Note>());
+              });
+            },
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          )),
+          if (tags.isNotEmpty)
+            _buildFilterChip(
+              label: 'Все теги',
+              selected: _selectedTag == null,
+              onSelected: (isSelected) {
+                setState(() {
+                  _selectedTag = null;
+                  _filterNotes(_searchController.text,
+                      Hive.box<Note>('notes').values.toList().cast<Note>());
+                });
+              },
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+            ),
+          ...tags.map((tag) => _buildFilterChip(
+            label: tag,
+            selected: _selectedTag == tag,
+            onSelected: (isSelected) {
+              setState(() {
+                _selectedTag = _selectedTag == tag ? null : tag;
+                _filterNotes(_searchController.text,
+                    Hive.box<Note>('notes').values.toList().cast<Note>());
+              });
+            },
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.note_add_outlined,
+            size: 64,
+            color: colorScheme.onSurface,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _isSearching && _searchController.text.isNotEmpty
+                ? 'Ничего не найдено'
+                : 'Нет постов',
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isSearching && _searchController.text.isNotEmpty
+                ? 'Попробуйте изменить параметры поиска'
+                : 'Нажмите + чтобы создать первый пост',
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoteItem(Note note, ColorScheme colorScheme, TextTheme textTheme) {
+    final characterBox = Hive.box<Character>('characters');
+    final characters = note.characterIds
+        .map((id) => characterBox.get(id))
+        .whereType<Character>()
+        .toList();
+
+    return Dismissible(
+      key: Key(note.id),
+      background: Container(
+        color: colorScheme.errorContainer,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: Icon(Icons.delete_outline, color: colorScheme.onErrorContainer),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Удалить заметку?'),
+            content: Text('Заметка "${note.title}" будет удалена безвозвратно'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Отмена'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(
+                  'Удалить',
+                  style: TextStyle(color: colorScheme.error),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (direction) => _deleteNote(note),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        note.title,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: colorScheme.onSurface),
+                      onPressed: () => _deleteNote(note),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  note.content,
+                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (characters.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 4,
+                    children: characters.map((character) => Chip(
+                      label: Text(character.name),
+                      labelStyle: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                      backgroundColor: colorScheme.secondaryContainer,
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    )).toList(),
+                  ),
+                ],
+                if (note.tags.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 4,
+                    children: note.tags.map((tag) => Chip(
+                      label: Text(tag),
+                      labelStyle: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                      backgroundColor: colorScheme.secondaryContainer,
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    )).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotesList(List<Note> notes, ColorScheme colorScheme, TextTheme textTheme) {
+    return notes.isEmpty
+        ? _buildEmptyState(colorScheme, textTheme)
+        : ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: notes.length,
+      itemBuilder: (context, index) =>
+          _buildNoteItem(notes[index], colorScheme, textTheme),
+    );
   }
 
   @override
@@ -99,28 +385,10 @@ class _NotesListPageState extends State<NotesListPage> {
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
-            ? TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Поиск по постам...',
-            border: InputBorder.none,
-            hintStyle: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          style: textTheme.bodyLarge,
-          onChanged: (query) {
-            final box = Hive.box<Note>('notes');
-            final allNotes = box.values.toList().cast<Note>();
-            _filterNotes(query, allNotes);
-          },
-        )
+            ? _buildSearchField(textTheme, colorScheme)
             : Text(
           'Мои посты',
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -142,9 +410,7 @@ class _NotesListPageState extends State<NotesListPage> {
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
             ),
           ),
         ],
@@ -160,130 +426,14 @@ class _NotesListPageState extends State<NotesListPage> {
           return Column(
             children: [
               if (tags.isNotEmpty || characterNames.isNotEmpty)
-                Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      if (characterNames.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            label: const Text('Все персонажи'),
-                            selected: _selectedCharacter == null,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCharacter = null;
-                                _filterNotes(_searchController.text, allNotes);
-                              });
-                            },
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            showCheckmark: false,
-                            side: BorderSide.none,
-                            selectedColor: colorScheme.secondaryContainer,
-                            labelStyle: textTheme.labelLarge?.copyWith(
-                              color: _selectedCharacter == null
-                                  ? colorScheme.onSecondaryContainer
-                                  : colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ...characterNames.map((name) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            label: Text(name),
-                            selected: _selectedCharacter == name,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCharacter = selected ? name : null;
-                                _filterNotes(_searchController.text, allNotes);
-                              });
-                            },
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            showCheckmark: false,
-                            side: BorderSide.none,
-                            selectedColor: colorScheme.secondaryContainer,
-                            labelStyle: textTheme.labelLarge?.copyWith(
-                              color: _selectedCharacter == name
-                                  ? colorScheme.onSecondaryContainer
-                                  : colorScheme.onSurface,
-                            ),
-                          ),
-                        );
-                      }),
-                      if (tags.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            label: const Text('Все теги'),
-                            selected: _selectedTag == null,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedTag = null;
-                                _filterNotes(_searchController.text, allNotes);
-                              });
-                            },
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            showCheckmark: false,
-                            side: BorderSide.none,
-                            selectedColor: colorScheme.secondaryContainer,
-                            labelStyle: textTheme.labelLarge?.copyWith(
-                              color: _selectedTag == null
-                                  ? colorScheme.onSecondaryContainer
-                                  : colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ...tags.map((tag) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            label: Text(tag),
-                            selected: _selectedTag == tag,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedTag = selected ? tag : null;
-                                _filterNotes(_searchController.text, allNotes);
-                              });
-                            },
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            showCheckmark: false,
-                            side: BorderSide.none,
-                            selectedColor: colorScheme.secondaryContainer,
-                            labelStyle: textTheme.labelLarge?.copyWith(
-                              color: _selectedTag == tag
-                                  ? colorScheme.onSecondaryContainer
-                                  : colorScheme.onSurface,
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
+                _buildFiltersRow(tags, characterNames, textTheme, colorScheme),
               Expanded(
                 child: _buildNotesList(
                   _isSearching || _selectedTag != null || _selectedCharacter != null
                       ? _filteredNotes
                       : allNotes,
+                  colorScheme,
+                  textTheme,
                 ),
               ),
             ],
@@ -294,191 +444,9 @@ class _NotesListPageState extends State<NotesListPage> {
         child: const Icon(Icons.add),
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const NoteEditPage(),
-          ),
+          MaterialPageRoute(builder: (context) => const NoteEditPage()),
         ),
       ),
-    );
-  }
-
-  Widget _buildNotesList(List<Note> notes) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    if (notes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.note_add_outlined,
-              size: 64,
-              color: colorScheme.onSurface,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _isSearching && _searchController.text.isNotEmpty
-                  ? 'Ничего не найдено'
-                  : 'Нет постов',
-              style: textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isSearching && _searchController.text.isNotEmpty
-                  ? 'Попробуйте изменить параметры поиска'
-                  : 'Нажмите + чтобы создать первый пост',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: notes.length,
-      itemBuilder: (context, index) {
-        final note = notes[index];
-        final characterBox = Hive.box<Character>('characters');
-        final characters = note.characterIds
-            .map((id) => characterBox.get(id))
-            .whereType<Character>()
-            .toList();
-
-        return Dismissible(
-          key: Key(note.id),
-          background: Container(
-            color: colorScheme.errorContainer,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            child: Icon(
-              Icons.delete_outline,
-              color: colorScheme.onErrorContainer,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            return await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Удалить заметку?'),
-                content: Text('Заметка "${note.title}" будет удалена безвозвратно'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Отмена'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(
-                      'Удалить',
-                      style: TextStyle(color: colorScheme.error),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          onDismissed: (direction) async {
-            await _deleteNote(note, context);
-          },
-          child: Card(
-            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outlineVariant,
-                width: 1,
-              ),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NoteEditPage(note: note),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            note.title,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: colorScheme.onSurface),
-                          onPressed: () => _deleteNote(note, context),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      note.content,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (characters.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 4,
-                        children: characters.map((character) {
-                          return Chip(
-                            label: Text(character.name),
-                            labelStyle: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSecondaryContainer,
-                            ),
-                            backgroundColor: colorScheme.secondaryContainer,
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                    if (note.tags.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 4,
-                        children: note.tags.map((tag) {
-                          return Chip(
-                            label: Text(tag),
-                            labelStyle: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSecondaryContainer,
-                            ),
-                            backgroundColor: colorScheme.secondaryContainer,
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
