@@ -137,8 +137,8 @@ class SettingsPage extends StatelessWidget {
                       const SizedBox(height: 8),
                     ],
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.save_alt),
-                      label: const Text('Экспорт в Google Drive'),
+                      icon: const Icon(Icons.upload),
+                      label: const Text('Резервное копирование в Google Drive'),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
@@ -151,7 +151,7 @@ class SettingsPage extends StatelessWidget {
                     ],
                     OutlinedButton.icon(
                       icon: const Icon(Icons.restore),
-                      label: const Text('Импорт из Google Drive'),
+                      label: const Text('Восстановить из Google Drive'),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
