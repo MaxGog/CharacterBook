@@ -213,7 +213,7 @@ class SettingsPage extends StatelessWidget {
               child: Ink(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
                 child: Image.asset('assets/underdeveloped.png'),
               ),
