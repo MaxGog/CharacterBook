@@ -132,4 +132,54 @@ class Character extends HiveObject {
   void updateLastEdited() {
     lastEdited = DateTime.now();
   }
+
+  factory Character.empty() {
+    return Character(
+      name: '',
+      age: 20,
+      gender: 'Мужской',
+      biography: '',
+      personality: '',
+      appearance: '',
+      abilities: '',
+      other: '',
+      imageBytes: null,
+      referenceImageBytes: null,
+      customFields: [],
+      additionalImages: [],
+      race: null,
+    );
+  }
+
+  Character copyWith({
+    String? name,
+    int? age,
+    String? gender,
+    String? biography,
+    String? personality,
+    String? appearance,
+    String? abilities,
+    String? other,
+    Uint8List? imageBytes,
+    Uint8List? referenceImageBytes,
+    List<CustomField>? customFields,
+    List<Uint8List>? additionalImages,
+    Race? race,
+  }) {
+    return Character(
+      name: name ?? this.name,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      biography: biography ?? this.biography,
+      personality: personality ?? this.personality,
+      appearance: appearance ?? this.appearance,
+      abilities: abilities ?? this.abilities,
+      other: other ?? this.other,
+      imageBytes: imageBytes ?? this.imageBytes,
+      referenceImageBytes: referenceImageBytes ?? this.referenceImageBytes,
+      customFields: customFields ?? this.customFields,
+      additionalImages: additionalImages ?? this.additionalImages,
+      race: race ?? this.race,
+    );
+  }
 }

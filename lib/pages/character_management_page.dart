@@ -1,12 +1,9 @@
 import 'package:characterbook/pages/race_management_page.dart';
 import 'package:flutter/material.dart';
-
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../models/character_model.dart';
 import 'package:flutter/services.dart';
-
 import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
 import '../services/clipboard_service.dart';
@@ -22,25 +19,13 @@ class CharacterEditPage extends StatefulWidget {
 
 class _CharacterEditPageState extends State<CharacterEditPage> {
   final _formKey = GlobalKey<FormState>();
-  late String _name;
-  late int _age;
-  late String _gender;
-  late String _biography;
-  late String _personality;
-  late String _appearance;
-  late Uint8List? _imageBytes;
-  late String _abilities;
-  late String _other;
-  late Uint8List? _referenceImageBytes;
+  final _picker = ImagePicker();
+  final _genders = const ["Мужской", "Женский", "Другой"];
 
-  final ImagePicker _picker = ImagePicker();
-  final List<String> _genders = ["Мужской", "Женский", "Другой"];
-
+  late Character _character;
+  late List<Race> _races;
   late List<CustomField> _customFields;
   late List<Uint8List> _additionalImages;
-
-  Race? _selectedRace;
-  List<Race> _races = [];
 
   @override
   void initState() {
@@ -50,47 +35,19 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   void _initializeFields() {
-    if (widget.character != null) {
-      _name = widget.character!.name;
-      _age = widget.character!.age;
-      _gender = widget.character!.gender;
-      _biography = widget.character!.biography;
-      _personality = widget.character!.personality;
-      _appearance = widget.character!.appearance;
-      _imageBytes = widget.character!.imageBytes;
-      _abilities = widget.character!.abilities;
-      _other = widget.character!.other;
-      _referenceImageBytes = widget.character!.referenceImageBytes;
-      _customFields = widget.character!.customFields
-          .map((f) => CustomField(f.key, f.value))
-          .toList();
-      _additionalImages = List.from(widget.character!.additionalImages);
-      _selectedRace = widget.character!.race;
-    } else {
-      _name = '';
-      _age = 20;
-      _gender = _genders.first;
-      _biography = '';
-      _personality = '';
-      _appearance = '';
-      _imageBytes = null;
-      _abilities = '';
-      _other = '';
-      _referenceImageBytes = null;
-      _customFields = [];
-      _additionalImages = [];
-      _selectedRace = null;
-    }
+    _character = widget.character?.copyWith() ?? Character.empty();
+    _customFields = _character.customFields.map((f) => f.copyWith()).toList();
+    _additionalImages = List.from(_character.additionalImages);
   }
 
   Future<void> _loadRaces() async {
     final raceBox = Hive.box<Race>('races');
     setState(() {
       _races = raceBox.values.toList();
-      if (widget.character?.race != null) {
-        _selectedRace = _races.firstWhere(
-              (r) => r.name == widget.character?.race?.name,
-          orElse: () => widget.character!.race!,
+      if (_character.race != null) {
+        _character.race = _races.firstWhere(
+              (r) => r.name == _character.race?.name,
+          orElse: () => _character.race!,
         );
       }
     });
@@ -100,10 +57,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     try {
       final box = Hive.box<Character>('characters');
       if (widget.character != null && widget.character!.key != null) {
-        await box.put(
-            widget.character!.key,
-            _buildCharacter()
-        );
+        await box.put(widget.character!.key, _buildCharacter());
       }
     } catch (e) {
       debugPrint('Ошибка автосохранения: $e');
@@ -111,41 +65,24 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   Character _buildCharacter() {
-    return Character(
-      name: _name,
-      age: _age,
-      gender: _gender,
-      biography: _biography,
-      personality: _personality,
-      appearance: _appearance,
-      abilities: _abilities,
-      other: _other,
-      imageBytes: _imageBytes,
-      referenceImageBytes: _referenceImageBytes,
+    return _character.copyWith(
       customFields: _customFields.where((f) => f.key.isNotEmpty).toList(),
       additionalImages: _additionalImages,
-      race: _selectedRace,
     );
   }
 
   void _addCustomField() {
     setState(() {
-      final hasEmpty = _customFields.any((f) =>
-      f.key.isEmpty && f.value.isEmpty);
+      final hasEmpty = _customFields.any((f) => f.key.isEmpty && f.value.isEmpty);
       if (!hasEmpty) {
         _customFields.add(CustomField('', ''));
       }
     });
   }
 
-
   void _updateCustomField(int index, String key, String value) {
     setState(() {
-      if (key
-          .trim()
-          .isEmpty && value
-          .trim()
-          .isEmpty) {
+      if (key.trim().isEmpty && value.trim().isEmpty) {
         _customFields.removeAt(index);
       } else {
         _customFields[index] = CustomField(key.trim(), value.trim());
@@ -161,6 +98,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   Widget _buildRaceSelector() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -168,24 +107,16 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           children: [
             Expanded(
               child: DropdownButtonFormField<Race>(
-                value: _selectedRace,
+                value: _character.race,
                 decoration: InputDecoration(
                   labelText: 'Раса',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                items: _races.map((race) {
-                  return DropdownMenuItem<Race>(
-                    value: race,
-                    child: Text(race.name),
-                  );
-                }).toList(),
-                onChanged: (race) {
-                  setState(() {
-                    _selectedRace = race;
-                  });
-                },
+                items: _races.map((race) => DropdownMenuItem<Race>(
+                  value: race,
+                  child: Text(race.name),
+                )).toList(),
+                onChanged: (race) => setState(() => _character.race = race),
               ),
             ),
             IconButton(
@@ -193,490 +124,53 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => RaceManagementPage(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const RaceManagementPage()),
                 );
-                if (result == true) {
-                  await _loadRaces();
-                }
+                if (result == true) await _loadRaces();
               },
               tooltip: 'Управление расами',
             ),
           ],
         ),
-        if (_selectedRace != null) ...[
+        if (_character.race != null) ...[
           const SizedBox(height: 8),
-          Text(
-            _selectedRace!.description,
-            style: Theme
-                .of(context)
-                .textTheme
-                .bodyMedium,
-          ),
+          Text(_character.race!.description, style: theme.textTheme.bodyMedium),
         ],
       ],
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final textTheme = Theme
-        .of(context)
-        .textTheme;
+  Future<void> _pickImage() async => _pickAndSetImage(true);
+  Future<void> _pickReferenceImage() async => _pickAndSetImage(false);
 
-    return WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              widget.character == null ? 'Новый персонаж' : 'Редактировать',
-              style: textTheme.titleLarge,
-            ),
-            centerTitle: true,
-            actions: [
-              if (widget.character != null)
-                IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: _copyToClipboard(),
-                  tooltip: 'Копировать',
-                ),
-              IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: _saveCharacter,
-                tooltip: 'Сохранить',
-              ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  InkWell(
-                    borderRadius: BorderRadius.circular(60),
-                    onTap: _pickImage,
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colorScheme.surfaceContainerHighest,
-                      ),
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: _imageBytes != null
-                            ? MemoryImage(_imageBytes!)
-                            : null,
-                        child: _imageBytes == null
-                            ? Icon(
-                          Icons.add_a_photo,
-                          size: 40,
-                          color: colorScheme.onSurfaceVariant,
-                        )
-                            : null,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  TextFormField(
-                    initialValue: _name,
-                    decoration: InputDecoration(
-                      labelText: "Имя",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    style: textTheme.bodyLarge,
-                    validator: (value) =>
-                    value?.isEmpty ?? true
-                        ? 'Введите имя'
-                        : null,
-                    onSaved: (value) => _name = value!,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: _age.toString(),
-                          decoration: InputDecoration(
-                            labelText: 'Возраст',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          style: textTheme.bodyLarge,
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Введите возраст';
-                            }
-                            final age = int.tryParse(value!);
-                            if (age == null || age <= 0) {
-                              return 'Некорректный возраст';
-                            }
-                            return null;
-                          },
-                          onSaved: (value) => _age = int.parse(value!),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _gender,
-                          items: _genders.map((gender) {
-                            return DropdownMenuItem(
-                              value: gender,
-                              child: Text(gender),
-                            );
-                          }).toList(),
-                          decoration: InputDecoration(
-                            labelText: 'Пол',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          style: textTheme.bodyLarge,
-                          dropdownColor: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          onChanged: (value) => _gender = value!,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-                  _buildRaceSelector(),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Референс персонажа',
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: _pickReferenceImage,
-                    child: Ink(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                        image: _referenceImageBytes != null
-                            ? DecorationImage(
-                          image: MemoryImage(_referenceImageBytes!),
-                          fit: BoxFit.cover,
-                        )
-                            : null,
-                      ),
-                      child: _referenceImageBytes == null
-                          ? Icon(
-                        Icons.add_a_photo,
-                        size: 40,
-                        color: colorScheme.onSurfaceVariant,
-                      )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  TextFormField(
-                    initialValue: _appearance,
-                    decoration: InputDecoration(
-                      labelText: 'Внешность',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    style: textTheme.bodyLarge,
-                    maxLines: 5,
-                    onSaved: (value) => _appearance = value!,
-                  ),
-
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Дополнительные изображения',
-                            style: textTheme.titleMedium,
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.add_photo_alternate),
-                            onPressed: _pickAdditionalImage,
-                            tooltip: 'Добавить изображение',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      if (_additionalImages.isEmpty)
-                        Text(
-                          'Нет дополнительных изображений',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: _additionalImages.length,
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.memory(
-                                  _additionalImages[index],
-                                  fit: BoxFit.cover,
-                                  height: 120,
-                                  width: double.infinity,
-                                ),
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: IconButton(
-                                  icon: const Icon(
-                                      Icons.delete, color: Colors.red),
-                                  onPressed: () =>
-                                      _removeAdditionalImage(index),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  TextFormField(
-                    initialValue: _personality,
-                    decoration: InputDecoration(
-                      labelText: 'Характер',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    style: textTheme.bodyLarge,
-                    maxLines: 4,
-                    onSaved: (value) => _personality = value!,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  TextFormField(
-                    initialValue: _biography,
-                    decoration: InputDecoration(
-                      labelText: 'Биография',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    style: textTheme.bodyLarge,
-                    maxLines: 7,
-                    onSaved: (value) => _biography = value!,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  TextFormField(
-                    initialValue: _abilities,
-                    decoration: InputDecoration(
-                      labelText: 'Способности',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    style: textTheme.bodyLarge,
-                    maxLines: 3,
-                    onSaved: (value) => _abilities = value!,
-                  ),
-
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: _other,
-                    decoration: InputDecoration(
-                      labelText: 'Прочее',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    style: textTheme.bodyLarge,
-                    maxLines: 5,
-                    onSaved: (value) => _other = value!,
-                  ),
-                  const SizedBox(height: 32),
-
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Дополнительные поля',
-                            style: textTheme.titleMedium,
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: _addCustomField,
-                            tooltip: 'Добавить поле',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ..._customFields
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                        final index = entry.key;
-                        final field = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: TextFormField(
-                                  initialValue: field.key,
-                                  decoration: InputDecoration(
-                                    labelText: 'Название поля',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  onChanged: (value) =>
-                                      _updateCustomField(
-                                      index, value, field.value),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 3,
-                                child: TextFormField(
-                                  initialValue: field.value,
-                                  decoration: InputDecoration(
-                                    labelText: 'Значение',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  onChanged: (value) =>
-                                      _updateCustomField(
-                                      index, field.key, value),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _removeCustomField(index),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: _saveCharacter,
-                    child: Text(
-                      'Сохранить',
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        )
-    );
-  }
-
-  Future<void> _pickImage() async {
+  Future<void> _pickAndSetImage(bool isMainImage) async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         final bytes = await image.readAsBytes();
-        setState(() => _imageBytes = bytes);
+        setState(() {
+          if (isMainImage) {
+            _character.imageBytes = bytes;
+          } else {
+            _character.referenceImageBytes = bytes;
+          }
+        });
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка при выборе изображения: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _pickReferenceImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        setState(() => _referenceImageBytes = bytes);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка при выборе изображения: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      _showError('Ошибка при выборе изображения: ${e.toString()}');
     }
   }
 
   Future<void> _pickAdditionalImage() async {
     try {
-      final XFile? image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
         maxWidth: 1200,
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
-        setState(() {
-          _additionalImages.add(bytes);
-        });
+        setState(() => _additionalImages.add(bytes));
       }
     } catch (e) {
       _showError('Ошибка при выборе изображения: ${e.toString()}');
@@ -702,22 +196,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
       try {
         final box = Hive.box<Character>('characters');
-        final character = Character(
-            name: _name,
-            age: _age,
-            gender: _gender,
-            biography: _biography,
-            personality: _personality,
-            appearance: _appearance,
-            abilities: _abilities,
-            other: _other,
-            imageBytes: _imageBytes,
-            referenceImageBytes: _referenceImageBytes,
-            customFields: _customFields.where((f) => f.key.isNotEmpty).toList(),
-            additionalImages: _additionalImages,
-            lastEdited: DateTime.now(),
-            race: _selectedRace
-        );
+        final character = _buildCharacter();
 
         if (widget.character != null && widget.character!.key != null) {
           await box.put(widget.character!.key, character);
@@ -725,9 +204,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           await box.add(character);
         }
 
-        if (mounted) {
-          Navigator.pop(context);
-        }
+        if (mounted) Navigator.pop(context);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -742,40 +219,384 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     return () async {
       try {
         await ClipboardService.copyCharacterToClipboard(
-          name: _name,
-          age: _age,
-          gender: _gender,
-          raceName: _selectedRace?.name,
-          biography: _biography,
-          appearance: _appearance,
-          personality: _personality,
-          abilities: _abilities,
-          other: _other,
-          customFields: _customFields
-              .map((f) => {'key': f.key, 'value': f.value})
-              .toList(),
+          name: _character.name,
+          age: _character.age,
+          gender: _character.gender,
+          raceName: _character.race?.name,
+          biography: _character.biography,
+          appearance: _character.appearance,
+          personality: _character.personality,
+          abilities: _character.abilities,
+          other: _character.other,
+          customFields: _customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
         );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Информация скопирована в буфер обмена'),
+            const SnackBar(
+              content: Text('Информация скопирована в буфер обмена'),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
           );
         }
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Ошибка копирования: ${e.toString()}'),
-            ),
-          );
-        }
+        if (mounted) _showError('Ошибка копирования: ${e.toString()}');
       }
     };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return WillPopScope(
+      onWillPop: () async => true,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.character == null ? 'Новый персонаж' : 'Редактировать',
+            style: textTheme.titleLarge,
+          ),
+          centerTitle: true,
+          actions: [
+            if (widget.character != null)
+              IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: _copyToClipboard(),
+                tooltip: 'Копировать',
+              ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveCharacter,
+              tooltip: 'Сохранить',
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildImagePicker(
+                  context: context,
+                  imageBytes: _character.imageBytes,
+                  onTap: _pickImage,
+                  radius: 60,
+                ),
+                const SizedBox(height: 24),
+                _buildNameField(textTheme),
+                const SizedBox(height: 16),
+                _buildAgeAndGenderFields(textTheme),
+                const SizedBox(height: 16),
+                _buildRaceSelector(),
+                const SizedBox(height: 16),
+                _buildReferenceImageSection(context, colorScheme, textTheme),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Внешность',
+                  value: _character.appearance,
+                  maxLines: 5,
+                  onSaved: (value) => _character.appearance = value!,
+                ),
+                _buildAdditionalImagesSection(context, textTheme, colorScheme),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Характер',
+                  value: _character.personality,
+                  maxLines: 4,
+                  onSaved: (value) => _character.personality = value!,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Биография',
+                  value: _character.biography,
+                  maxLines: 7,
+                  onSaved: (value) => _character.biography = value!,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Способности',
+                  value: _character.abilities,
+                  maxLines: 3,
+                  onSaved: (value) => _character.abilities = value!,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Прочее',
+                  value: _character.other,
+                  maxLines: 5,
+                  onSaved: (value) => _character.other = value!,
+                ),
+                const SizedBox(height: 32),
+                _buildCustomFieldsSection(textTheme),
+                _buildSaveButton(colorScheme, textTheme),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePicker({
+    required BuildContext context,
+    required Uint8List? imageBytes,
+    required VoidCallback onTap,
+    double radius = 60,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(radius),
+      onTap: onTap,
+      child: Ink(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colorScheme.surfaceContainerHighest,
+        ),
+        child: CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.transparent,
+          backgroundImage: imageBytes != null ? MemoryImage(imageBytes) : null,
+          child: imageBytes == null
+              ? Icon(
+            Icons.add_a_photo,
+            size: 40,
+            color: colorScheme.onSurfaceVariant,
+          )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNameField(TextTheme textTheme) {
+    return TextFormField(
+      initialValue: _character.name,
+      decoration: _inputDecoration(label: "Имя"),
+      style: textTheme.bodyLarge,
+      validator: (value) => value?.isEmpty ?? true ? 'Введите имя' : null,
+      onSaved: (value) => _character.name = value!,
+    );
+  }
+
+  Widget _buildAgeAndGenderFields(TextTheme textTheme) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            initialValue: _character.age.toString(),
+            decoration: _inputDecoration(label: 'Возраст'),
+            style: textTheme.bodyLarge,
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value?.isEmpty ?? true) return 'Введите возраст';
+              final age = int.tryParse(value!);
+              if (age == null || age <= 0) return 'Некорректный возраст';
+              return null;
+            },
+            onSaved: (value) => _character.age = int.parse(value!),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _character.gender,
+            items: _genders.map((gender) => DropdownMenuItem(
+              value: gender,
+              child: Text(gender),
+            )).toList(),
+            decoration: _inputDecoration(label: 'Пол'),
+            style: textTheme.bodyLarge,
+            dropdownColor: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            onChanged: (value) => _character.gender = value!,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReferenceImageSection(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Column(
+      children: [
+        Text(
+          'Референс персонажа',
+          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: _pickReferenceImage,
+          child: Ink(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+              image: _character.referenceImageBytes != null
+                  ? DecorationImage(
+                image: MemoryImage(_character.referenceImageBytes!),
+                fit: BoxFit.cover,
+              )
+                  : null,
+            ),
+            child: _character.referenceImageBytes == null
+                ? Icon(
+              Icons.add_a_photo,
+              size: 40,
+              color: colorScheme.onSurfaceVariant,
+            )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String value,
+    required int maxLines,
+    required FormFieldSetter<String> onSaved,
+  }) {
+    return TextFormField(
+      initialValue: value,
+      decoration: _inputDecoration(label: label, alignLabel: true),
+      style: Theme.of(context).textTheme.bodyLarge,
+      maxLines: maxLines,
+      onSaved: onSaved,
+    );
+  }
+
+  Widget _buildAdditionalImagesSection(BuildContext context, TextTheme textTheme, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text('Дополнительные изображения', style: textTheme.titleMedium),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.add_photo_alternate),
+              onPressed: _pickAdditionalImage,
+              tooltip: 'Добавить изображение',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_additionalImages.isEmpty)
+          Text(
+            'Нет дополнительных изображений',
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _additionalImages.length,
+          itemBuilder: (context, index) => Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  _additionalImages[index],
+                  fit: BoxFit.cover,
+                  height: 120,
+                  width: double.infinity,
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeAdditionalImage(index),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomFieldsSection(TextTheme textTheme) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text('Дополнительные поля', style: textTheme.titleMedium),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _addCustomField,
+              tooltip: 'Добавить поле',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ..._customFields.asMap().entries.map((entry) {
+          final index = entry.key;
+          final field = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    initialValue: field.key,
+                    decoration: _inputDecoration(label: 'Название поля'),
+                    onChanged: (value) => _updateCustomField(index, value, field.value),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: TextFormField(
+                    initialValue: field.value,
+                    decoration: _inputDecoration(label: 'Значение'),
+                    onChanged: (value) => _updateCustomField(index, field.key, value),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _removeCustomField(index),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
+    return FilledButton(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      onPressed: _saveCharacter,
+      child: Text(
+        'Сохранить',
+        style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({required String label, bool alignLabel = false}) {
+    return InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      alignLabelWithHint: alignLabel,
+    );
   }
 }

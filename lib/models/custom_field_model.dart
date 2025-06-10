@@ -25,4 +25,14 @@ class CustomField {
 
   @override
   String toString() => 'CustomField{key: $key, value: $value}';
+
+  CustomField copyWith({
+    String? key,
+    String? value,
+  }) {
+    return CustomField(
+      key ?? this.key,
+      value ?? this.value,
+    );
+  }
 }
