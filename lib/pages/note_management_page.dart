@@ -28,9 +28,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
       text: widget.isCopyMode ? 'Копия: $initialTitle' : initialTitle,
     );
     _contentController = TextEditingController(text: widget.note?.content ?? '');
-    if (widget.note != null) {
-      _selectedCharacterIds.addAll(widget.note!.characterIds);
-    }
+    _selectedCharacterIds.addAll(widget.note?.characterIds ?? []);
   }
 
   @override
@@ -42,18 +40,8 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   Future<void> _saveNote() async {
     final title = _titleController.text.trim();
-    final content = _contentController.text.trim();
-
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Заголовок не может быть пустым'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
+      _showSnackBar('Заголовок не может быть пустым');
       return;
     }
 
@@ -63,46 +51,46 @@ class _NoteEditPageState extends State<NoteEditPage> {
     if (widget.note != null && !widget.isCopyMode) {
       widget.note!
         ..title = title
-        ..content = content
-        ..updatedAt = now
-        ..characterIds = _selectedCharacterIds;
+        ..content = _contentController.text.trim()
+        ..characterIds = _selectedCharacterIds
+        ..updatedAt = now;
       await notesBox.put(widget.note!.key, widget.note!);
     } else {
-      final note = Note(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      await notesBox.add(Note(
+        id: now.millisecondsSinceEpoch.toString(),
         title: title,
-        content: content,
+        content: _contentController.text.trim(),
         characterIds: _selectedCharacterIds,
-      );
-      await notesBox.add(note);
+      ));
     }
 
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
 
   Future<void> _copyToClipboard() async {
     await Clipboard.setData(ClipboardData(
       text: '${_titleController.text}\n\n${_contentController.text}',
     ));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Скопирован скопирован в буфер'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+    if (mounted) _showSnackBar('Текст скопирован в буфер');
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -112,9 +100,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
               : widget.isCopyMode
               ? 'Копировать пост'
               : 'Редактировать пост',
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -130,150 +116,148 @@ class _NoteEditPageState extends State<NoteEditPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Заголовок',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outline),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary),
-                ),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-              style: textTheme.titleLarge,
-              maxLines: 1,
-            ),
-            const SizedBox(height: 16),
-            _buildCharacterSelector(context),
-            const SizedBox(height: 16),
-            _buildSelectedCharactersChips(context),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _contentController,
-              decoration: InputDecoration(
-                labelText: 'Содержание',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outline),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary),
-                ),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
-                contentPadding: const EdgeInsets.all(16),
-                alignLabelWithHint: true,
-              ),
-              style: textTheme.bodyLarge,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: _saveNote,
-              child: Text(
-                'Сохранить пост',
-                style: textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onPrimary,
-                ),
-              ),
-            ),
-          ],
+      body: _buildContent(context, colorScheme, textTheme),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildTitleField(colorScheme, textTheme),
+          const SizedBox(height: 16),
+          _buildCharacterSelector(context),
+          const SizedBox(height: 16),
+          _buildSelectedCharactersChips(context),
+          const SizedBox(height: 16),
+          _buildContentField(colorScheme, textTheme),
+          const SizedBox(height: 24),
+          _buildSaveButton(colorScheme, textTheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitleField(ColorScheme colorScheme, TextTheme textTheme) {
+    return TextField(
+      controller: _titleController,
+      decoration: _buildInputDecoration(
+        colorScheme,
+        labelText: 'Заголовок',
+      ),
+      style: textTheme.titleLarge,
+      maxLines: 1,
+    );
+  }
+
+  Widget _buildContentField(ColorScheme colorScheme, TextTheme textTheme) {
+    return TextField(
+      controller: _contentController,
+      decoration: _buildInputDecoration(
+        colorScheme,
+        labelText: 'Содержание',
+        contentPadding: const EdgeInsets.all(16),
+        alignLabelWithHint: true,
+      ),
+      style: textTheme.bodyLarge,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+    );
+  }
+
+  InputDecoration _buildInputDecoration(
+      ColorScheme colorScheme, {
+        required String labelText,
+        EdgeInsetsGeometry? contentPadding,
+        bool? alignLabelWithHint,
+      }) {
+    return InputDecoration(
+      labelText: labelText,
+      border: _buildInputBorder(colorScheme.outline),
+      enabledBorder: _buildInputBorder(colorScheme.outline),
+      focusedBorder: _buildInputBorder(colorScheme.primary),
+      filled: true,
+      fillColor: colorScheme.surfaceContainerHighest,
+      contentPadding: contentPadding ??
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      alignLabelWithHint: alignLabelWithHint,
+    );
+  }
+
+  OutlineInputBorder _buildInputBorder(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: color),
+    );
+  }
+
+  Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
+    return FilledButton(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+      onPressed: _saveNote,
+      child: Text(
+        'Сохранить пост',
+        style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
       ),
     );
   }
 
   Widget _buildCharacterSelector(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final charactersBox = Hive.box<Character>('characters');
-    final characters = charactersBox.values.toList().cast<Character>();
+    final theme = Theme.of(context);
+    final characters = Hive.box<Character>('characters').values.toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
           value: null,
-          decoration: InputDecoration(
+          decoration: _buildInputDecoration(
+            theme.colorScheme,
             labelText: 'Добавить персонажа',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: colorScheme.surfaceContainerHighest,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
           ),
-          dropdownColor: colorScheme.surfaceContainerHighest,
-          style: textTheme.bodyLarge?.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          dropdownColor: theme.colorScheme.surfaceContainerHighest,
+          style: theme.textTheme.bodyLarge,
           borderRadius: BorderRadius.circular(12),
-          items: [
-            ...characters.map((character) {
-              final characterKey = charactersBox.keyAt(characters.indexOf(character)).toString();
-              final isSelected = _selectedCharacterIds.contains(characterKey);
-              return DropdownMenuItem(
-                value: characterKey,
-                child: Row(
-                  children: [
-                    if (isSelected)
-                      Icon(Icons.check, color: colorScheme.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      character.name,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface,
-                      ),
+          items: characters.map((character) {
+            final characterKey = Hive.box<Character>('characters')
+                .keyAt(characters.indexOf(character))
+                .toString();
+            final isSelected = _selectedCharacterIds.contains(characterKey);
+            return DropdownMenuItem(
+              value: characterKey,
+              child: Row(
+                children: [
+                  if (isSelected)
+                    Icon(Icons.check,
+                        color: theme.colorScheme.primary,
+                        size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    character.name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
                     ),
-                  ],
-                ),
-              );
-            }),
-          ],
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
           onChanged: (value) {
             if (value != null) {
               setState(() {
-                if (_selectedCharacterIds.contains(value)) {
-                  _selectedCharacterIds.remove(value);
-                } else {
-                  _selectedCharacterIds.add(value);
-                }
+                _selectedCharacterIds.contains(value)
+                    ? _selectedCharacterIds.remove(value)
+                    : _selectedCharacterIds.add(value);
               });
             }
           },
@@ -283,38 +267,36 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Widget _buildSelectedCharactersChips(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final charactersBox = Hive.box<Character>('characters');
 
-    if (_selectedCharacterIds.isEmpty) {
-      return const SizedBox();
-    }
+    if (_selectedCharacterIds.isEmpty) return const SizedBox();
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: _selectedCharacterIds.map((characterId) {
         final character = charactersBox.get(characterId);
-        if (character == null) return const SizedBox();
-
-        return InputChip(
-          label: Text(character.name),
-          onDeleted: () {
-            setState(() {
-              _selectedCharacterIds.remove(characterId);
-            });
-          },
-          deleteIcon: Icon(
-            Icons.close,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        );
+        return character != null
+            ? _buildCharacterChip(theme, character, characterId)
+            : const SizedBox();
       }).toList(),
+    );
+  }
+
+  Widget _buildCharacterChip(ThemeData theme, Character character, String characterId) {
+    return InputChip(
+      label: Text(character.name),
+      onDeleted: () => setState(() => _selectedCharacterIds.remove(characterId)),
+      deleteIcon: Icon(
+        Icons.close,
+        size: 18,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
     );
   }
 }
