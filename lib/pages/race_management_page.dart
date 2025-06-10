@@ -16,24 +16,27 @@ class RaceManagementPage extends StatefulWidget {
 }
 
 class _RaceManagementPageState extends State<RaceManagementPage> {
+  static const _logoSize = 120.0;
+  static const _borderRadius = 12.0;
+  static const _buttonHeight = 50.0;
+
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _biologyController;
-  late TextEditingController _backstoryController;
-  late Uint8List? _logoBytes;
+  late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _biologyController;
+  late final TextEditingController _backstoryController;
+  Uint8List? _logoBytes;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.race?.name ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.race?.description ?? '');
-    _biologyController = TextEditingController(text: widget.race?.biology ?? '');
-    _backstoryController =
-        TextEditingController(text: widget.race?.backstory ?? '');
-    _logoBytes = widget.race?.logo;
+    final race = widget.race;
+    _nameController = TextEditingController(text: race?.name ?? '');
+    _descriptionController = TextEditingController(text: race?.description ?? '');
+    _biologyController = TextEditingController(text: race?.biology ?? '');
+    _backstoryController = TextEditingController(text: race?.backstory ?? '');
+    _logoBytes = race?.logo;
   }
 
   @override
@@ -48,20 +51,17 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
   Future<void> _pickLogo() async {
     try {
       final image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        setState(() {
-          _logoBytes = bytes;
-        });
-      }
+      if (image == null) return;
+
+      final bytes = await image.readAsBytes();
+      setState(() => _logoBytes = bytes);
     } catch (e) {
-      _showError('Ошибка при выборе изображения: ${e.toString()}');
+      _showError('Ошибка при выборе изображения: $e');
     }
   }
 
   Future<void> _saveRace() async {
     if (!_formKey.currentState!.validate()) return;
-
     if (_nameController.text.isEmpty) {
       _showError('Введите название расы');
       return;
@@ -69,25 +69,19 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
 
     try {
       final raceBox = Hive.box<Race>('races');
-      final race = widget.race ?? Race(name: _nameController.text);
-
-      race
+      final race = widget.race ?? Race(name: _nameController.text)
         ..name = _nameController.text
         ..description = _descriptionController.text
         ..biology = _biologyController.text
         ..backstory = _backstoryController.text
         ..logo = _logoBytes;
 
-      if (widget.race == null) {
-        await raceBox.add(race);
-      } else {
-        await race.save();
-      }
+      widget.race == null ? await raceBox.add(race) : await race.save();
 
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      _showError('Ошибка сохранения: ${e.toString()}');
+      _showError('Ошибка сохранения: $e');
     }
   }
 
@@ -97,22 +91,82 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(_borderRadius),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLogoPicker() {
+    final theme = Theme.of(context);
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(_logoSize / 2),
+        onTap: _pickLogo,
+        child: Ink(
+          width: _logoSize,
+          height: _logoSize,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(_logoSize / 2),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant,
+              width: 1,
+            ),
+          ),
+          child: _logoBytes != null
+              ? ClipRRect(
+            borderRadius: BorderRadius.circular(_logoSize / 2),
+            child: Image.memory(
+              _logoBytes!,
+              fit: BoxFit.cover,
+            ),
+          )
+              : Icon(
+            Icons.add_photo_alternate,
+            size: 40,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    int maxLines = 1,
+    bool isRequired = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+          ),
+          alignLabelWithHint: maxLines > 1,
+        ),
+        style: Theme.of(context).textTheme.bodyLarge,
+        maxLines: maxLines,
+        validator: isRequired
+            ? (value) => value?.isEmpty ?? true ? 'Обязательное поле' : null
+            : null,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           widget.race == null ? 'Новая раса' : 'Редактировать расу',
-          style: textTheme.titleLarge,
+          style: theme.textTheme.titleLarge,
         ),
         centerTitle: true,
         actions: [
@@ -130,107 +184,44 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(60),
-                  onTap: _pickLogo,
-                  child: Ink(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(60),
-                      border: Border.all(
-                        color: colorScheme.outlineVariant,
-                        width: 1,
-                      ),
-                    ),
-                    child: _logoBytes != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(60),
-                      child: Image.memory(
-                        _logoBytes!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                        : Icon(
-                      Icons.add_photo_alternate,
-                      size: 40,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
+              _buildLogoPicker(),
               const SizedBox(height: 24),
-
-              TextFormField(
+              _buildTextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Название расы',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                style: textTheme.bodyLarge,
-                validator: (value) =>
-                value?.isEmpty ?? true ? 'Введите название расы' : null,
+                label: 'Название расы',
+                isRequired: true,
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
+              _buildTextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Описание',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                style: textTheme.bodyLarge,
+                label: 'Описание',
                 maxLines: 3,
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
+              _buildTextField(
                 controller: _biologyController,
-                decoration: InputDecoration(
-                  labelText: 'Биология',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                style: textTheme.bodyLarge,
+                label: 'Биология',
                 maxLines: 5,
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
+              _buildTextField(
                 controller: _backstoryController,
-                decoration: InputDecoration(
-                  labelText: 'Предыстория',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                style: textTheme.bodyLarge,
+                label: 'Предыстория',
                 maxLines: 7,
               ),
               const SizedBox(height: 32),
-
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              SizedBox(
+                width: double.infinity,
+                height: _buttonHeight,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(_borderRadius),
+                    ),
                   ),
-                ),
-                onPressed: _saveRace,
-                child: Text(
-                  'Сохранить',
-                  style: textTheme.labelLarge?.copyWith(
-                    color: colorScheme.onPrimary,
+                  onPressed: _saveRace,
+                  child: Text(
+                    'Сохранить',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ),
                 ),
               ),
