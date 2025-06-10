@@ -43,8 +43,7 @@ class _RaceListPageState extends State<RaceListPage> {
             race.name.toLowerCase().contains(query.toLowerCase()) ||
             race.description.toLowerCase().contains(query.toLowerCase());
 
-        final matchesTag = _selectedTag == null; //||
-            //(race.tags.contains(_selectedTag));
+        final matchesTag = _selectedTag == null; //|| (race.tags.contains(_selectedTag));
 
         return matchesSearch && matchesTag;
       }).toList();
@@ -58,37 +57,26 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   Future<bool> _isRaceUsed(Race race) async {
-    final charactersBox = Hive.box<Character>('characters');
-    final characters = charactersBox.values.toList();
+    final characters = Hive.box<Character>('characters').values;
     return characters.any((character) => character.race?.key == race.key);
   }
 
   Future<void> _deleteRace(Race race) async {
-    final isUsed = await _isRaceUsed(race);
-    if (isUsed) {
-      _showRaceInUseDialog();
+    if (await _isRaceUsed(race)) {
+      if (mounted) _showRaceInUseDialog();
       return;
     }
 
     final confirmed = await _showDeleteConfirmationDialog();
     if (confirmed ?? false) {
-      final box = Hive.box<Race>('races');
-      await box.delete(race.key);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Раса удалена'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      await Hive.box<Race>('races').delete(race.key);
+      if (mounted) _showSnackBar('Раса удалена');
     }
   }
 
   Future<bool?> _showDeleteConfirmationDialog() async {
+    if (!mounted) return false;
+
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -99,18 +87,14 @@ class _RaceListPageState extends State<RaceListPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Отмена',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               'Удалить',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         ],
@@ -135,40 +119,18 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   Future<void> _copyRaceToClipboard(Race race) async {
-    final text = '${race.name}\n\n${race.description}';
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Раса скопирована в буфер'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
-    }
+    await Clipboard.setData(ClipboardData(text: '${race.name}\n\n${race.description}'));
+    if (mounted) _showSnackBar('Раса скопирована в буфер');
   }
 
   Future<void> _shareRaceAsFile(Race race) async {
     try {
-      final jsonStr = jsonEncode(race.toJson());
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/${race.name}_race.json');
-      await file.writeAsString(jsonStr);
+      await file.writeAsString(jsonEncode(race.toJson()));
       await Share.shareXFiles([XFile(file.path)], text: 'Файл расы ${race.name}');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
     }
   }
 
@@ -186,7 +148,7 @@ class _RaceListPageState extends State<RaceListPage> {
               size: 200,
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Отсканируйте этот код для импорта расы',
               textAlign: TextAlign.center,
             ),
@@ -205,39 +167,15 @@ class _RaceListPageState extends State<RaceListPage> {
   Future<void> _importRaceFromFile() async {
     try {
       final filePath = await _showFileSelectionDialog();
-      if (filePath == null) return;
+      if (filePath == null || !mounted) return;
 
       final file = File(filePath);
-      final jsonStr = await file.readAsString();
-      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final race = Race.fromJson(jsonMap);
+      final race = Race.fromJson(jsonDecode(await file.readAsString()));
+      await Hive.box<Race>('races').add(race);
 
-      final box = Hive.box<Race>('races');
-      await box.add(race);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Раса успешно импортирована'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      _showSnackBar('Раса успешно импортирована');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка импорта: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      if (mounted) _showSnackBar('Ошибка импорта: ${e.toString()}');
     }
   }
 
@@ -269,32 +207,32 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   Future<void> _scanQRCode() async {
-    final result = await Navigator.push(
+    final result = await Navigator.push<Race>(
       context,
       MaterialPageRoute(builder: (context) => const QRScannerScreen()),
     );
 
-    if (result != null && result is Race) {
-      final box = Hive.box<Race>('races');
-      await box.add(result);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Раса импортирована из QR-кода'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+    if (result != null && mounted) {
+      await Hive.box<Race>('races').add(result);
+      _showSnackBar('Раса импортирована из QR-кода');
     }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -310,18 +248,9 @@ class _RaceListPageState extends State<RaceListPage> {
             ),
           ),
           style: textTheme.bodyLarge,
-          onChanged: (query) {
-            final box = Hive.box<Race>('races');
-            final allRaces = box.values.toList().cast<Race>();
-            _filterRaces(query, allRaces);
-          },
+          onChanged: (query) => _filterRaces(query, Hive.box<Race>('races').values.toList()),
         )
-            : Text(
-          'Расы',
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+            : Text('Расы', style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -339,68 +268,50 @@ class _RaceListPageState extends State<RaceListPage> {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsPage(),
-              ),
-            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
           ),
         ],
       ),
       body: ValueListenableBuilder<Box<Race>>(
         valueListenable: Hive.box<Race>('races').listenable(),
         builder: (context, box, _) {
-          final allRaces = box.values.toList().cast<Race>();
+          final allRaces = box.values.toList();
           final tags = _generateTags(allRaces);
+          final racesToShow = _isSearching || _selectedTag != null ? _filteredRaces : allRaces;
 
           return Column(
             children: [
               if (tags.isNotEmpty)
-                Container(
+                SizedBox(
                   height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ListView.builder(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     scrollDirection: Axis.horizontal,
                     itemCount: tags.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 4),
                     itemBuilder: (context, index) {
                       final tag = tags[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FilterChip(
-                          label: Text(tag),
-                          selected: _selectedTag == tag,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedTag = selected ? tag : null;
-                              _filterRaces(_searchController.text, allRaces);
-                            });
-                          },
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: colorScheme.outline,
-                            ),
-                          ),
-                          showCheckmark: false,
-                          side: BorderSide.none,
-                          selectedColor: colorScheme.secondaryContainer,
-                          labelStyle: textTheme.labelLarge?.copyWith(
-                            color: _selectedTag == tag
-                                ? colorScheme.onSecondaryContainer
-                                : colorScheme.onSurface,
-                          ),
+                      return FilterChip(
+                        label: Text(tag),
+                        selected: _selectedTag == tag,
+                        onSelected: (selected) => setState(() {
+                          _selectedTag = selected ? tag : null;
+                          _filterRaces(_searchController.text, allRaces);
+                        }),
+                        shape: StadiumBorder(side: BorderSide(color: colorScheme.outline)),
+                        showCheckmark: false,
+                        side: BorderSide.none,
+                        selectedColor: colorScheme.secondaryContainer,
+                        labelStyle: textTheme.labelLarge?.copyWith(
+                          color: _selectedTag == tag
+                              ? colorScheme.onSecondaryContainer
+                              : colorScheme.onSurface,
                         ),
                       );
                     },
                   ),
                 ),
-              Expanded(
-                child: _buildRacesList(
-                  _isSearching || _selectedTag != null
-                      ? _filteredRaces
-                      : allRaces,
-                ),
-              ),
+              Expanded(child: _buildRacesList(racesToShow)),
             ],
           );
         },
@@ -428,16 +339,12 @@ class _RaceListPageState extends State<RaceListPage> {
             heroTag: 'add_btn',
             child: const Icon(Icons.add),
             onPressed: () async {
-              final result = await Navigator.push(
+              final result = await Navigator.push<bool>(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const RaceManagementPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const RaceManagementPage()),
               );
               if (result == true && mounted) {
-                final box = Hive.box<Race>('races');
-                final allRaces = box.values.toList().cast<Race>();
-                _filterRaces(_searchController.text, allRaces);
+                _filterRaces(_searchController.text, Hive.box<Race>('races').values.toList());
               }
             },
           ),
@@ -447,27 +354,22 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   Widget _buildRacesList(List<Race> races) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     if (races.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.emoji_people,
-              size: 48,
-              color: colorScheme.onSurface,
-            ),
+            Icon(Icons.emoji_people, size: 48, color: colorScheme.onSurface),
             const SizedBox(height: 16),
             Text(
               _isSearching && _searchController.text.isNotEmpty
                   ? 'Ничего не найдено'
                   : 'Нет созданных рас',
-              style: textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
             ),
           ],
         ),
@@ -484,59 +386,33 @@ class _RaceListPageState extends State<RaceListPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: colorScheme.outlineVariant,
-              width: 1,
-            ),
+            side: BorderSide(color: colorScheme.outlineVariant, width: 1),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () async {
-              final result = await Navigator.push(
+              final result = await Navigator.push<bool>(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => RaceManagementPage(race: race),
-                ),
+                MaterialPageRoute(builder: (context) => RaceManagementPage(race: race)),
               );
               if (result == true && mounted) {
-                final box = Hive.box<Race>('races');
-                final allRaces = box.values.toList().cast<Race>();
-                _filterRaces(_searchController.text, allRaces);
+                _filterRaces(_searchController.text, Hive.box<Race>('races').values.toList());
               }
             },
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  race.logo != null
-                      ? CircleAvatar(
-                    backgroundImage: MemoryImage(race.logo!),
-                    radius: 28,
-                  )
-                      : CircleAvatar(
-                    radius: 28,
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    child: Icon(
-                      Icons.emoji_people,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  _buildRaceAvatar(race, colorScheme),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(race.name, style: textTheme.bodyLarge),
                         Text(
-                          race.name,
-                          style: textTheme.bodyLarge,
-                        ),
-                        Text(
-                          race.description.isNotEmpty
-                              ? race.description
-                              : 'Нет описания',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
+                          race.description.isNotEmpty ? race.description : 'Нет описания',
+                          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -544,10 +420,7 @@ class _RaceListPageState extends State<RaceListPage> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    icon: Icon(Icons.delete, color: colorScheme.onSurfaceVariant),
                     onPressed: () => _deleteRace(race),
                   ),
                 ],
@@ -556,6 +429,16 @@ class _RaceListPageState extends State<RaceListPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRaceAvatar(Race race, ColorScheme colorScheme) {
+    return race.logo != null
+        ? CircleAvatar(backgroundImage: MemoryImage(race.logo!), radius: 28)
+        : CircleAvatar(
+      radius: 28,
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      child: Icon(Icons.emoji_people, color: colorScheme.onSurfaceVariant),
     );
   }
 }
@@ -570,21 +453,16 @@ class QRScannerScreen extends StatelessWidget {
       body: MobileScanner(
         controller: MobileScannerController(),
         onDetect: (capture) {
-          final barcodes = capture.barcodes;
-          for (final barcode in barcodes) {
+          for (final barcode in capture.barcodes) {
             try {
-              final jsonStr = barcode.rawValue ?? '';
-              final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-              final race = Race.fromJson(jsonMap);
+              final race = Race.fromJson(jsonDecode(barcode.rawValue ?? '{}'));
               Navigator.pop(context, race);
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Ошибка: ${e.toString()}'),
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               );
             }
