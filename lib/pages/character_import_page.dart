@@ -54,7 +54,7 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
         jsonStr = await file.readAsString();
       }
 
-      if (jsonStr == null || jsonStr.isEmpty) return;
+      if (jsonStr.isEmpty) return;
 
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       final character = Character.fromJson(jsonMap);

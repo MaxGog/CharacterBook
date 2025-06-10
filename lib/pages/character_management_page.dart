@@ -1,10 +1,7 @@
-import 'dart:typed_data';
-
 import 'package:characterbook/pages/race_management_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:hive/hive.dart';
-import '../generated/l10n.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/character_model.dart';
@@ -41,10 +38,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
   late List<CustomField> _customFields;
   late List<Uint8List> _additionalImages;
-
-  late Character _tempCharacter;
-
-  bool _isSaved = false;
 
   Race? _selectedRace;
   List<Race> _races = [];
@@ -145,14 +138,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     });
   }
 
-  String _generateUniqueKey() {
-    var base = 'Поле';
-    var counter = 1;
-    while (_customFields.any((f) => f.key == '$base $counter')) {
-      counter++;
-    }
-    return '$base $counter';
-  }
 
   void _updateCustomField(int index, String key, String value) {
     setState(() {
@@ -280,7 +265,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     child: Ink(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                       ),
                       child: CircleAvatar(
                         radius: 60,
@@ -330,11 +315,13 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                           style: textTheme.bodyLarge,
                           keyboardType: TextInputType.number,
                           validator: (value) {
-                            if (value?.isEmpty ?? true)
+                            if (value?.isEmpty ?? true) {
                               return 'Введите возраст';
+                            }
                             final age = int.tryParse(value!);
-                            if (age == null || age <= 0)
+                            if (age == null || age <= 0) {
                               return 'Некорректный возраст';
+                            }
                             return null;
                           },
                           onSaved: (value) => _age = int.parse(value!),
@@ -382,7 +369,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                         image: _referenceImageBytes != null
                             ? DecorationImage(
@@ -607,7 +594,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
 

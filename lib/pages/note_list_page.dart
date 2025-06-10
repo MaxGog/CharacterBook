@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/character_model.dart';
@@ -221,7 +220,7 @@ class _NotesListPageState extends State<NotesListPage> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                       if (tags.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -276,7 +275,7 @@ class _NotesListPageState extends State<NotesListPage> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
@@ -315,7 +314,7 @@ class _NotesListPageState extends State<NotesListPage> {
             Icon(
               Icons.note_add_outlined,
               size: 64,
-              color: colorScheme.onSurface.withOpacity(0.5),
+              color: colorScheme.onSurface,
             ),
             const SizedBox(height: 16),
             Text(
@@ -323,7 +322,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   ? 'Ничего не найдено'
                   : 'Нет постов',
               style: textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -332,7 +331,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   ? 'Попробуйте изменить параметры поиска'
                   : 'Нажмите + чтобы создать первый пост',
               style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.5),
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -434,7 +433,7 @@ class _NotesListPageState extends State<NotesListPage> {
                     Text(
                       note.content,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.8),
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

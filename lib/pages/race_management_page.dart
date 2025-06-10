@@ -138,7 +138,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(60),
                       border: Border.all(
                         color: colorScheme.outlineVariant,

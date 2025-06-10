@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:characterbook/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
@@ -460,7 +458,7 @@ class _RaceListPageState extends State<RaceListPage> {
             Icon(
               Icons.emoji_people,
               size: 48,
-              color: colorScheme.onSurface.withOpacity(0.5),
+              color: colorScheme.onSurface,
             ),
             const SizedBox(height: 16),
             Text(
@@ -468,7 +466,7 @@ class _RaceListPageState extends State<RaceListPage> {
                   ? 'Ничего не найдено'
                   : 'Нет созданных рас',
               style: textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -517,7 +515,7 @@ class _RaceListPageState extends State<RaceListPage> {
                   )
                       : CircleAvatar(
                     radius: 28,
-                    backgroundColor: colorScheme.surfaceVariant,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     child: Icon(
                       Icons.emoji_people,
                       color: colorScheme.onSurfaceVariant,
@@ -537,7 +535,7 @@ class _RaceListPageState extends State<RaceListPage> {
                               ? race.description
                               : 'Нет описания',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
+                            color: colorScheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

@@ -10,7 +10,6 @@ import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'models/note_model.dart';
 import 'models/race_model.dart';
-import 'pages/character_list_page.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 
@@ -74,7 +73,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(

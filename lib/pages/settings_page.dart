@@ -1,17 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../generated/l10n.dart';
-import '../models/character_model.dart';
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/google_drive_service.dart';
@@ -289,7 +281,7 @@ class SettingsPage extends StatelessWidget {
                   const SizedBox(height: 24),
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () => _launchUrl('https://github.com/maxgog'),
+                    onTap: () => _launchUrl('https://github.com/MaxGog/CharacterBook'),
                     child: Ink(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),

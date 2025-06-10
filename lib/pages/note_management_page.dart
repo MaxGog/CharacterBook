@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../models/character_model.dart';
@@ -153,7 +152,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 filled: true,
-                fillColor: colorScheme.surfaceVariant,
+                fillColor: colorScheme.surfaceContainerHighest,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 14,
@@ -184,7 +183,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 filled: true,
-                fillColor: colorScheme.surfaceVariant,
+                fillColor: colorScheme.surfaceContainerHighest,
                 contentPadding: const EdgeInsets.all(16),
                 alignLabelWithHint: true,
               ),
@@ -232,13 +231,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             filled: true,
-            fillColor: colorScheme.surfaceVariant,
+            fillColor: colorScheme.surfaceContainerHighest,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
             ),
           ),
-          dropdownColor: colorScheme.surfaceVariant,
+          dropdownColor: colorScheme.surfaceContainerHighest,
           style: textTheme.bodyLarge?.copyWith(
             color: colorScheme.onSurface,
           ),
@@ -285,7 +284,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   Widget _buildSelectedCharactersChips(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final charactersBox = Hive.box<Character>('characters');
 
     if (_selectedCharacterIds.isEmpty) {
@@ -311,7 +309,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
             size: 18,
             color: colorScheme.onSurfaceVariant,
           ),
-          backgroundColor: colorScheme.surfaceVariant,
+          backgroundColor: colorScheme.surfaceContainerHighest,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
