@@ -120,7 +120,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.add),
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
