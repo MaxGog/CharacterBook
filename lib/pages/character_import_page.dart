@@ -61,8 +61,6 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
       final box = Hive.box<Character>('characters');
       await box.add(character);
 
-      await _shareFile(context, jsonStr, fileName ?? 'character_${DateTime.now().millisecondsSinceEpoch}.character');
-
       if (mounted) {
         Navigator.pop(context, character);
       }
@@ -93,9 +91,15 @@ class _CharacterImportPageState extends State<CharacterImportPage> {
       }
     } on PlatformException catch (e) {
       debugPrint('Failed to pick file: ${e.message}');
+      setState(() {
+        _errorMessage = 'Failed to pick file: ${e.message}';
+      });
       return null;
     } catch (e) {
       debugPrint('Error picking file: $e');
+      setState(() {
+        _errorMessage = 'Error picking file: $e';
+      });
       return null;
     }
     return null;
