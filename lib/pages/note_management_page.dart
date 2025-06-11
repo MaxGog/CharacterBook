@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../models/character_model.dart';
 import '../models/note_model.dart';
@@ -19,6 +20,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
   final List<String> _selectedCharacterIds = [];
+  bool _isPreviewMode = false;
 
   @override
   void initState() {
@@ -110,6 +112,11 @@ class _NoteEditPageState extends State<NoteEditPage> {
             tooltip: 'Копировать в буфер',
           ),
           IconButton(
+            icon: Icon(_isPreviewMode ? Icons.edit : Icons.preview),
+            onPressed: () => setState(() => _isPreviewMode = !_isPreviewMode),
+            tooltip: _isPreviewMode ? 'Редактировать' : 'Предпросмотр',
+          ),
+          IconButton(
             icon: const Icon(Icons.save),
             onPressed: _saveNote,
             tooltip: 'Сохранить',
@@ -153,11 +160,41 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Widget _buildContentField(ColorScheme colorScheme, TextTheme textTheme) {
+    if (_isPreviewMode) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: MarkdownBody(
+          data: _contentController.text,
+          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+            p: textTheme.bodyLarge,
+            h1: textTheme.displayLarge,
+            h2: textTheme.displayMedium,
+            h3: textTheme.displaySmall,
+            h4: textTheme.headlineMedium,
+            h5: textTheme.headlineSmall,
+            h6: textTheme.titleLarge,
+            blockquote: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+            code: textTheme.bodyLarge?.copyWith(
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ),
+      );
+    }
+
     return TextField(
       controller: _contentController,
       decoration: _buildInputDecoration(
         colorScheme,
-        labelText: 'Содержание',
+        labelText: 'Содержание (поддерживается Markdown)',
         contentPadding: const EdgeInsets.all(16),
         alignLabelWithHint: true,
       ),
