@@ -28,10 +28,29 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>characterbook</title>
-  <link rel="manifest" href="manifest.json">
 </head>
+<head>
+  <!-- Google Account -->
+  <meta name="google-signin-client_id" content="30938139320-jab98e4j0dcgal085475vnum4gitd2dj.apps.googleusercontent.com">
+  <title>CharacterBook</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+</head>
+<body>
+  <script src="main.dart.js" type="application/javascript"></script>
+
+  <script>
+    function initGapi() {
+      gapi.load('client:auth2', function() {
+        console.log('gapi.client loaded successfully');
+      });
+    }
+
+    window.onload = function() {
+      setTimeout(initGapi, 1000);
+    };
+  </script>
+</body>
 <body>
   <script src="flutter_bootstrap.js" async></script>
 </body>
