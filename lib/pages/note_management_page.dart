@@ -21,6 +21,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
   late final TextEditingController _contentController;
   final List<String> _selectedCharacterIds = [];
   bool _isPreviewMode = false;
+  final GlobalKey _contentFieldKey = GlobalKey();
 
   @override
   void initState() {
@@ -31,6 +32,8 @@ class _NoteEditPageState extends State<NoteEditPage> {
     );
     _contentController = TextEditingController(text: widget.note?.content ?? '');
     _selectedCharacterIds.addAll(widget.note?.characterIds ?? []);
+    _isPreviewMode = widget.note != null && !widget.isCopyMode;
+
   }
 
   @override
@@ -161,12 +164,8 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   Widget _buildContentField(ColorScheme colorScheme, TextTheme textTheme) {
     if (_isPreviewMode) {
-      return Container(
+      return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: MarkdownBody(
           data: _contentController.text,
           styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
@@ -191,6 +190,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     }
 
     return TextField(
+      key: _contentFieldKey,
       controller: _contentController,
       decoration: _buildInputDecoration(
         colorScheme,
@@ -201,7 +201,120 @@ class _NoteEditPageState extends State<NoteEditPage> {
       style: textTheme.bodyLarge,
       maxLines: null,
       keyboardType: TextInputType.multiline,
+      contextMenuBuilder: (context, editableTextState) {
+        final textEditingValue = editableTextState.currentTextEditingValue;
+        final textSelection = textEditingValue.selection;
+        final selectedText = textSelection.textInside(textEditingValue.text);
+
+        return AdaptiveTextSelectionToolbar(
+          anchors: editableTextState.contextMenuAnchors,
+          children: [
+            ...editableTextState.contextMenuButtonItems.map((item) {
+              return TextButton(
+                onPressed: item.onPressed,
+                child: Text(item.label ?? ''),
+              );
+            }),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.format_bold, size: 20),
+              onPressed: () => _wrapSelection(_contentController, '**', '**'),
+              tooltip: 'Жирный',
+            ),
+            IconButton(
+              icon: const Icon(Icons.format_italic, size: 20),
+              onPressed: () => _wrapSelection(_contentController, '*', '*'),
+              tooltip: 'Курсив',
+            ),
+            IconButton(
+              icon: const Icon(Icons.format_underline, size: 20),
+              onPressed: () => _wrapSelection(_contentController, '<u>', '</u>'),
+              tooltip: 'Подчеркнутый',
+            ),
+            IconButton(
+              icon: const Icon(Icons.code, size: 20),
+              onPressed: () => _wrapSelection(_contentController, '`', '`'),
+              tooltip: 'Код (inline)',
+            ),
+            if (selectedText.contains('\n'))
+              IconButton(
+                icon: const Icon(Icons.format_quote, size: 20),
+                onPressed: () => _wrapSelection(_contentController, '> ', '', block: true),
+                tooltip: 'Цитата',
+              ),
+            IconButton(
+              icon: const Icon(Icons.format_list_bulleted, size: 20),
+              onPressed: () => _insertAtCursor(_contentController, '- '),
+              tooltip: 'Маркированный список',
+            ),
+            IconButton(
+              icon: const Icon(Icons.format_list_numbered, size: 20),
+              onPressed: () => _insertAtCursor(_contentController, '1. '),
+              tooltip: 'Нумерованный список',
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  void _wrapSelection(
+      TextEditingController controller,
+      String prefix,
+      String suffix, {
+        bool block = false,
+      }) {
+    final text = controller.text;
+    final selection = controller.selection;
+    final selectedText = selection.textInside(text);
+
+    String newText;
+    TextSelection newSelection;
+
+    if (block) {
+      final lines = selectedText.split('\n');
+      final modifiedLines = lines.map((line) => '$prefix$line').join('\n');
+      newText = text.replaceRange(selection.start, selection.end, modifiedLines);
+      newSelection = TextSelection(
+        baseOffset: selection.start,
+        extentOffset: selection.start + modifiedLines.length,
+      );
+    } else {
+      newText = text.replaceRange(selection.start, selection.end, '$prefix$selectedText$suffix');
+      newSelection = TextSelection(
+        baseOffset: selection.start,
+        extentOffset: selection.start + prefix.length + selectedText.length + suffix.length,
+      );
+    }
+
+    setState(() {
+      controller.value = controller.value.copyWith(
+        text: newText,
+        selection: newSelection,
+      );
+    });
+  }
+
+  void _insertAtCursor(TextEditingController controller, String textToInsert) {
+    final selection = controller.selection;
+    final newText = controller.text.replaceRange(
+      selection.start,
+      selection.end,
+      selection.textInside(controller.text).isEmpty
+          ? textToInsert
+          : '$textToInsert${selection.textInside(controller.text)}',
+    );
+
+    final newSelection = TextSelection.collapsed(
+      offset: selection.start + textToInsert.length,
+    );
+
+    setState(() {
+      controller.value = controller.value.copyWith(
+        text: newText,
+        selection: newSelection,
+      );
+    });
   }
 
   InputDecoration _buildInputDecoration(
