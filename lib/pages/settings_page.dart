@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v2.dart' as drive;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -110,6 +112,10 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildBackupSettingsCard(BuildContext context) {
+    /*final googleSignIn = GoogleSignIn(
+      scopes: [drive.DriveApi.driveFileScope],
+    );*/
+
     final cloudBackupService = CloudBackupService();
 
     return Card(
@@ -201,7 +207,7 @@ class SettingsPage extends StatelessWidget {
               future: _getAppVersion(),
               builder: (context, snapshot) {
                 return Text(
-                  'Версия: ${snapshot.data ?? '1.5.6'}',
+                  'Версия: ${snapshot.data ?? '1.6.0'}',
                   style: Theme.of(context).textTheme.bodyLarge,
                 );
               },

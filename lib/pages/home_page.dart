@@ -1,6 +1,10 @@
 import 'package:characterbook/pages/race_list_page.dart';
 import 'package:flutter/material.dart';
+/*import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/connectors/v1.dart';
 
+import '../services/google_drive_service.dart';*/
 import 'character_list_page.dart';
 import 'note_list_page.dart';
 
@@ -23,8 +27,42 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final bool isLargeScreen = MediaQuery.of(context).size.width >= 600;
+    //final googleSignIn = context.read<GoogleSignIn>();
+    //final cloudBackupService = context.read<CloudBackupService>();
 
     return Scaffold(
+      /*appBar: AppBar(
+        title: const Text('CharacterBook'),
+        actions: [
+          FutureBuilder<bool>(
+            future: googleSignIn.isSignedIn(),
+            builder: (context, snapshot) {
+              final isSignedIn = snapshot.data ?? false;
+
+              return IconButton(
+                icon: Icon(isSignedIn ? Icons.cloud_done : Icons.cloud_upload),
+                onPressed: () async {
+                  if (isSignedIn) {
+                    await googleSignIn.signOut();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Вы вышли из аккаунта Google')),
+                    );
+                  } else {
+                    try {
+                      await googleSignIn.signIn();
+                      await cloudBackupService.autoSyncOnLogin(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Ошибка входа: $e')),
+                      );
+                    }
+                  }
+                },
+              );
+            },
+          ),
+        ],
+      ),*/
       body: Row(
         children: [
           if (isLargeScreen)

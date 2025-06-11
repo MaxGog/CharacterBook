@@ -1,7 +1,10 @@
 import 'package:characterbook/pages/home_page.dart';
+import 'package:characterbook/services/google_drive_service.dart';
+//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+//import 'package:googleapis/drive/v2.dart' as drive;
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +31,18 @@ void main() async {
 
   final settingsBox = await Hive.openBox('settings');
 
+  /*final googleSignIn = GoogleSignIn(
+    scopes: [drive.DriveApi.driveFileScope],
+    clientId: Platform.isAndroid
+        ? '30938139320-eore4ac6681avqqg9skbjqtd18ns14kh.apps.googleusercontent.com'
+        : null,
+    serverClientId: Platform.isAndroid
+        ? '30938139320-jab98e4j0dcgal085475vnum4gitd2dj.apps.googleusercontent.com'
+        : null,
+  );
+
+  final cloudBackupService = CloudBackupService(googleSignIn);*/
+
   runApp(
     MultiProvider(
       providers: [
@@ -37,6 +52,8 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(settingsBox),
         ),
+        //Provider<GoogleSignIn>.value(value: googleSignIn),
+        //Provider<CloudBackupService>.value(),
       ],
       child: const MyApp(),
     ),
@@ -51,29 +68,48 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    //_checkSignIn();
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  /*Future<void> _checkSignIn() async {
+    try {
+      final googleSignIn = context.read<GoogleSignIn>();
+      final cloudBackupService = context.read<CloudBackupService>();
+
+      final isSignedIn = await googleSignIn.isSignedIn();
+      if (isSignedIn) {
+        await cloudBackupService.autoSyncOnLogin(context);
+      }
+    } catch (e) {
+      debugPrint('Ошибка при проверке входа: $e');
+    }
+  }*/
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       Hive.box<Character>('characters').flush();
+
+      final googleSignIn = context.read<GoogleSignIn>();
+      final cloudBackupService = context.read<CloudBackupService>();
+
+      googleSignIn.isSignedIn().then((isSignedIn) {
+        if (isSignedIn) {
+          cloudBackupService.exportAllToCloud(context);
+        }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider = Provider.of<LocaleProvider>(context);
+    final localeProvider = context.watch<LocaleProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
 
     return MaterialApp(
       localizationsDelegates: [
@@ -85,9 +121,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       supportedLocales: S.delegate.supportedLocales,
       locale: localeProvider.locale ?? const Locale('ru'),
       title: 'CharacterBook',
-      theme: context.watch<ThemeProvider>().lightTheme,
-      darkTheme: context.watch<ThemeProvider>().darkTheme,
-      themeMode: context.watch<ThemeProvider>().themeMode,
+      theme: themeProvider.lightTheme,
+      darkTheme: themeProvider.darkTheme,
+      themeMode: themeProvider.themeMode,
       home: const HomePage(),
     );
   }
