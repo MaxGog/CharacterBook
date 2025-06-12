@@ -51,7 +51,9 @@ flutter:
   assets:
     - assets/icon.svg
     - assets/underdeveloped.png
-    - assets/character_template.docx
+    - assets/fonts/NotoSans-Regular.ttf
+    - assets/fonts/NotoSans-Bold.ttf
+    - assets/fonts/NotoSans-Italic.ttf
 
 flutter_launcher_icons:
   android: false

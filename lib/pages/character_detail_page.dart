@@ -101,11 +101,32 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
   Future<void> _exportToPdf() async {
     try {
+      final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      final font = pw.Font.ttf(fontData);
+      final fontBold = await rootBundle.load('assets/fonts/NotoSans-Bold.ttf');
+      final boldFont = pw.Font.ttf(fontBold);
+
       final pdf = pw.Document();
+
+      pw.Widget? _buildImageFromBytes(Uint8List? bytes) {
+        if (bytes == null || bytes.isEmpty) return null;
+        return pw.Center(
+          child: pw.Image(
+            pw.MemoryImage(bytes),
+            fit: pw.BoxFit.contain,
+            width: 300,
+            height: 300,
+          ),
+        );
+      }
 
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.all(20),
+          theme: pw.ThemeData.withFont(
+            base: font,
+            bold: boldFont,
+          ),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -122,53 +143,107 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                 ),
                 pw.SizedBox(height: 20),
 
-                pw.Text(
-                  'Основная информация',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
+                if (widget.character.imageBytes != null)
+                  pw.Column(
+                    children: [
+                      _buildImageFromBytes(widget.character.imageBytes)!,
+                      pw.SizedBox(height: 20),
+                    ],
                   ),
-                ),
-                pw.Divider(),
-                _buildInfoRowPdf('Имя:', widget.character.name),
-                _buildInfoRowPdf('Возраст:', widget.character.age.toString()),
-                _buildInfoRowPdf('Пол:', widget.character.gender),
-                pw.SizedBox(height: 15),
 
-                pw.Text(
-                  'Биография',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.Divider(),
-                pw.Text(widget.character.biography),
-                pw.SizedBox(height: 15),
+                _buildSectionPdf('Основная информация', [
+                  _buildInfoRowPdf('Имя:', widget.character.name),
+                  _buildInfoRowPdf('Возраст:', widget.character.age.toString()),
+                  _buildInfoRowPdf('Пол:', widget.character.gender),
+                  if (widget.character.race != null)
+                    _buildInfoRowPdf('Раса:', widget.character.race!.name),
+                ], context),
 
-                _buildSectionPdf('Характер', widget.character.personality),
-                _buildSectionPdf('Внешность', widget.character.appearance),
-                _buildSectionPdf('Способности', widget.character.abilities),
-                _buildSectionPdf('Другое', widget.character.other),
+                _buildSectionPdf('Биография', [
+                  pw.Text(widget.character.biography),
+                ], context),
 
-                if (widget.character.customFields.isNotEmpty) ...[
-                  pw.Text(
-                    'Дополнительные поля',
-                    style: pw.TextStyle(
-                      fontSize: 18,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.Divider(),
-                  ...widget.character.customFields.map((field) =>
-                      _buildInfoRowPdf('${field.key}:', field.value)
-                  ),
-                ],
+                _buildSectionPdf('Характер', [
+                  pw.Text(widget.character.personality),
+                ], context),
+
+                _buildSectionPdf('Внешность', [
+                  pw.Text(widget.character.appearance),
+                ], context),
+
+                if (widget.character.referenceImageBytes != null)
+                  _buildSectionPdf('Референс изображение', [
+                    _buildImageFromBytes(widget.character.referenceImageBytes)!,
+                  ], context),
               ],
             );
           },
         ),
       );
+
+      pdf.addPage(
+        pw.Page(
+          margin: pw.EdgeInsets.all(20),
+          theme: pw.ThemeData.withFont(
+            base: font,
+            bold: boldFont,
+          ),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                _buildSectionPdf('Способности', [
+                  pw.Text(widget.character.abilities),
+                ], context),
+
+                _buildSectionPdf('Другое', [
+                  pw.Text(widget.character.other),
+                ], context),
+
+                if (widget.character.customFields.isNotEmpty)
+                  _buildSectionPdf('Дополнительные поля',
+                    widget.character.customFields.map((field) =>
+                        _buildInfoRowPdf('${field.key}:', field.value)
+                    ).toList(),
+                    context,
+                  ),
+              ],
+            );
+          },
+        ),
+      );
+
+      if (widget.character.additionalImages.isNotEmpty) {
+        for (final imageBytes in widget.character.additionalImages) {
+          pdf.addPage(
+            pw.Page(
+              margin: pw.EdgeInsets.all(20),
+              theme: pw.ThemeData.withFont(
+                base: font,
+                bold: boldFont,
+              ),
+              build: (pw.Context context) {
+                return pw.Column(
+                  children: [
+                    pw.Header(
+                      level: 1,
+                      child: pw.Text(
+                        'Дополнительное изображение',
+                        style: pw.TextStyle(
+                          fontSize: 18,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(height: 20),
+                    _buildImageFromBytes(imageBytes)!,
+                  ],
+                );
+              },
+            ),
+          );
+        }
+      }
 
       final bytes = await pdf.save();
       final directory = await getApplicationDocumentsDirectory();
@@ -177,8 +252,12 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
 
-      await OpenFilex.open(file.path);
-      _showSnackBar('Экспортировано в ${file.path}');
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Характеристика персонажа ${widget.character.name}',
+        subject: 'PDF с характеристикой персонажа',
+      );
+
     } catch (e) {
       _showSnackBar('Ошибка экспорта: ${e.toString()}');
       debugPrint('Ошибка экспорта: $e');
@@ -186,7 +265,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     }
   }
 
-  pw.Widget _buildSectionPdf(String title, String content) {
+  pw.Widget _buildSectionPdf(String title, List<pw.Widget> children, pw.Context context) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -199,21 +278,24 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
           ),
         ),
         pw.Divider(),
-        pw.Text(content),
+        ...children,
       ],
     );
   }
 
   pw.Widget _buildInfoRowPdf(String label, String value) {
-    return pw.Row(
-      children: [
-        pw.Text(
-          label,
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-        ),
-        pw.SizedBox(width: 10),
-        pw.Text(value),
-      ],
+    return pw.Padding(
+      padding: pw.EdgeInsets.only(bottom: 5),
+      child: pw.Row(
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(width: 10),
+          pw.Expanded(child: pw.Text(value)),
+        ],
+      ),
     );
   }
 
