@@ -28,6 +28,8 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
   late final TextEditingController _backstoryController;
   Uint8List? _logoBytes;
 
+  bool _hasUnsavedChanges = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,15 +39,23 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
     _biologyController = TextEditingController(text: race?.biology ?? '');
     _backstoryController = TextEditingController(text: race?.backstory ?? '');
     _logoBytes = race?.logo;
+    _hasUnsavedChanges = widget.race == null;
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    _biologyController.dispose();
-    _backstoryController.dispose();
+    _nameController.removeListener(() {});
+    _descriptionController.removeListener(() {});
+    _biologyController.removeListener(() {});
+    _backstoryController.removeListener(() {});
     super.dispose();
+  }
+
+  void _setupControllers() {
+    _nameController.addListener(() => setState(() => _hasUnsavedChanges = true));
+    _descriptionController.addListener(() => setState(() => _hasUnsavedChanges = true));
+    _biologyController.addListener(() => setState(() => _hasUnsavedChanges = true));
+    _backstoryController.addListener(() => setState(() => _hasUnsavedChanges = true));
   }
 
   Future<void> _pickLogo() async {
@@ -54,7 +64,10 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
       if (image == null) return;
 
       final bytes = await image.readAsBytes();
-      setState(() => _logoBytes = bytes);
+      setState(() {
+        _logoBytes = bytes;
+        _hasUnsavedChanges = true;
+      });
     } catch (e) {
       _showError('Ошибка при выборе изображения: $e');
     }
@@ -78,11 +91,44 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
 
       widget.race == null ? await raceBox.add(race) : await race.save();
 
+      setState(() => _hasUnsavedChanges = false);
+
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       _showError('Ошибка сохранения: $e');
     }
+  }
+
+  Future<bool> _checkUnsavedChanges() async {
+    if (!_hasUnsavedChanges) return true;
+
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Несохраненные изменения'),
+        content: const Text('У вас есть несохраненные изменения. Хотите сохранить перед выходом?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Не сохранять'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+              _saveRace();
+            },
+            child: const Text('Сохранить'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Отмена'),
+          ),
+        ],
+      ),
+    );
+
+    return shouldLeave ?? false;
   }
 
   void _showError(String message) {
@@ -162,70 +208,75 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.race == null ? 'Новая раса' : 'Редактировать расу',
-          style: theme.textTheme.titleLarge,
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveRace,
-            tooltip: 'Сохранить',
+    return WillPopScope(
+      onWillPop: () async {
+        return await _checkUnsavedChanges();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.race == null ? 'Новая раса' : 'Редактировать расу',
+            style: theme.textTheme.titleLarge,
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildLogoPicker(),
-              const SizedBox(height: 24),
-              _buildTextField(
-                controller: _nameController,
-                label: 'Название расы',
-                isRequired: true,
-              ),
-              _buildTextField(
-                controller: _descriptionController,
-                label: 'Описание',
-                maxLines: 3,
-              ),
-              _buildTextField(
-                controller: _biologyController,
-                label: 'Биология',
-                maxLines: 5,
-              ),
-              _buildTextField(
-                controller: _backstoryController,
-                label: 'Предыстория',
-                maxLines: 7,
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: _buttonHeight,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(_borderRadius),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveRace,
+              tooltip: 'Сохранить',
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLogoPicker(),
+                const SizedBox(height: 24),
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Название расы',
+                  isRequired: true,
+                ),
+                _buildTextField(
+                  controller: _descriptionController,
+                  label: 'Описание',
+                  maxLines: 3,
+                ),
+                _buildTextField(
+                  controller: _biologyController,
+                  label: 'Биология',
+                  maxLines: 5,
+                ),
+                _buildTextField(
+                  controller: _backstoryController,
+                  label: 'Предыстория',
+                  maxLines: 7,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: _buttonHeight,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(_borderRadius),
+                      ),
                     ),
-                  ),
-                  onPressed: _saveRace,
-                  child: Text(
-                    'Сохранить',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.onPrimary,
+                    onPressed: _saveRace,
+                    child: Text(
+                      'Сохранить',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

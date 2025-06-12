@@ -27,11 +27,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   late List<CustomField> _customFields;
   late List<Uint8List> _additionalImages;
 
+  bool _hasUnsavedChanges = false;
+
   @override
   void initState() {
     super.initState();
     _initializeFields();
     _loadRaces();
+    _hasUnsavedChanges = widget.character == null;
   }
 
   void _initializeFields() {
@@ -78,6 +81,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         _customFields.add(CustomField('', ''));
       }
     });
+    _hasUnsavedChanges = true;
+    _saveChanges();
   }
 
   void _updateCustomField(int index, String key, String value) {
@@ -87,6 +92,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       } else {
         _customFields[index] = CustomField(key.trim(), value.trim());
       }
+      _hasUnsavedChanges = true;
+      _saveChanges();
     });
   }
 
@@ -204,6 +211,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           await box.add(character);
         }
 
+        setState(() => _hasUnsavedChanges = false);
+
         if (mounted) Navigator.pop(context);
       } catch (e) {
         if (mounted) {
@@ -252,7 +261,34 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     final textTheme = theme.textTheme;
 
     return WillPopScope(
-      onWillPop: () async => true,
+      onWillPop: () async {
+        if (!_hasUnsavedChanges) return true;
+
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Несохраненные изменения'),
+            content: const Text('У вас есть несохраненные изменения. Хотите сохранить перед выходом?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Не сохранять'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Сохранить'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: const Text('Отмена'),
+              ),
+            ],
+          ),
+        );
+        if (shouldLeave == null) return false;
+        if (shouldLeave) _saveCharacter();
+        return shouldLeave;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -468,6 +504,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       decoration: _inputDecoration(label: label, alignLabel: true),
       style: Theme.of(context).textTheme.bodyLarge,
       maxLines: maxLines,
+      onChanged: (_) => setState(() => _hasUnsavedChanges = true),
       onSaved: onSaved,
     );
   }
