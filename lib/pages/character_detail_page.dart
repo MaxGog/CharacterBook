@@ -52,6 +52,52 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     }
   }
 
+  void _confirmDelete() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить персонажа?'),
+        content: const Text('Вы уверены, что хотите удалить этого персонажа? Это действие нельзя отменить.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      _deleteCharacter();
+    }
+  }
+
+  void _deleteCharacter() async {
+    try {
+      if (widget.character.key != null) {
+        final box = Hive.box<Character>('characters');
+        await box.delete(widget.character.key);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Персонаж удален')),
+          );
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при удалении: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   Future<void> _exportToDocx() async {
     try {
       final template = await rootBundle.load('assets/character_template.docx');
@@ -433,8 +479,9 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               'docx' => _exportToDocx(),
               _ => null,
             },
+            tooltip: 'Поделиться персонажем',
             itemBuilder: (context) => const [
-              PopupMenuItem(value: 'qr', child: Text('QR-код')),
+              //PopupMenuItem(value: 'qr', child: Text('QR-код')),
               PopupMenuItem(value: 'file', child: Text('Файлом (.character)')),
               PopupMenuItem(value: 'docx', child: Text('Документ Word (.docx)')),
             ],
@@ -447,10 +494,17 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                 builder: (context) => CharacterEditPage(character: widget.character),
               ),
             ),
+            tooltip: 'Редактировать персонажа'
           ),
           IconButton(
             icon: Icon(Icons.copy, color: colorScheme.onSurface),
             onPressed: _copyToClipboard,
+            tooltip: 'Скопировать персонажа'
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _confirmDelete,
+            tooltip: 'Удалить персонажа',
           ),
         ],
       ),
