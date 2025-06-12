@@ -421,7 +421,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
           onPressed: _importCharacter,
           mini: true,
           tooltip: 'Импорт из файла',
-          child: const Icon(Icons.file_upload),
+          child: const Icon(Icons.download),
         ),
         const SizedBox(height: 16),
         FloatingActionButton(
