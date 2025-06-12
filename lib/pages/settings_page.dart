@@ -36,7 +36,8 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildThemeSettingsCard(BuildContext context, ThemeProvider themeProvider) {
-    final accentColors = const {
+    final accentColors = {
+      'Системный': Theme.of(context).colorScheme.primary,
       'Синий': Color(0xFF1E88E5),
       'Зеленый': Color(0xFF43A047),
       'Красный': Color(0xFFE53935),
