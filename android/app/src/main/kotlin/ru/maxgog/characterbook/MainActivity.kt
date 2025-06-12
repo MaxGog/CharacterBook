@@ -14,10 +14,13 @@ import java.io.InputStream
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "file_picker"
+    private val FILE_HANDLE_CHANNEL = "file_handler"
     private var result: MethodChannel.Result? = null
+    private lateinit var fileHandlerChannel: MethodChannel
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "pickFile") {
                 this.result = result
@@ -30,6 +33,40 @@ class MainActivity: FlutterActivity() {
                 result.notImplemented()
             }
         }
+
+        fileHandlerChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, FILE_HANDLE_CHANNEL)
+        fileHandlerChannel.setMethodCallHandler { call, result ->
+            if (call.method == "getOpenedFile") {
+                handleIntent(intent, result)
+            } else {
+                result.notImplemented()
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleIntent(intent, null)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent, null)
+    }
+
+    private fun handleIntent(intent: Intent, result: MethodChannel.Result?) {
+        val action = intent.action
+        val data = intent.data
+
+        if ((Intent.ACTION_VIEW == action || Intent.ACTION_SEND == action) && data != null) {
+            val filePath = copyFileToCache(data)
+            filePath?.let { path ->
+                result?.success(path) ?: run {
+                    fileHandlerChannel.invokeMethod("onFileOpened", path)
+                }
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -38,7 +75,6 @@ class MainActivity: FlutterActivity() {
             if (resultCode == RESULT_OK && data != null) {
                 val uri: Uri? = data.data
                 uri?.let {
-                    // Copy the file to app's cache directory and return that path
                     val filePath = copyFileToCache(uri)
                     filePath?.let { path ->
                         result?.success(path)
