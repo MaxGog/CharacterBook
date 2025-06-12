@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/character_model.dart';
 import '../models/note_model.dart';
@@ -19,6 +24,7 @@ class _NotesListPageState extends State<NotesListPage> {
   bool _isSearching = false;
   String? _selectedTag;
   String? _selectedCharacter;
+  int? _draggedItemIndex;
 
   List<String> _getAllTags(List<Note> notes) {
     return notes.expand((note) => note.tags).toSet().toList()..sort();
@@ -95,6 +101,134 @@ class _NotesListPageState extends State<NotesListPage> {
           ),
         ),
       );
+    }
+  }
+
+  void _showNoteContextMenu(Note note, BuildContext context) {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          overlay.localToGlobal(Offset.zero),
+          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('Редактировать'),
+            onTap: () {
+              Navigator.pop(context);
+              _editNote(note);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'copy',
+          child: ListTile(
+            leading: const Icon(Icons.copy),
+            title: const Text('Копировать данные'),
+            onTap: () {
+              Navigator.pop(context);
+              _copyNoteToClipboard(note);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'share',
+          child: ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('Поделиться файлом'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareNoteAsFile(note);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              _deleteNote(note);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editNote(Note note) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
+    );
+    if (result == true && mounted) {
+      _filterNotes(_searchController.text, Hive.box<Note>('notes').values.toList().cast<Note>());
+    }
+  }
+
+  Future<void> _copyNoteToClipboard(Note note) async {
+    await Clipboard.setData(ClipboardData(
+      text: note.content,
+    ));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Данные поста скопированы'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _shareNoteAsFile(Note note) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/${note.title}_note.json');
+      await file.writeAsString(jsonEncode(note.toJson()));
+      await Share.shareXFiles([XFile(file.path)], text: 'Файл поста ${note.title}');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _reorderNotes(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) return;
+
+    final box = Hive.box<Note>('notes');
+    final notes = box.values.toList().cast<Note>();
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final note = notes.removeAt(oldIndex);
+    notes.insert(newIndex, note);
+
+    await box.clear();
+    await box.addAll(notes);
+
+    if (mounted) {
+      setState(() {
+        _filterNotes(_searchController.text, notes);
+      });
     }
   }
 
@@ -252,114 +386,80 @@ class _NotesListPageState extends State<NotesListPage> {
         .whereType<Character>()
         .toList();
 
-    return Dismissible(
-      key: Key(note.id),
-      background: Container(
-        color: colorScheme.errorContainer,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: Icon(Icons.delete_outline, color: colorScheme.onErrorContainer),
+    return Card(
+      key: ValueKey(note.key),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Удалить заметку?'),
-            content: Text('Заметка "${note.title}" будет удалена безвозвратно'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Отмена'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(
-                  'Удалить',
-                  style: TextStyle(color: colorScheme.error),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (direction) => _deleteNote(note),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        note.title,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+        onLongPress: () {
+          _showNoteContextMenu(note, context);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      note.title,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: colorScheme.onSurface),
-                      onPressed: () => _deleteNote(note),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                note.content,
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (characters.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(
-                  note.content,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Wrap(
+                  spacing: 4,
+                  children: characters.map((character) => Chip(
+                    label: Text(character.name),
+                    labelStyle: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  )).toList(),
                 ),
-                if (characters.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 4,
-                    children: characters.map((character) => Chip(
-                      label: Text(character.name),
-                      labelStyle: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                      ),
-                      backgroundColor: colorScheme.secondaryContainer,
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    )).toList(),
-                  ),
-                ],
-                if (note.tags.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 4,
-                    children: note.tags.map((tag) => Chip(
-                      label: Text(tag),
-                      labelStyle: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                      ),
-                      backgroundColor: colorScheme.secondaryContainer,
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    )).toList(),
-                  ),
-                ],
               ],
-            ),
+              if (note.tags.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 4,
+                  children: note.tags.map((tag) => Chip(
+                    label: Text(tag),
+                    labelStyle: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  )).toList(),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -369,11 +469,14 @@ class _NotesListPageState extends State<NotesListPage> {
   Widget _buildNotesList(List<Note> notes, ColorScheme colorScheme, TextTheme textTheme) {
     return notes.isEmpty
         ? _buildEmptyState(colorScheme, textTheme)
-        : ListView.builder(
+        : ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: notes.length,
       itemBuilder: (context, index) =>
           _buildNoteItem(notes[index], colorScheme, textTheme),
+      onReorder: (oldIndex, newIndex) async {
+        await _reorderNotes(oldIndex, newIndex);
+      },
     );
   }
 

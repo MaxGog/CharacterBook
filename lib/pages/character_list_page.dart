@@ -1,15 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:characterbook/pages/settings_page.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
+
 import '../models/character_model.dart';
+import '../services/clipboard_service.dart';
+
 import 'character_detail_page.dart';
 import 'character_management_page.dart';
+import 'settings_page.dart';
 
 class CharacterListPage extends StatefulWidget {
   const CharacterListPage({super.key});
@@ -25,6 +31,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
   bool _isImporting = false;
   String? _selectedTag;
   String? _errorMessage;
+  int? _draggedItemIndex;
 
   List<String> _generateTags(List<Character> characters) {
     final tags = <String>{};
@@ -93,9 +100,9 @@ class _CharacterListPageState extends State<CharacterListPage> {
         jsonStr = await file.readAsString();
       }
 
-      if (jsonStr?.isEmpty ?? true) return;
+      if (jsonStr.isEmpty) return;
 
-      final jsonMap = jsonDecode(jsonStr!) as Map<String, dynamic>;
+      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       final character = Character.fromJson(jsonMap);
       final box = Hive.box<Character>('characters');
       await box.add(character);
@@ -172,6 +179,129 @@ class _CharacterListPageState extends State<CharacterListPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
+  }
+
+  void _showCharacterContextMenu(Character character, BuildContext context) {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          overlay.localToGlobal(Offset.zero),
+          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('Редактировать'),
+            onTap: () {
+              Navigator.pop(context);
+              _editCharacter(character);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'copy',
+          child: ListTile(
+            leading: const Icon(Icons.copy),
+            title: const Text('Копировать данные'),
+            onTap: () {
+              Navigator.pop(context);
+              _copyCharacterToClipboard(character);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'share',
+          child: ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('Поделиться файлом'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareCharacterAsFile(character);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              _deleteCharacter(character);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editCharacter(Character character) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterEditPage(character: character),
+      ),
+    );
+    if (result == true && mounted) {
+      _filterCharacters(_searchController.text, Hive.box<Character>('characters').values.toList().cast<Character>());
+    }
+  }
+
+  Future<void> _copyCharacterToClipboard(Character character) async {
+    await ClipboardService.copyCharacterToClipboard(
+      name: character.name,
+      age: character.age,
+      gender: character.gender,
+      raceName: character.race?.name,
+      biography: character.biography,
+      appearance: character.appearance,
+      personality: character.personality,
+      abilities: character.abilities,
+      other: character.other,
+      customFields: character.customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
+    );
+    if (mounted) _showSnackBar('Данные персонажа скопированы');
+  }
+
+  Future<void> _shareCharacterAsFile(Character character) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/${character.name}.character');
+      await file.writeAsString(jsonEncode(character.toJson()));
+      await Share.shareXFiles([XFile(file.path)], text: 'Файл персонажа ${character.name}');
+    } catch (e) {
+      if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
+    }
+  }
+
+  Future<void> _reorderCharacters(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) return;
+
+    final box = Hive.box<Character>('characters');
+    final characters = box.values.toList().cast<Character>();
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final character = characters.removeAt(oldIndex);
+    characters.insert(newIndex, character);
+
+    await box.clear();
+    await box.addAll(characters);
+
+    if (mounted) {
+      setState(() {
+        _filterCharacters(_searchController.text, characters);
+      });
+    }
   }
 
   @override
@@ -340,15 +470,19 @@ class _CharacterListPageState extends State<CharacterListPage> {
       );
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: characters.length,
       itemBuilder: (context, index) => _buildCharacterCard(characters[index], theme),
+      onReorder: (oldIndex, newIndex) async {
+        await _reorderCharacters(oldIndex, newIndex);
+      },
     );
   }
 
   Widget _buildCharacterCard(Character character, ThemeData theme) {
     return Card(
+      key: ValueKey(character.key),
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -366,6 +500,9 @@ class _CharacterListPageState extends State<CharacterListPage> {
             builder: (context) => CharacterDetailPage(character: character),
           ),
         ),
+        onLongPress: () {
+          _showCharacterContextMenu(character, context);
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -397,13 +534,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                onPressed: () => _deleteCharacter(character),
               ),
             ],
           ),
@@ -465,7 +595,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
 
     if (confirmed ?? false) {
       await Hive.box<Character>('characters').delete(character.key);
-      _showSnackBar('Персонаж удален');
+      if (mounted) _showSnackBar('Персонаж удален');
     }
   }
 }

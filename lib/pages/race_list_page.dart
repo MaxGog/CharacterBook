@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:characterbook/pages/settings_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +13,9 @@ import 'package:universal_html/html.dart' as html;
 
 import '../models/character_model.dart';
 import '../models/race_model.dart';
+
 import 'race_management_page.dart';
+import 'settings_page.dart';
 
 class RaceListPage extends StatefulWidget {
   const RaceListPage({super.key});
@@ -30,6 +31,7 @@ class _RaceListPageState extends State<RaceListPage> {
   String? _selectedTag;
   bool _isImporting = false;
   String? _errorMessage;
+  int? _draggedItemIndex;
 
   List<String> _generateTags(List<Race> races) {
     final tags = <String>{};
@@ -43,7 +45,7 @@ class _RaceListPageState extends State<RaceListPage> {
             race.name.toLowerCase().contains(query.toLowerCase()) ||
             race.description.toLowerCase().contains(query.toLowerCase());
 
-        final matchesTag = _selectedTag == null; //|| (race.tags.contains(_selectedTag));
+        final matchesTag = _selectedTag == null;
 
         return matchesSearch && matchesTag;
       }).toList();
@@ -226,7 +228,7 @@ class _RaceListPageState extends State<RaceListPage> {
   Future<void> _shareRaceAsFile(Race race) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${race.name}_race.json');
+      final file = File('${tempDir.path}/${race.name}.race');
       await file.writeAsString(jsonEncode(race.toJson()));
       await Share.shareXFiles([XFile(file.path)], text: 'Файл расы ${race.name}');
     } catch (e) {
@@ -313,6 +315,100 @@ class _RaceListPageState extends State<RaceListPage> {
     );
   }
 
+  void _showRaceContextMenu(Race race, BuildContext context) {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          overlay.localToGlobal(Offset.zero),
+          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('Редактировать'),
+            onTap: () {
+              Navigator.pop(context);
+              _editRace(race);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'copy',
+          child: ListTile(
+            leading: const Icon(Icons.copy),
+            title: const Text('Копировать'),
+            onTap: () {
+              Navigator.pop(context);
+              _copyRaceToClipboard(race);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'share',
+          child: ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('Поделиться файлом'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareRaceAsFile(race);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              _deleteRace(race);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editRace(Race race) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => RaceManagementPage(race: race)),
+    );
+    if (result == true && mounted) {
+      _filterRaces(_searchController.text, Hive.box<Race>('races').values.toList());
+    }
+  }
+
+  Future<void> _reorderRaces(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) return;
+
+    final box = Hive.box<Race>('races');
+    final races = box.values.toList();
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final race = races.removeAt(oldIndex);
+    races.insert(newIndex, race);
+
+    await box.clear();
+    await box.addAll(races);
+
+    if (mounted) {
+      setState(() {
+        _filterRaces(_searchController.text, box.values.toList());
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -357,7 +453,7 @@ class _RaceListPageState extends State<RaceListPage> {
           ),
         ],
       ),
-        body: Column(
+      body: Column(
           children: [
             if (_isImporting) const LinearProgressIndicator(),
             if (_errorMessage != null)
@@ -376,65 +472,65 @@ class _RaceListPageState extends State<RaceListPage> {
                         ),
                       ),
                     ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: theme.colorScheme.onErrorContainer),
-                    onPressed: () => setState(() => _errorMessage = null),
-                  ),
-                ],
+                    IconButton(
+                      icon: Icon(Icons.close, color: theme.colorScheme.onErrorContainer),
+                      onPressed: () => setState(() => _errorMessage = null),
+                    ),
+                  ],
+                ),
               ),
-            ),
             Expanded(
               child: ValueListenableBuilder<Box<Race>>(
-              valueListenable: Hive.box<Race>('races').listenable(),
-              builder: (context, box, _) {
-                final allRaces = box.values.toList();
-                final tags = _generateTags(allRaces);
-                final racesToShow = _isSearching || _selectedTag != null
-                    ? _filteredRaces
-                    : allRaces;
+                  valueListenable: Hive.box<Race>('races').listenable(),
+                  builder: (context, box, _) {
+                    final allRaces = box.values.toList();
+                    final tags = _generateTags(allRaces);
+                    final racesToShow = _isSearching || _selectedTag != null
+                        ? _filteredRaces
+                        : allRaces;
 
-                return Column(
-                  children: [
-                    if (tags.isNotEmpty)
-                      SizedBox(
-                        height: 56,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: tags.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 4),
-                          itemBuilder: (context, index) {
-                            final tag = tags[index];
-                            return FilterChip(
-                              label: Text(tag),
-                              selected: _selectedTag == tag,
-                              onSelected: (selected) =>
-                                  setState(() {
-                                    _selectedTag = selected ? tag : null;
-                                    _filterRaces(
-                                        _searchController.text, allRaces);
-                                  }),
-                              shape: StadiumBorder(
-                                  side: BorderSide(color: colorScheme.outline)),
-                              showCheckmark: false,
-                              side: BorderSide.none,
-                              selectedColor: colorScheme.secondaryContainer,
-                              labelStyle: textTheme.labelLarge?.copyWith(
-                                color: _selectedTag == tag
-                                    ? colorScheme.onSecondaryContainer
-                                    : colorScheme.onSurface,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    Expanded(child: _buildRacesList(racesToShow)),
-                  ],
-                );
-              }),
+                    return Column(
+                      children: [
+                        if (tags.isNotEmpty)
+                          SizedBox(
+                            height: 56,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: tags.length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 4),
+                              itemBuilder: (context, index) {
+                                final tag = tags[index];
+                                return FilterChip(
+                                  label: Text(tag),
+                                  selected: _selectedTag == tag,
+                                  onSelected: (selected) =>
+                                      setState(() {
+                                        _selectedTag = selected ? tag : null;
+                                        _filterRaces(
+                                            _searchController.text, allRaces);
+                                      }),
+                                  shape: StadiumBorder(
+                                      side: BorderSide(color: colorScheme.outline)),
+                                  showCheckmark: false,
+                                  side: BorderSide.none,
+                                  selectedColor: colorScheme.secondaryContainer,
+                                  labelStyle: textTheme.labelLarge?.copyWith(
+                                    color: _selectedTag == tag
+                                        ? colorScheme.onSecondaryContainer
+                                        : colorScheme.onSurface,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        Expanded(child: _buildRacesList(racesToShow)),
+                      ],
+                    );
+                  }),
             )
           ]
-        ),
+      ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -487,12 +583,13 @@ class _RaceListPageState extends State<RaceListPage> {
       );
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: races.length,
       itemBuilder: (context, index) {
         final race = races[index];
         return Card(
+          key: ValueKey(race.key),
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -509,6 +606,9 @@ class _RaceListPageState extends State<RaceListPage> {
               if (result == true && mounted) {
                 _filterRaces(_searchController.text, Hive.box<Race>('races').values.toList());
               }
+            },
+            onLongPress: () {
+              _showRaceContextMenu(race, context);
             },
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -530,15 +630,14 @@ class _RaceListPageState extends State<RaceListPage> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.delete, color: colorScheme.onSurfaceVariant),
-                    onPressed: () => _deleteRace(race),
-                  ),
                 ],
               ),
             ),
           ),
         );
+      },
+      onReorder: (oldIndex, newIndex) async {
+        await _reorderRaces(oldIndex, newIndex);
       },
     );
   }
