@@ -22,6 +22,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
   final List<String> _selectedCharacterIds = [];
   bool _isPreviewMode = false;
   final GlobalKey _contentFieldKey = GlobalKey();
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -34,13 +35,53 @@ class _NoteEditPageState extends State<NoteEditPage> {
     _selectedCharacterIds.addAll(widget.note?.characterIds ?? []);
     _isPreviewMode = widget.note != null && !widget.isCopyMode;
 
+    // Добавляем слушатели изменений
+    _titleController.addListener(_checkForChanges);
+    _contentController.addListener(_checkForChanges);
+  }
+
+  void _checkForChanges() {
+    final hasTitleChanges = widget.note?.title != _titleController.text;
+    final hasContentChanges = widget.note?.content != _contentController.text;
+    setState(() {
+      _hasChanges = hasTitleChanges || hasContentChanges;
+    });
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_checkForChanges);
+    _contentController.removeListener(_checkForChanges);
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasChanges) return true;
+
+    final shouldSave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Есть несохраненные изменения'),
+        content: const Text('Хотите сохранить изменения перед выходом?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Не сохранять'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSave == true) {
+      await _saveNote();
+    }
+    return true;
   }
 
   Future<void> _saveNote() async {
@@ -69,6 +110,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
       ));
     }
 
+    setState(() => _hasChanges = false);
     if (mounted) Navigator.pop(context);
   }
 
@@ -97,36 +139,39 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.note == null
-              ? 'Новый пост'
-              : widget.isCopyMode
-              ? 'Копировать пост'
-              : 'Редактировать пост',
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.note == null
+                ? 'Новый пост'
+                : widget.isCopyMode
+                ? 'Копировать пост'
+                : 'Редактировать пост',
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.copy_all),
+              onPressed: _copyToClipboard,
+              tooltip: 'Копировать в буфер',
+            ),
+            IconButton(
+              icon: Icon(_isPreviewMode ? Icons.edit : Icons.preview),
+              onPressed: () => setState(() => _isPreviewMode = !_isPreviewMode),
+              tooltip: _isPreviewMode ? 'Редактировать' : 'Предпросмотр',
+            ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveNote,
+              tooltip: 'Сохранить',
+            ),
+          ],
         ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.copy_all),
-            onPressed: _copyToClipboard,
-            tooltip: 'Копировать в буфер',
-          ),
-          IconButton(
-            icon: Icon(_isPreviewMode ? Icons.edit : Icons.preview),
-            onPressed: () => setState(() => _isPreviewMode = !_isPreviewMode),
-            tooltip: _isPreviewMode ? 'Редактировать' : 'Предпросмотр',
-          ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveNote,
-            tooltip: 'Сохранить',
-          ),
-        ],
+        body: _buildContent(context, colorScheme, textTheme),
       ),
-      body: _buildContent(context, colorScheme, textTheme),
     );
   }
 
@@ -408,6 +453,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
                 _selectedCharacterIds.contains(value)
                     ? _selectedCharacterIds.remove(value)
                     : _selectedCharacterIds.add(value);
+                _hasChanges = true;
               });
             }
           },
@@ -437,7 +483,10 @@ class _NoteEditPageState extends State<NoteEditPage> {
   Widget _buildCharacterChip(ThemeData theme, Character character, String characterId) {
     return InputChip(
       label: Text(character.name),
-      onDeleted: () => setState(() => _selectedCharacterIds.remove(characterId)),
+      onDeleted: () => setState(() {
+        _selectedCharacterIds.remove(characterId);
+        _hasChanges = true;
+      }),
       deleteIcon: Icon(
         Icons.close,
         size: 18,
