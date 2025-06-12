@@ -14,72 +14,84 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Параметры"),
-        centerTitle: true,
+        title: const Text("Настройки"),
+        centerTitle: false,
+        scrolledUnderElevation: 1,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _buildThemeSettingsCard(context, themeProvider),
-          const SizedBox(height: 16),
-          _buildBackupSettingsCard(context),
-          const SizedBox(height: 16),
-          _buildAboutCard(context),
-          const SizedBox(height: 16),
-          _buildAcknowledgementsCard(context),
+          _buildThemeSection(context, themeProvider, colorScheme),
+          const SizedBox(height: 8),
+          _buildBackupSection(context, colorScheme),
+          const SizedBox(height: 8),
+          _buildAboutSection(context, colorScheme),
+          const SizedBox(height: 8),
+          _buildAcknowledgementsSection(context, colorScheme),
         ],
       ),
     );
   }
 
-  Widget _buildThemeSettingsCard(BuildContext context, ThemeProvider themeProvider) {
+  Widget _buildThemeSection(BuildContext context, ThemeProvider themeProvider, ColorScheme colorScheme) {
     final accentColors = {
       'Системный': Theme.of(context).colorScheme.primary,
-      'Синий': Color(0xFF1E88E5),
-      'Зеленый': Color(0xFF43A047),
-      'Красный': Color(0xFFE53935),
-      'Оранжевый': Color(0xFFFB8C00),
-      'Фиолетовый': Color(0xFF8E24AA),
-      'Розовый': Color(0xFFD81B60),
-      'Бирюзовый': Color(0xFF00ACC1),
-      'Голубой': Color(0xFF039BE5),
+      'Синий': Colors.blue,
+      'Зеленый': Colors.green,
+      'Красный': Colors.red,
+      'Оранжевый': Colors.orange,
+      'Фиолетовый': Colors.purple,
+      'Розовый': Colors.pink,
+      'Бирюзовый': Colors.teal,
+      'Голубой': Colors.lightBlue,
     };
 
     return Card(
-      elevation: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Цветовая схема",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                "ТЕМА",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
             ),
+            const SizedBox(height: 12),
+            _buildThemeListTile(themeProvider, ThemeMode.system, "Системная", Icons.phone_android),
+            _buildThemeListTile(themeProvider, ThemeMode.light, "Светлая", Icons.light_mode),
+            _buildThemeListTile(themeProvider, ThemeMode.dark, "Тёмная", Icons.dark_mode),
             const SizedBox(height: 8),
-            Column(
-              children: [
-                _buildThemeRadioTile(themeProvider, ThemeMode.system, "Системная"),
-                _buildThemeRadioTile(themeProvider, ThemeMode.light, "Светлая"),
-                _buildThemeRadioTile(themeProvider, ThemeMode.dark, "Тёмная"),
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text(
-                  "Цветовой акцент",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                "АКЦЕНТНЫЙ ЦВЕТ",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.6),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: accentColors.entries.map((entry) => _buildColorChip(themeProvider, entry)).toList(),
-                ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: accentColors.entries.map((entry) =>
+                  _buildColorChoiceChip(themeProvider, entry, colorScheme)
+              ).toList(),
             ),
           ],
         ),
@@ -87,51 +99,71 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  RadioListTile<ThemeMode> _buildThemeRadioTile(
-      ThemeProvider themeProvider, ThemeMode mode, String title) {
-    return RadioListTile<ThemeMode>(
+  Widget _buildThemeListTile(
+      ThemeProvider themeProvider,
+      ThemeMode mode,
+      String title,
+      IconData icon
+      ) {
+    return ListTile(
+      leading: Icon(icon),
       title: Text(title),
-      value: mode,
-      groupValue: themeProvider.themeMode,
-      onChanged: (value) {
-        if (value != null) themeProvider.setThemeMode(value);
-      },
+      trailing: Radio<ThemeMode>(
+        value: mode,
+        groupValue: themeProvider.themeMode,
+        onChanged: (value) {
+          if (value != null) themeProvider.setThemeMode(value);
+        },
+      ),
+      onTap: () => themeProvider.setThemeMode(mode),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 
-  ChoiceChip _buildColorChip(
-      ThemeProvider themeProvider, MapEntry<String, Color> entry) {
+  Widget _buildColorChoiceChip(
+      ThemeProvider themeProvider,
+      MapEntry<String, Color> entry,
+      ColorScheme colorScheme
+      ) {
     return ChoiceChip(
       label: Text(entry.key),
       selected: themeProvider.seedColor == entry.value,
       onSelected: (_) => themeProvider.setSeedColor(entry.value),
       selectedColor: entry.value,
       labelStyle: TextStyle(
-        color: themeProvider.seedColor == entry.value ? Colors.white : null,
+        color: themeProvider.seedColor == entry.value ?
+        entry.value.contrastTextColor : colorScheme.onSurface,
       ),
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 0,
+      pressElevation: 0,
     );
   }
 
-  Widget _buildBackupSettingsCard(BuildContext context) {
-    /*final googleSignIn = GoogleSignIn(
-      scopes: [drive.DriveApi.driveFileScope],
-    );*/
-
+  Widget _buildBackupSection(BuildContext context, ColorScheme colorScheme) {
     final cloudBackupService = CloudBackupService();
 
     return Card(
-      elevation: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Резервное копирование",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                "РЕЗЕРВНОЕ КОПИРОВАНИЕ",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             StatefulBuilder(
               builder: (context, setState) {
                 bool isBackingUp = false;
@@ -139,34 +171,144 @@ class SettingsPage extends StatelessWidget {
 
                 return Column(
                   children: [
-                    if (isBackingUp) ...[
-                      const LinearProgressIndicator(),
-                      const SizedBox(height: 8),
-                    ],
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.upload),
-                      label: const Text('Резервное копирование в Google Drive'),
+                    FilledButton.tonalIcon(
+                      icon: const Icon(Icons.cloud_upload),
+                      label: const Text('Создать резервную копию'),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
-                          context, cloudBackupService.exportAllToCloud, setState, (v) => isBackingUp = v),
+                          context,
+                          cloudBackupService.exportAllToCloud,
+                          setState,
+                              (v) => isBackingUp = v
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    if (isRestoring) ...[
-                      const LinearProgressIndicator(),
-                      const SizedBox(height: 8),
-                    ],
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.restore),
-                      label: const Text('Восстановить из Google Drive'),
+                    FilledButton.tonalIcon(
+                      icon: const Icon(Icons.cloud_download),
+                      label: const Text('Восстановить данные'),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
-                          context, cloudBackupService.importAllFromCloud, setState, (v) => isRestoring = v),
+                          context,
+                          cloudBackupService.importAllFromCloud,
+                          setState,
+                              (v) => isRestoring = v
+                      ),
                     ),
+                    if (isBackingUp || isRestoring) ...[
+                      const SizedBox(height: 16),
+                      LinearProgressIndicator(
+                        color: colorScheme.primary,
+                        backgroundColor: colorScheme.primaryContainer,
+                      ),
+                    ],
                   ],
                 );
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutSection(BuildContext context, ColorScheme colorScheme) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                "О ПРИЛОЖЕНИИ",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Версия'),
+              trailing: FutureBuilder<String>(
+                future: _getAppVersion(),
+                builder: (context, snapshot) {
+                  return Text(
+                    snapshot.data ?? '1.5.7',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              color: colorScheme.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _launchUrl('https://github.com/MaxGog/CharacterBook'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Image.asset('assets/underdeveloped.png'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'GitHub репозиторий',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAcknowledgementsSection(BuildContext context, ColorScheme colorScheme) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                "БЛАГОДАРНОСТИ",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Данила Ганьков | Makoto🐼 | Максим Семенков | Артём Голубев | '
+                    'Евгений Стратий | Никита Жевнерович | Участники EnA',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
           ],
         ),
@@ -183,52 +325,32 @@ class SettingsPage extends StatelessWidget {
     setState(() => stateUpdater(true));
     try {
       await action(context);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Операция выполнена успешно'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
     } finally {
       setState(() => stateUpdater(false));
     }
-  }
-
-  Widget _buildAboutCard(BuildContext context) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'О приложении',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FutureBuilder<String>(
-              future: _getAppVersion(),
-              builder: (context, snapshot) {
-                return Text(
-                  'Версия: ${snapshot.data ?? '1.6.0'}',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => _launchUrl('https://github.com/MaxGog/CharacterBook'),
-              child: Ink(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                ),
-                child: Image.asset('assets/underdeveloped.png'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<String> _getAppVersion() async {
@@ -236,37 +358,17 @@ class SettingsPage extends StatelessWidget {
     return packageInfo.version;
   }
 
-  Widget _buildAcknowledgementsCard(BuildContext context) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Благодарность',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Данила Ганьков | Makoto🐼 | Максим Семенков | Артём Голубев | '
-                  'Евгений Стратий | Никита Жевнерович | Участники EnA',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
+  }
+}
+
+extension ColorExtension on Color {
+  Color get contrastTextColor {
+    final brightness = ThemeData.estimateBrightnessForColor(this);
+    return brightness == Brightness.dark ? Colors.white : Colors.black;
   }
 }
