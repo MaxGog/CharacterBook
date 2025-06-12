@@ -168,6 +168,7 @@ class _SearchPageState extends State<SearchPage> {
                       horizontal: 16.0,
                       vertical: 4.0,
                     ),
+                    shadowColor: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12.0),
                       onTap: () async {

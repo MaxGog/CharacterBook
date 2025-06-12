@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -234,36 +233,6 @@ class _RaceListPageState extends State<RaceListPage> {
     } catch (e) {
       if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
     }
-  }
-
-  void _showShareQRDialog(Race race) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('QR-код расы ${race.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QrImageView(
-              data: jsonEncode(race.toJson()),
-              version: QrVersions.auto,
-              size: 200,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Отсканируйте этот код для импорта расы',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Закрыть'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<String?> _showFileSelectionDialog() async {

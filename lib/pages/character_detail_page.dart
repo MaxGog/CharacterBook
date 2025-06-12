@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:docx_template/docx_template.dart' as docx;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/note_model.dart';
 import 'character_management_page.dart';
 import '../models/character_model.dart';
-import '../services/character_qr_service.dart';
 
 class CharacterDetailPage extends StatefulWidget {
   final Character character;
@@ -98,36 +99,122 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     }
   }
 
-  Future<void> _exportToDocx() async {
+  Future<void> _exportToPdf() async {
     try {
-      final template = await rootBundle.load('assets/character_template.docx');
-      final _ = await docx.DocxTemplate.fromBytes(template.buffer.asUint8List());
+      final pdf = pw.Document();
 
-      final content = docx.Content()
-        ..add(docx.TextContent('name', widget.character.name))
-        ..add(docx.TextContent('age', widget.character.age.toString()))
-        ..add(docx.TextContent('gender', widget.character.gender))
-        ..add(docx.TextContent('biography', widget.character.biography))
-        ..add(docx.TextContent('personality', widget.character.personality))
-        ..add(docx.TextContent('appearance', widget.character.appearance))
-        ..add(docx.TextContent('abilities', widget.character.abilities))
-        ..add(docx.TextContent('other', widget.character.other));
+      pdf.addPage(
+        pw.Page(
+          margin: pw.EdgeInsets.all(20),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Header(
+                  level: 0,
+                  child: pw.Text(
+                    'Характеристика персонажа',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 20),
 
-      widget.character.customFields.asMap().forEach((i, field) {
-        content
-          ..add(docx.TextContent('custom_key_$i', field.key))
-          ..add(docx.TextContent('custom_value_$i', field.value));
-      });
+                pw.Text(
+                  'Основная информация',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.Divider(),
+                _buildInfoRowPdf('Имя:', widget.character.name),
+                _buildInfoRowPdf('Возраст:', widget.character.age.toString()),
+                _buildInfoRowPdf('Пол:', widget.character.gender),
+                pw.SizedBox(height: 15),
 
-      /*final generated = await doc.generate(content) ?? throw Exception('Ошибка генерации');
-      final path = '${(await getApplicationDocumentsDirectory()).path}/${widget.character.name}_character.docx';
-      await File(path).writeAsBytes(generated);
-      await OpenFilex.open(path);
-      _showSnackBar('Экспортировано в $path');*/
+                pw.Text(
+                  'Биография',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.Divider(),
+                pw.Text(widget.character.biography),
+                pw.SizedBox(height: 15),
+
+                _buildSectionPdf('Характер', widget.character.personality),
+                _buildSectionPdf('Внешность', widget.character.appearance),
+                _buildSectionPdf('Способности', widget.character.abilities),
+                _buildSectionPdf('Другое', widget.character.other),
+
+                if (widget.character.customFields.isNotEmpty) ...[
+                  pw.Text(
+                    'Дополнительные поля',
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Divider(),
+                  ...widget.character.customFields.map((field) =>
+                      _buildInfoRowPdf('${field.key}:', field.value)
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      );
+
+      final bytes = await pdf.save();
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = '${widget.character.name}_character.pdf'
+          .replaceAll(RegExp(r'[^\w\s-]'), '');
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      await OpenFilex.open(file.path);
+      _showSnackBar('Экспортировано в ${file.path}');
     } catch (e) {
       _showSnackBar('Ошибка экспорта: ${e.toString()}');
       debugPrint('Ошибка экспорта: $e');
+      debugPrintStack(stackTrace: StackTrace.current);
     }
+  }
+
+  pw.Widget _buildSectionPdf(String title, String content) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 15),
+        pw.Text(
+          title,
+          style: pw.TextStyle(
+            fontSize: 18,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.Divider(),
+        pw.Text(content),
+      ],
+    );
+  }
+
+  pw.Widget _buildInfoRowPdf(String label, String value) {
+    return pw.Row(
+      children: [
+        pw.Text(
+          label,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(width: 10),
+        pw.Text(value),
+      ],
+    );
   }
 
   Future<void> _exportToJson() async {
@@ -151,33 +238,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         )
     );
   }
-
-  void _showShareQRDialog() => showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Поделиться персонажем'),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-          maxHeight: MediaQuery.of(context).size.height * 0.6,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Отсканируйте этот QR-код, чтобы получить персонажа:'),
-            const SizedBox(height: 20),
-            CharacterQRService.generateQRCode(widget.character, size: 200),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Закрыть'),
-        ),
-      ],
-    ),
-  );
 
   void _showFullImage(Uint8List imageBytes, String title) => showDialog(
     context: context,
@@ -474,16 +534,14 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
           PopupMenuButton<String>(
             icon: Icon(Icons.share, color: colorScheme.onSurface),
             onSelected: (value) => switch (value) {
-              'qr' => _showShareQRDialog(),
               'file' => _exportToJson(),
-              'docx' => _exportToDocx(),
+              'pdf' => _exportToPdf(),
               _ => null,
             },
             tooltip: 'Поделиться персонажем',
             itemBuilder: (context) => const [
-              //PopupMenuItem(value: 'qr', child: Text('QR-код')),
               PopupMenuItem(value: 'file', child: Text('Файлом (.character)')),
-              PopupMenuItem(value: 'docx', child: Text('Документ Word (.docx)')),
+              PopupMenuItem(value: 'pdf', child: Text('Документ PDF (.pdf)')),
             ],
           ),
           IconButton(
