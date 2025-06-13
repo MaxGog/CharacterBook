@@ -28,8 +28,7 @@
 ## 📸 Скриншоты
 | Главный экран | Создание персонажа | Расы |  
 |--------------|-------------------|---------|  
-| ![Главный экран](https://play-lh.googleusercontent.com/s8D2VaHx1PO5JEfIaisZrezpEGOImAeLFBzdL68pHrOVD86-ByCn_8dAvAFILe4X8g=w5120-h2880) | ![Создание](https://play-lh.googleusercontent.com/rbMgJUpij1St19tMacQ_IyMhQ_3IpWntD-deZ8BfafKjSJRAcdHWdETjgQPuk_-tkps=w5120-h2880) | ![Расы](https://github.com/user-attachments/assets/017700ff-da16-4c44-b979-fa6aaafdfc7c)
-) |  
+| ![Главный экран](https://play-lh.googleusercontent.com/s8D2VaHx1PO5JEfIaisZrezpEGOImAeLFBzdL68pHrOVD86-ByCn_8dAvAFILe4X8g=w5120-h2880) | ![Создание](https://play-lh.googleusercontent.com/rbMgJUpij1St19tMacQ_IyMhQ_3IpWntD-deZ8BfafKjSJRAcdHWdETjgQPuk_-tkps=w5120-h2880) | ![Расы](https://github.com/user-attachments/assets/017700ff-da16-4c44-b979-fa6aaafdfc7c) |  
 
 ## 📥 Установка и запуск
 1. Клонируйте репозиторий:
