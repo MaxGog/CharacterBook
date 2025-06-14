@@ -32,6 +32,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
   String? _selectedTag;
   String? _errorMessage;
   int? _draggedItemIndex;
+  Character? _selectedCharacter;
 
   List<String> _generateTags(List<Character> characters) {
     final tags = <String>{};
@@ -80,7 +81,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
         return matchesSearch && matchesTag;
       }).toList();
 
-      // Затем применяем сортировку, если выбран соответствующий тег
       if (_selectedTag == 'А-Я') {
         filtered.sort((a, b) => a.name.compareTo(b.name));
       } else if (_selectedTag == 'Я-А') {
@@ -92,8 +92,13 @@ class _CharacterListPageState extends State<CharacterListPage> {
       }
 
       _filteredCharacters = filtered;
+
+      if (_selectedCharacter != null && !filtered.contains(_selectedCharacter)) {
+        _selectedCharacter = null;
+      }
     });
   }
+
 
   Future<void> _importCharacter() async {
     try {
@@ -329,6 +334,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isWideScreen = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
       appBar: _buildAppBar(theme),
@@ -368,18 +374,179 @@ class _CharacterListPageState extends State<CharacterListPage> {
                     ? _filteredCharacters
                     : allCharacters;
 
-                return Column(
-                  children: [
-                    if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
-                    Expanded(child: _buildCharactersList(characters, theme)),
-                  ],
-                );
+                return isWideScreen
+                    ? _buildWideLayout(characters, tags, theme, allCharacters)
+                    : _buildMobileLayout(characters, tags, theme, allCharacters);
               },
             ),
           ),
         ],
       ),
       floatingActionButton: _buildFloatingActionButtons(),
+    );
+  }
+
+  Widget _buildWideLayout(List<Character> characters, List<String> tags, ThemeData theme, List<Character> allCharacters) {
+    return Row(
+      children: [
+        Container(
+          width: 400,
+          decoration: BoxDecoration(
+            border: Border(right: BorderSide(color: theme.dividerColor)),
+          ),
+          child: Column(
+            children: [
+              if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
+              Expanded(child: _buildCharactersList(characters, theme)),
+            ],
+          ),
+        ),
+      Expanded(
+        child: _selectedCharacter != null
+            ? CharacterDetailPage(character: _selectedCharacter!)
+            : Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.person_outline,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Выберите персонажа',
+                style: theme.textTheme.bodyLarge,
+              ),
+            ],
+          ),
+        ),
+      ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(List<Character> characters, List<String> tags, ThemeData theme, List<Character> allCharacters) {
+    return Column(
+      children: [
+        if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
+        Expanded(child: _buildCharactersList(characters, theme)),
+      ],
+    );
+  }
+
+  Widget _buildCharacterCard(Character character, ThemeData theme) {
+    final isSelected = _selectedCharacter?.key == character.key;
+
+    return Card(
+      key: ValueKey(character.key),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      elevation: 0,
+      color: isSelected
+          ? theme.colorScheme.secondaryContainer
+          : theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected
+              ? theme.colorScheme.secondary
+              : theme.colorScheme.outlineVariant,
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          if (MediaQuery.of(context).size.width > 1000) {
+            setState(() => _selectedCharacter = character);
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CharacterDetailPage(character: character),
+              ),
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              character.imageBytes != null
+                  ? CircleAvatar(
+                backgroundImage: MemoryImage(character.imageBytes!),
+                radius: 28,
+              )
+                  : CircleAvatar(
+                radius: 28,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  Icons.person,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(character.name, style: theme.textTheme.bodyLarge),
+                    Text(
+                      '${character.age} лет, ${character.gender}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton(
+                icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurfaceVariant),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
+                      title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _editCharacter(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
+                      title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _copyCharacterToClipboard(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
+                      title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _shareCharacterAsFile(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.delete, color: theme.colorScheme.error),
+                      title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.error,
+                      )),
+                    ),
+                    onTap: () => Future(() => _deleteCharacter(character)),
+                  ),
+                ],
+                surfaceTintColor: theme.colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: theme.colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -507,109 +674,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
           child: child,
         );
       },
-    );
-  }
-
-  Widget _buildCharacterCard(Character character, ThemeData theme) {
-    return Card(
-      key: ValueKey(character.key),
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CharacterDetailPage(character: character),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              character.imageBytes != null
-                  ? CircleAvatar(
-                backgroundImage: MemoryImage(character.imageBytes!),
-                radius: 28,
-              )
-                  : CircleAvatar(
-                radius: 28,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                child: Icon(
-                  Icons.person,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(character.name, style: theme.textTheme.bodyLarge),
-                    Text(
-                      '${character.age} лет, ${character.gender}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Обновленный PopupMenuButton
-              PopupMenuButton(
-                icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurfaceVariant),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-                      title: Text('Редактировать', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _editCharacter(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
-                      title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _copyCharacterToClipboard(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
-                      title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _shareCharacterAsFile(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.delete, color: theme.colorScheme.error),
-                      title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.error,
-                      )),
-                    ),
-                    onTap: () => Future(() => _deleteCharacter(character)),
-                  ),
-                ],
-                surfaceTintColor: theme.colorScheme.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: theme.colorScheme.outline,
-                    width: 1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

@@ -25,6 +25,7 @@ class _NotesListPageState extends State<NotesListPage> {
   String? _selectedTag;
   String? _selectedCharacter;
   int? _draggedItemIndex;
+  Note? _selectedNote;
 
   List<String> _getAllTags(List<Note> notes) {
     return notes.expand((note) => note.tags).toSet().toList()..sort();
@@ -379,7 +380,12 @@ class _NotesListPageState extends State<NotesListPage> {
     );
   }
 
-  Widget _buildNoteItem(Note note, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildNoteItem(
+      Note note,
+      ColorScheme colorScheme,
+      TextTheme textTheme, {
+        bool isSelected = false,
+      }) {
     final characterBox = Hive.box<Character>('characters');
     final characters = note.characterIds
         .map((id) => characterBox.get(id))
@@ -390,16 +396,26 @@ class _NotesListPageState extends State<NotesListPage> {
       key: ValueKey(note.key),
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       elevation: 0,
+      color: isSelected ? colorScheme.secondaryContainer : colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        side: BorderSide(
+          color: isSelected ? colorScheme.secondary : colorScheme.outlineVariant,
+          width: isSelected ? 2 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
-        ),
+        onTap: () {
+          if (MediaQuery.of(context).size.width > 1000) {
+            setState(() => _selectedNote = note);
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
+            );
+          }
+        },
         onLongPress: () {
           _showNoteContextMenu(note, context);
         },
@@ -484,6 +500,7 @@ class _NotesListPageState extends State<NotesListPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isWideScreen = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
       appBar: AppBar(
@@ -526,21 +543,9 @@ class _NotesListPageState extends State<NotesListPage> {
           final tags = _getAllTags(allNotes);
           final characterNames = _getAllCharacterNames(allNotes);
 
-          return Column(
-            children: [
-              if (tags.isNotEmpty || characterNames.isNotEmpty)
-                _buildFiltersRow(tags, characterNames, textTheme, colorScheme),
-              Expanded(
-                child: _buildNotesList(
-                  _isSearching || _selectedTag != null || _selectedCharacter != null
-                      ? _filteredNotes
-                      : allNotes,
-                  colorScheme,
-                  textTheme,
-                ),
-              ),
-            ],
-          );
+          return isWideScreen
+              ? _buildWideLayout(allNotes, tags, characterNames, colorScheme, textTheme)
+              : _buildMobileLayout(allNotes, tags, characterNames, colorScheme, textTheme);
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -550,6 +555,95 @@ class _NotesListPageState extends State<NotesListPage> {
           MaterialPageRoute(builder: (context) => const NoteEditPage()),
         ),
       ),
+    );
+  }
+
+  Widget _buildWideLayout(
+      List<Note> allNotes,
+      List<String> tags,
+      List<String> characterNames,
+      ColorScheme colorScheme,
+      TextTheme textTheme,
+      ) {
+    final notes = _isSearching || _selectedTag != null || _selectedCharacter != null
+        ? _filteredNotes
+        : allNotes;
+
+    return Row(
+      children: [
+
+        Container(
+          width: 400,
+          decoration: BoxDecoration(
+            border: Border(right: BorderSide(color: colorScheme.outline)),
+          ),
+          child: Column(
+            children: [
+              if (tags.isNotEmpty || characterNames.isNotEmpty)
+                _buildFiltersRow(tags, characterNames, textTheme, colorScheme),
+              Expanded(
+                child: notes.isEmpty
+                    ? _buildEmptyState(colorScheme, textTheme)
+                    : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: notes.length,
+                  itemBuilder: (context, index) => _buildNoteItem(
+                    notes[index],
+                    colorScheme,
+                    textTheme,
+                    isSelected: _selectedNote?.key == notes[index].key,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _selectedNote != null
+              ? NoteEditPage(note: _selectedNote!)
+              : Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.note_outlined,
+                  size: 48,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Выберите заметку',
+                  style: textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(
+      List<Note> allNotes,
+      List<String> tags,
+      List<String> characterNames,
+      ColorScheme colorScheme,
+      TextTheme textTheme,
+      ) {
+    return Column(
+      children: [
+        if (tags.isNotEmpty || characterNames.isNotEmpty)
+          _buildFiltersRow(tags, characterNames, textTheme, colorScheme),
+        Expanded(
+          child: _buildNotesList(
+            _isSearching || _selectedTag != null || _selectedCharacter != null
+                ? _filteredNotes
+                : allNotes,
+            colorScheme,
+            textTheme,
+          ),
+        ),
+      ],
     );
   }
 }
