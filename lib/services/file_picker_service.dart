@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/character_model.dart';
+import '../models/race_model.dart';
 
 class FilePickerService {
   Future<Character?> importCharacter() async {
@@ -84,5 +85,38 @@ class FilePickerService {
     }
 
     return completer.future;
+  }
+
+  Future<Race?> importRace() async {
+    try {
+      String? jsonStr;
+
+      if (kIsWeb) {
+        final uploadInput = html.FileUploadInputElement();
+        uploadInput.accept = '.race';
+        uploadInput.click();
+
+        await uploadInput.onChange.first;
+        final files = uploadInput.files;
+        if (files == null || files.isEmpty) return null;
+
+        final file = files[0];
+        final reader = html.FileReader();
+        reader.readAsText(file);
+        await reader.onLoadEnd.first;
+        jsonStr = reader.result as String;
+      } else {
+        final file = await _pickFileNative();
+        if (file == null) return null;
+        jsonStr = await file.readAsString();
+      }
+
+      if (jsonStr.isEmpty) return null;
+
+      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return Race.fromJson(jsonMap);
+    } catch (e) {
+      throw Exception('Ошибка импорта расы: ${e.toString()}');
+    }
   }
 }
