@@ -235,13 +235,31 @@ class SettingsPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ListTile(
+              leading: const Icon(Icons.title),
+              title: const Text('Название'),
+              trailing: Text(
+                'CharacterBook',
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.developer_mode),
+              title: const Text('Разработчик'),
+              trailing: Text(
+                'Максим Гоглов Алексеевич',
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ),
+            const SizedBox(height: 8),
+            ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('Версия'),
               trailing: FutureBuilder<String>(
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.data ?? '1.5.7',
+                    snapshot.data ?? '1.5.8',
                     style: Theme.of(context).textTheme.bodyLarge,
                   );
                 },
