@@ -214,35 +214,41 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       );
 
       if (widget.character.additionalImages.isNotEmpty) {
-        for (final imageBytes in widget.character.additionalImages) {
-          pdf.addPage(
-            pw.Page(
-              margin: pw.EdgeInsets.all(20),
-              theme: pw.ThemeData.withFont(
-                base: font,
-                bold: boldFont,
-              ),
-              build: (pw.Context context) {
-                return pw.Column(
-                  children: [
-                    pw.Header(
-                      level: 1,
-                      child: pw.Text(
-                        'Дополнительное изображение',
-                        style: pw.TextStyle(
-                          fontSize: 18,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
+        pdf.addPage(
+          pw.Page(
+            margin: pw.EdgeInsets.all(20),
+            theme: pw.ThemeData.withFont(
+              base: font,
+              bold: boldFont,
+            ),
+            build: (pw.Context context) {
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Header(
+                    level: 1,
+                    child: pw.Text(
+                      'Дополнительные изображения',
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 20),
-                    _buildImageFromBytes(imageBytes)!,
-                  ],
-                );
-              },
-            ),
-          );
-        }
+                  ),
+                  pw.SizedBox(height: 20),
+                  ...widget.character.additionalImages.map((imageBytes) =>
+                      pw.Column(
+                        children: [
+                          _buildImageFromBytes(imageBytes)!,
+                          pw.SizedBox(height: 20),
+                        ],
+                      )
+                  ).toList(),
+                ],
+              );
+            },
+          ),
+        );
       }
 
       final bytes = await pdf.save();
