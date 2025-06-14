@@ -47,18 +47,29 @@ class _CharacterListPageState extends State<CharacterListPage> {
       if (character.name.length <= 4) tags.add('Короткое имя');
     }
 
-    return tags.toList()..sort();
+    final sortTags = [
+      'А-Я',
+      'Я-А',
+      'Возраст ↑',
+      'Возраст ↓',
+    ];
+
+    return [...tags.toList()..sort(), ...sortTags];
   }
 
   void _filterCharacters(String query, List<Character> allCharacters) {
     setState(() {
-      _filteredCharacters = allCharacters.where((character) {
+      List<Character> filtered = allCharacters.where((character) {
         final matchesSearch = query.isEmpty ||
             character.name.toLowerCase().contains(query.toLowerCase()) ||
             character.age.toString().contains(query) ||
             character.gender.toLowerCase().contains(query.toLowerCase());
 
         final matchesTag = _selectedTag == null ||
+            _selectedTag == 'А-Я' ||
+            _selectedTag == 'Я-А' ||
+            _selectedTag == 'Возраст ↑' ||
+            _selectedTag == 'Возраст ↓' ||
             (character.gender == _selectedTag) ||
             (_selectedTag == 'Дети' && character.age < 18) ||
             (_selectedTag == 'Молодые' && character.age < 30) ||
@@ -68,6 +79,19 @@ class _CharacterListPageState extends State<CharacterListPage> {
 
         return matchesSearch && matchesTag;
       }).toList();
+
+      // Затем применяем сортировку, если выбран соответствующий тег
+      if (_selectedTag == 'А-Я') {
+        filtered.sort((a, b) => a.name.compareTo(b.name));
+      } else if (_selectedTag == 'Я-А') {
+        filtered.sort((a, b) => b.name.compareTo(a.name));
+      } else if (_selectedTag == 'Возраст ↑') {
+        filtered.sort((a, b) => a.age.compareTo(b.age));
+      } else if (_selectedTag == 'Возраст ↓') {
+        filtered.sort((a, b) => b.age.compareTo(a.age));
+      }
+
+      _filteredCharacters = filtered;
     });
   }
 
@@ -204,7 +228,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
                 _editCharacter(character);
               },
             ),
-            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
               title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
@@ -213,7 +237,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
                 _copyCharacterToClipboard(character);
               },
             ),
-            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
               title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
@@ -222,7 +246,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
                 _shareCharacterAsFile(character);
               },
             ),
-            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.delete, color: theme.colorScheme.error),
               title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
