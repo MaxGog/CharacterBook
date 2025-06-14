@@ -197,7 +197,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     );
   }
 
-  void _saveCharacter() async {
+  Future<void> _saveCharacter() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -271,11 +271,15 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             content: const Text('У вас есть несохраненные изменения. Хотите сохранить перед выходом?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
                 child: const Text('Не сохранять'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
                 child: const Text('Сохранить'),
               ),
               TextButton(
@@ -286,8 +290,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           ),
         );
         if (shouldLeave == null) return false;
-        if (shouldLeave) _saveCharacter();
-        return shouldLeave;
+
+        if (shouldLeave) {
+          return true;
+        } else {
+          await _saveCharacter();
+          if (mounted) return true;
+          return false;
+        }
       },
       child: Scaffold(
         appBar: AppBar(
