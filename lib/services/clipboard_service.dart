@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import 'package:flutter/services.dart';
+
 class ClipboardService {
   static Future<void> copyCharacterToClipboard({
     required String name,
@@ -29,6 +31,43 @@ class ClipboardService {
       for (final field in customFields) {
         buffer.writeln('${field['key']}: ${field['value']}');
       }
+    }
+
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+  }
+
+  static Future<void> copyRaceToClipboard({
+    required String name,
+    required String description,
+    required String biology,
+    required String backstory,
+  }) async {
+    final buffer = StringBuffer()
+      ..writeln('Раса: $name')
+      ..writeln('\nОписание:')
+      ..writeln(description)
+      ..writeln('\nБиология:')
+      ..writeln(biology)
+      ..writeln('\nПредыстория:')
+      ..writeln(backstory);
+
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+  }
+
+  static Future<void> copyNoteToClipboard({
+    required String title,
+    required String content,
+    List<String>? characterNames,
+  }) async {
+    final buffer = StringBuffer()
+      ..writeln('Заметка: $title')
+      ..writeln('\nСодержание:')
+      ..writeln(content);
+
+    if (characterNames != null && characterNames.isNotEmpty) {
+      buffer
+        ..writeln('\nСвязанные персонажи:')
+        ..writeln(characterNames.join(', '));
     }
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
