@@ -5,7 +5,7 @@ class ClipboardService {
     required String name,
     required int age,
     required String gender,
-    required String? raceName,
+    String? raceName,
     required String biography,
     required String appearance,
     required String personality,
@@ -13,24 +13,24 @@ class ClipboardService {
     required String other,
     required List<Map<String, String>> customFields,
   }) async {
-    var characterInfo = '''
-Имя: $name
-Возраст: $age
-Пол: $gender
-Раса: ${raceName ?? 'Не указана'}
-Биография: $biography
-Внешность: $appearance
-Характер: $personality
-Способности: $abilities
-Прочее: $other
-''';
+    final buffer = StringBuffer()
+      ..writeln('Имя: $name')
+      ..writeln('Возраст: $age')
+      ..writeln('Пол: $gender')
+      ..writeln('Раса: ${raceName ?? "Не указана"}')
+      ..writeln('Биография: $biography')
+      ..writeln('Внешность: $appearance')
+      ..writeln('Характер: $personality')
+      ..writeln('Способности: $abilities')
+      ..writeln('Прочее: $other');
 
-    for (var field in customFields) {
-      if (field['key']?.isNotEmpty ?? false) {
-        characterInfo += '${field['key']}: ${field['value']}\n';
+    if (customFields.isNotEmpty) {
+      buffer.writeln('\nДополнительные поля:');
+      for (final field in customFields) {
+        buffer.writeln('${field['key']}: ${field['value']}');
       }
     }
 
-    await Clipboard.setData(ClipboardData(text: characterInfo));
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
   }
 }
