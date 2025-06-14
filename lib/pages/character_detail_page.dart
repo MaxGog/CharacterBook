@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/note_model.dart';
@@ -108,7 +106,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
       final pdf = pw.Document();
 
-      pw.Widget? _buildImageFromBytes(Uint8List? bytes) {
+      pw.Widget? buildImageFromBytes(Uint8List? bytes) {
         if (bytes == null || bytes.isEmpty) return null;
         return pw.Center(
           child: pw.Image(
@@ -146,7 +144,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                 if (widget.character.imageBytes != null)
                   pw.Column(
                     children: [
-                      _buildImageFromBytes(widget.character.imageBytes)!,
+                      buildImageFromBytes(widget.character.imageBytes)!,
                       pw.SizedBox(height: 20),
                     ],
                   ),
@@ -173,7 +171,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
                 if (widget.character.referenceImageBytes != null)
                   _buildSectionPdf('Референс изображение', [
-                    _buildImageFromBytes(widget.character.referenceImageBytes)!,
+                    buildImageFromBytes(widget.character.referenceImageBytes)!,
                   ], context),
               ],
             );
@@ -239,11 +237,11 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                   ...widget.character.additionalImages.map((imageBytes) =>
                       pw.Column(
                         children: [
-                          _buildImageFromBytes(imageBytes)!,
+                          buildImageFromBytes(imageBytes)!,
                           pw.SizedBox(height: 20),
                         ],
                       )
-                  ).toList(),
+                  ),
                 ],
               );
             },
@@ -378,7 +376,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     _showSnackBar('Скопировано в буфер обмена', isError: false);
   }
 
-  Widget _buildSectionTitle(String title, String sectionKey) {
+  Widget _buildSectionTitle(String title, String sectionKey, IconData icon) {
     final theme = Theme.of(context);
     return InkWell(
       onTap: () => setState(() => _expandedSections[sectionKey] = !_expandedSections[sectionKey]!),
@@ -391,6 +389,12 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               color: theme.colorScheme.onSurface,
             ),
             const SizedBox(width: 8),
+            Icon(
+              icon,
+              color: theme.colorScheme.primary,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
             Text(
               title,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -474,7 +478,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, IconData icon) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -482,7 +486,16 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 40,
+            child: Icon(
+              icon,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 80,
             child: Text(
               label,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -491,7 +504,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(child: SelectableText(value, style: theme.textTheme.bodyLarge)),
         ],
       ),
@@ -628,24 +641,24 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             },
             tooltip: 'Поделиться персонажем',
             itemBuilder: (context) => const [
-              PopupMenuItem(value: 'file', child: Text('Файлом (.character)')),
+              PopupMenuItem(value: 'file', child: Text('Файл (.character)')),
               PopupMenuItem(value: 'pdf', child: Text('Документ PDF (.pdf)')),
             ],
           ),
           IconButton(
-            icon: Icon(Icons.edit, color: colorScheme.onSurface),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CharacterEditPage(character: widget.character),
-              ),
-            ),
-            tooltip: 'Редактировать персонажа'
+              icon: Icon(Icons.copy, color: colorScheme.onSurface),
+              onPressed: _copyToClipboard,
+              tooltip: 'Скопировать персонажа'
           ),
           IconButton(
-            icon: Icon(Icons.copy, color: colorScheme.onSurface),
-            onPressed: _copyToClipboard,
-            tooltip: 'Скопировать персонажа'
+              icon: Icon(Icons.edit, color: colorScheme.onSurface),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CharacterEditPage(character: widget.character),
+                ),
+              ),
+              tooltip: 'Редактировать персонажа'
           ),
           IconButton(
             icon: const Icon(Icons.delete),
@@ -670,34 +683,34 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ),
             const SizedBox(height: 16),
 
-            _buildSectionTitle('Основная информация', 'basic'),
+            _buildSectionTitle('Основная информация', 'basic', Icons.info),
             if (_expandedSections['basic']!) ...[
               Center(child: _buildAvatar()),
               const SizedBox(height: 24),
-              _buildInfoRow('Имя', widget.character.name),
-              _buildInfoRow('Возраст', '${widget.character.age} лет'),
-              _buildInfoRow('Пол', widget.character.gender),
+              _buildInfoRow('Имя', widget.character.name, Icons.badge),
+              _buildInfoRow('Возраст', '${widget.character.age} лет', Icons.cake),
+              _buildInfoRow('Пол', widget.character.gender, Icons.transgender),
               if (widget.character.race != null)
-                _buildInfoRow('Раса', widget.character.race!.name),
+                _buildInfoRow('Раса', widget.character.race!.name, Icons.people),
               const SizedBox(height: 16),
             ],
 
-            _buildSectionTitle('Референс персонажа', 'reference'),
+            _buildSectionTitle('Референс персонажа', 'reference', Icons.image_search),
             if (_expandedSections['reference']!) ...[
               Center(child: _buildReferenceImage()),
               const SizedBox(height: 16),
             ],
 
-            _buildSection('Внешность', 'appearance', widget.character.appearance),
-            _buildSection('Характер', 'personality', widget.character.personality),
-            _buildSection('Биография', 'biography', widget.character.biography),
+            _buildSection('Внешность', 'appearance', widget.character.appearance, Icons.face_retouching_natural),
+            _buildSection('Характер', 'personality', widget.character.personality, Icons.psychology),
+            _buildSection('Биография', 'biography', widget.character.biography, Icons.history_edu),
             if (widget.character.abilities.isNotEmpty)
-              _buildSection('Способности', 'abilities', widget.character.abilities),
+              _buildSection('Способности', 'abilities', widget.character.abilities, Icons.auto_awesome),
             if (widget.character.other.isNotEmpty)
-              _buildSection('Прочее', 'other', widget.character.other),
+              _buildSection('Прочее', 'other', widget.character.other, Icons.more_horiz),
 
             if (widget.character.additionalImages.isNotEmpty) ...[
-              _buildSectionTitle('Галерея персонажа', 'additionalImages'),
+              _buildSectionTitle('Галерея персонажа', 'additionalImages', Icons.photo_library),
               if (_expandedSections['additionalImages']!) ...[
                 _buildGallery(),
                 const SizedBox(height: 16),
@@ -705,7 +718,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ],
 
             if (widget.character.customFields.isNotEmpty) ...[
-              _buildSectionTitle('Дополнительные поля', 'customFields'),
+              _buildSectionTitle('Дополнительные поля', 'customFields', Icons.list_alt),
               if (_expandedSections['customFields']!) ...[
                 _buildCustomFields(),
                 const SizedBox(height: 16),
@@ -713,7 +726,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ],
 
             if (_relatedNotes.isNotEmpty) ...[
-              _buildSectionTitle('Связанные посты', 'notes'),
+              _buildSectionTitle('Связанные посты', 'notes', Icons.note),
               if (_expandedSections['notes']!) ...[
                 ListView.builder(
                   shrinkWrap: true,
@@ -729,11 +742,11 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     );
   }
 
-  Widget _buildSection(String title, String key, String content) {
+  Widget _buildSection(String title, String key, String content, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(title, key),
+        _buildSectionTitle(title, key, icon),
         if (_expandedSections[key]!) ...[
           _buildSelectableContent(content),
           const SizedBox(height: 16),
