@@ -1,14 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import '../models/note_model.dart';
-import 'character_management_page.dart';
 import '../models/character_model.dart';
+import '../models/note_model.dart';
+import '../services/character_export_service.dart';
+import '../services/clipboard_service.dart';
+import 'character_management_page.dart';
 
 class CharacterDetailPage extends StatefulWidget {
   final Character character;
@@ -37,7 +34,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
   Future<void> _loadRelatedNotes() async {
     if (!mounted) return;
 
-
     try {
       final notesBox = await Hive.openBox<Note>('notes');
       _relatedNotes = notesBox.values
@@ -47,7 +43,9 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     } catch (e) {
       debugPrint('Ошибка загрузки связанных постов: $e');
     } finally {
-      if (mounted) {}
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -99,229 +97,54 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
   Future<void> _exportToPdf() async {
     try {
-      final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
-      final font = pw.Font.ttf(fontData);
-      final fontBold = await rootBundle.load('assets/fonts/NotoSans-Bold.ttf');
-      final boldFont = pw.Font.ttf(fontBold);
-
-      final pdf = pw.Document();
-
-      pw.Widget? buildImageFromBytes(Uint8List? bytes) {
-        if (bytes == null || bytes.isEmpty) return null;
-        return pw.Center(
-          child: pw.Image(
-            pw.MemoryImage(bytes),
-            fit: pw.BoxFit.contain,
-            width: 300,
-            height: 300,
-          ),
-        );
-      }
-
-      pdf.addPage(
-        pw.Page(
-          margin: pw.EdgeInsets.all(20),
-          theme: pw.ThemeData.withFont(
-            base: font,
-            bold: boldFont,
-          ),
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Header(
-                  level: 0,
-                  child: pw.Text(
-                    'Характеристика персонажа',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ),
-                pw.SizedBox(height: 20),
-
-                if (widget.character.imageBytes != null)
-                  pw.Column(
-                    children: [
-                      buildImageFromBytes(widget.character.imageBytes)!,
-                      pw.SizedBox(height: 20),
-                    ],
-                  ),
-
-                _buildSectionPdf('Основная информация', [
-                  _buildInfoRowPdf('Имя:', widget.character.name),
-                  _buildInfoRowPdf('Возраст:', widget.character.age.toString()),
-                  _buildInfoRowPdf('Пол:', widget.character.gender),
-                  if (widget.character.race != null)
-                    _buildInfoRowPdf('Раса:', widget.character.race!.name),
-                ], context),
-
-                _buildSectionPdf('Биография', [
-                  pw.Text(widget.character.biography),
-                ], context),
-
-                _buildSectionPdf('Характер', [
-                  pw.Text(widget.character.personality),
-                ], context),
-
-                _buildSectionPdf('Внешность', [
-                  pw.Text(widget.character.appearance),
-                ], context),
-
-                if (widget.character.referenceImageBytes != null)
-                  _buildSectionPdf('Референс изображение', [
-                    buildImageFromBytes(widget.character.referenceImageBytes)!,
-                  ], context),
-              ],
-            );
-          },
-        ),
-      );
-
-      pdf.addPage(
-        pw.Page(
-          margin: pw.EdgeInsets.all(20),
-          theme: pw.ThemeData.withFont(
-            base: font,
-            bold: boldFont,
-          ),
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                _buildSectionPdf('Способности', [
-                  pw.Text(widget.character.abilities),
-                ], context),
-
-                _buildSectionPdf('Другое', [
-                  pw.Text(widget.character.other),
-                ], context),
-
-                if (widget.character.customFields.isNotEmpty)
-                  _buildSectionPdf('Дополнительные поля',
-                    widget.character.customFields.map((field) =>
-                        _buildInfoRowPdf('${field.key}:', field.value)
-                    ).toList(),
-                    context,
-                  ),
-              ],
-            );
-          },
-        ),
-      );
-
-      if (widget.character.additionalImages.isNotEmpty) {
-        pdf.addPage(
-          pw.Page(
-            margin: pw.EdgeInsets.all(20),
-            theme: pw.ThemeData.withFont(
-              base: font,
-              bold: boldFont,
-            ),
-            build: (pw.Context context) {
-              return pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Header(
-                    level: 1,
-                    child: pw.Text(
-                      'Дополнительные изображения',
-                      style: pw.TextStyle(
-                        fontSize: 18,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  pw.SizedBox(height: 20),
-                  ...widget.character.additionalImages.map((imageBytes) =>
-                      pw.Column(
-                        children: [
-                          buildImageFromBytes(imageBytes)!,
-                          pw.SizedBox(height: 20),
-                        ],
-                      )
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      }
-
-      final bytes = await pdf.save();
-      final directory = await getApplicationDocumentsDirectory();
-      final fileName = '${widget.character.name}.pdf'
-          .replaceAll(RegExp(r'[^\w\s-]'), '');
-      final file = File('${directory.path}/$fileName');
-      await file.writeAsBytes(bytes);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Характеристика персонажа ${widget.character.name}',
-        subject: 'PDF с характеристикой персонажа',
-      );
-
+      final exportService = CharacterExportService(widget.character);
+      await exportService.exportToPdf();
+      _showSnackBar('PDF успешно экспортирован', isError: false);
     } catch (e) {
       _showSnackBar('Ошибка экспорта: ${e.toString()}');
-      debugPrint('Ошибка экспорта: $e');
-      debugPrintStack(stackTrace: StackTrace.current);
     }
-  }
-
-  pw.Widget _buildSectionPdf(String title, List<pw.Widget> children, pw.Context context) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.SizedBox(height: 15),
-        pw.Text(
-          title,
-          style: pw.TextStyle(
-            fontSize: 18,
-            fontWeight: pw.FontWeight.bold,
-          ),
-        ),
-        pw.Divider(),
-        ...children,
-      ],
-    );
-  }
-
-  pw.Widget _buildInfoRowPdf(String label, String value) {
-    return pw.Padding(
-      padding: pw.EdgeInsets.only(bottom: 5),
-      child: pw.Row(
-        children: [
-          pw.Text(
-            label,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(width: 10),
-          pw.Expanded(child: pw.Text(value)),
-        ],
-      ),
-    );
   }
 
   Future<void> _exportToJson() async {
     try {
-      final path = '${(await getApplicationDocumentsDirectory()).path}/${widget.character.name}_${DateTime.now().millisecondsSinceEpoch}.character';
-      await File(path).writeAsString(jsonEncode(widget.character.toJson()));
-      await Share.shareXFiles([XFile(path)], text: 'Персонаж: ${widget.character.name}');
+      final exportService = CharacterExportService(widget.character);
+      await exportService.exportToJson();
       _showSnackBar('Файл готов к отправке', isError: false);
     } catch (e) {
       _showSnackBar('Ошибка экспорта: ${e.toString()}');
     }
   }
 
+  Future<void> _copyToClipboard() async {
+    try {
+      await ClipboardService.copyCharacterToClipboard(
+        name: widget.character.name,
+        age: widget.character.age,
+        gender: widget.character.gender,
+        raceName: widget.character.race?.name,
+        biography: widget.character.biography,
+        appearance: widget.character.appearance,
+        personality: widget.character.personality,
+        abilities: widget.character.abilities,
+        other: widget.character.other,
+        customFields: widget.character.customFields
+            .map((field) => {'key': field.key, 'value': field.value})
+            .toList(),
+      );
+      _showSnackBar('Скопировано в буфер обмена', isError: false);
+    } catch (e) {
+      _showSnackBar('Ошибка копирования: ${e.toString()}');
+    }
+  }
+
   void _showSnackBar(String message, {bool isError = true}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        )
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 
@@ -353,28 +176,6 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       ),
     ),
   );
-
-  Future<void> _copyToClipboard() async {
-    final buffer = StringBuffer()
-      ..writeln('Имя: ${widget.character.name}')
-      ..writeln('Возраст: ${widget.character.age}')
-      ..writeln('Пол: ${widget.character.gender}')
-      ..writeln('Биография: ${widget.character.biography}')
-      ..writeln('Внешность: ${widget.character.appearance}')
-      ..writeln('Характер: ${widget.character.personality}')
-      ..writeln('Способности: ${widget.character.abilities}')
-      ..writeln('Прочее: ${widget.character.other}');
-
-    if (widget.character.customFields.isNotEmpty) {
-      buffer.writeln('\nДополнительные поля:');
-      for (final field in widget.character.customFields) {
-        buffer.writeln('${field.key}: ${field.value}');
-      }
-    }
-
-    await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    _showSnackBar('Скопировано в буфер обмена', isError: false);
-  }
 
   Widget _buildSectionTitle(String title, String sectionKey, IconData icon) {
     final theme = Theme.of(context);

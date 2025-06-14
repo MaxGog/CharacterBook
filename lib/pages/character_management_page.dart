@@ -1,12 +1,11 @@
-import 'package:characterbook/pages/race_management_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
-import '../models/character_model.dart';
 import 'package:flutter/services.dart';
+import '../models/character_model.dart';
 import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
-import '../services/clipboard_service.dart';
+import 'package:characterbook/pages/race_management_page.dart';
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
@@ -224,36 +223,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     }
   }
 
-  VoidCallback _copyToClipboard() {
-    return () async {
-      try {
-        await ClipboardService.copyCharacterToClipboard(
-          name: _character.name,
-          age: _character.age,
-          gender: _character.gender,
-          raceName: _character.race?.name,
-          biography: _character.biography,
-          appearance: _character.appearance,
-          personality: _character.personality,
-          abilities: _character.abilities,
-          other: _character.other,
-          customFields: _customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
-        );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Информация скопирована в буфер обмена'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) _showError('Ошибка копирования: ${e.toString()}');
-      }
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -307,12 +276,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           ),
           centerTitle: true,
           actions: [
-            if (widget.character != null)
-              IconButton(
-                icon: const Icon(Icons.copy),
-                onPressed: _copyToClipboard(),
-                tooltip: 'Копировать',
-              ),
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveCharacter,

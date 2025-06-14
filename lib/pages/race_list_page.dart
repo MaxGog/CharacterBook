@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:universal_html/html.dart' as html;
 
 import '../models/character_model.dart';
 import '../models/race_model.dart';
-
+import '../services/clipboard_service.dart';
+import '../services/file_picker_service.dart';
 import 'race_management_page.dart';
 import 'settings_page.dart';
 
@@ -24,12 +22,12 @@ class RaceListPage extends StatefulWidget {
 
 class _RaceListPageState extends State<RaceListPage> {
   final TextEditingController _searchController = TextEditingController();
+  final FilePickerService _filePickerService = FilePickerService();
   List<Race> _filteredRaces = [];
   bool _isSearching = false;
   String? _selectedTag;
   bool _isImporting = false;
   String? _errorMessage;
-  int? _draggedItemIndex;
   Race? _selectedRace;
 
   List<String> _generateTags(List<Race> races) {
@@ -82,97 +80,22 @@ class _RaceListPageState extends State<RaceListPage> {
         _errorMessage = null;
       });
 
-      String? jsonStr;
+      final race = await _filePickerService.importRace();
+      if (race == null) return;
 
-      if (kIsWeb) {
-        final uploadInput = html.FileUploadInputElement();
-        uploadInput.accept = '.race';
-        uploadInput.click();
-
-        await uploadInput.onChange.first;
-        final files = uploadInput.files;
-        if (files == null || files.isEmpty) return;
-
-        final file = files[0];
-        final reader = html.FileReader();
-        reader.readAsText(file);
-        await reader.onLoadEnd.first;
-        jsonStr = reader.result as String;
-      } else {
-        final file = await _pickFileNative();
-        if (file == null) return;
-        jsonStr = await file.readAsString();
-      }
-
-      if (jsonStr.isEmpty) return;
-
-      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final race = Race.fromJson(jsonMap);
       final box = Hive.box<Race>('races');
       await box.add(race);
 
       _showSnackBar('Раса "${race.name}" успешно импортирована');
     } catch (e) {
       setState(() {
-        _errorMessage = 'Ошибка импорта: ${e.toString()}';
+        _errorMessage = e.toString();
       });
     } finally {
       setState(() {
         _isImporting = false;
       });
     }
-  }
-
-  Future<File?> _pickFileNative() async {
-    if (kIsWeb) return null;
-
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        const channel = MethodChannel('file_picker');
-        final filePath = await channel.invokeMethod<String>('pickFile');
-        if (filePath == null || filePath.isEmpty) return null;
-        return File(filePath);
-      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        final filePath = await _showDesktopFilePicker();
-        if (filePath == null) return null;
-        return File(filePath);
-      }
-    } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
-      setState(() {
-        _errorMessage = 'Ошибка выбора файла: ${e.message}';
-      });
-      return null;
-    } catch (e) {
-      debugPrint('Error picking file: $e');
-      setState(() {
-        _errorMessage = 'Ошибка выбора файла: $e';
-      });
-      return null;
-    }
-    return null;
-  }
-
-  Future<String?> _showDesktopFilePicker() async {
-    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
-      return null;
-    }
-
-    final completer = Completer<String?>();
-    final filePickerChannel = const MethodChannel('file_picker');
-
-    try {
-      final result = await filePickerChannel.invokeMethod<String>('pickFile', {
-        'dialogTitle': 'Выберите файл расы',
-        'fileExtension': '.race',
-      });
-      completer.complete(result);
-    } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
-      completer.complete(null);
-    }
-
-    return completer.future;
   }
 
   Future<bool?> _showDeleteConfirmationDialog() async {
@@ -220,7 +143,12 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   Future<void> _copyRaceToClipboard(Race race) async {
-    await Clipboard.setData(ClipboardData(text: '${race.name}\n\n${race.description}'));
+    await ClipboardService.copyRaceToClipboard(
+      name: race.name,
+      description: race.description,
+      biology: race.biology,
+      backstory: race.backstory,
+    );
     if (mounted) _showSnackBar('Раса скопирована в буфер');
   }
 
@@ -235,33 +163,6 @@ class _RaceListPageState extends State<RaceListPage> {
     }
   }
 
-  Future<String?> _showFileSelectionDialog() async {
-    final controller = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Импорт расы'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Путь к файлу',
-            hintText: 'Введите путь к файлу расы',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Импорт'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -273,63 +174,61 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   void _showRaceContextMenu(Race race, BuildContext context) {
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final theme = Theme.of(context);
 
-    showMenu(
+    showModalBottomSheet(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(
-          overlay.localToGlobal(Offset.zero),
-          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(28),
         ),
-        Offset.zero & overlay.size,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
+              title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _editRace(race);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
+              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _copyRaceToClipboard(race);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
+              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _shareRaceAsFile(race);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.delete, color: theme.colorScheme.error),
+              title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.error,
+              )),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteRace(race);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
-      items: [
-        PopupMenuItem(
-          value: 'edit',
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('Редактировать'),
-            onTap: () {
-              Navigator.pop(context);
-              _editRace(race);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'copy',
-          child: ListTile(
-            leading: const Icon(Icons.copy),
-            title: const Text('Копировать'),
-            onTap: () {
-              Navigator.pop(context);
-              _copyRaceToClipboard(race);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'share',
-          child: ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('Поделиться файлом'),
-            onTap: () {
-              Navigator.pop(context);
-              _shareRaceAsFile(race);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: const Icon(Icons.delete, color: Colors.red),
-            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              Navigator.pop(context);
-              _deleteRace(race);
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -618,13 +517,11 @@ class _RaceListPageState extends State<RaceListPage> {
                 return FilterChip(
                   label: Text(tag),
                   selected: _selectedTag == tag,
-                  onSelected: (selected) =>
-                      setState(() {
-                        _selectedTag = selected ? tag : null;
-                        _filterRaces(_searchController.text, allRaces);
-                      }),
-                  shape: StadiumBorder(
-                      side: BorderSide(color: colorScheme.outline)),
+                  onSelected: (selected) => setState(() {
+                    _selectedTag = selected ? tag : null;
+                    _filterRaces(_searchController.text, allRaces);
+                  }),
+                  shape: StadiumBorder(side: BorderSide(color: colorScheme.outline)),
                   showCheckmark: false,
                   side: BorderSide.none,
                   selectedColor: colorScheme.secondaryContainer,
@@ -674,9 +571,6 @@ class _RaceListPageState extends State<RaceListPage> {
             );
           }
         },
-        onLongPress: () {
-          _showRaceContextMenu(race, context);
-        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -696,6 +590,10 @@ class _RaceListPageState extends State<RaceListPage> {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
+                onPressed: () => _showRaceContextMenu(race, context),
               ),
             ],
           ),

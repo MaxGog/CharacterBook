@@ -1,18 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:universal_html/html.dart' as html;
 
 import '../models/character_model.dart';
 import '../services/clipboard_service.dart';
-
+import '../services/character_export_service.dart';
+import '../services/file_picker_service.dart';
 import 'character_detail_page.dart';
 import 'character_management_page.dart';
 import 'settings_page.dart';
@@ -33,6 +27,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
   String? _errorMessage;
   int? _draggedItemIndex;
   Character? _selectedCharacter;
+  final FilePickerService _filePickerService = FilePickerService();
 
   List<String> _generateTags(List<Character> characters) {
     final tags = <String>{};
@@ -99,7 +94,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
     });
   }
 
-
   Future<void> _importCharacter() async {
     try {
       setState(() {
@@ -107,97 +101,22 @@ class _CharacterListPageState extends State<CharacterListPage> {
         _errorMessage = null;
       });
 
-      String? jsonStr;
+      final character = await _filePickerService.importCharacter();
+      if (character == null) return;
 
-      if (kIsWeb) {
-        final uploadInput = html.FileUploadInputElement();
-        uploadInput.accept = '.character';
-        uploadInput.click();
-
-        await uploadInput.onChange.first;
-        final files = uploadInput.files;
-        if (files == null || files.isEmpty) return;
-
-        final file = files[0];
-        final reader = html.FileReader();
-        reader.readAsText(file);
-        await reader.onLoadEnd.first;
-        jsonStr = reader.result as String;
-      } else {
-        final file = await _pickFileNative();
-        if (file == null) return;
-        jsonStr = await file.readAsString();
-      }
-
-      if (jsonStr.isEmpty) return;
-
-      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final character = Character.fromJson(jsonMap);
       final box = Hive.box<Character>('characters');
       await box.add(character);
 
       _showSnackBar('Персонаж "${character.name}" успешно импортирован');
     } catch (e) {
       setState(() {
-        _errorMessage = 'Ошибка импорта: ${e.toString()}';
+        _errorMessage = e.toString();
       });
     } finally {
       setState(() {
         _isImporting = false;
       });
     }
-  }
-
-  Future<File?> _pickFileNative() async {
-    if (kIsWeb) return null;
-
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        const channel = MethodChannel('file_picker');
-        final filePath = await channel.invokeMethod<String>('pickFile');
-        if (filePath == null || filePath.isEmpty) return null;
-        return File(filePath);
-      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        final filePath = await _showDesktopFilePicker();
-        if (filePath == null) return null;
-        return File(filePath);
-      }
-    } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
-      setState(() {
-        _errorMessage = 'Ошибка выбора файла: ${e.message}';
-      });
-      return null;
-    } catch (e) {
-      debugPrint('Error picking file: $e');
-      setState(() {
-        _errorMessage = 'Ошибка выбора файла: $e';
-      });
-      return null;
-    }
-    return null;
-  }
-
-  Future<String?> _showDesktopFilePicker() async {
-    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
-      return null;
-    }
-
-    final completer = Completer<String?>();
-    final filePickerChannel = const MethodChannel('file_picker');
-
-    try {
-      final result = await filePickerChannel.invokeMethod<String>('pickFile', {
-        'dialogTitle': 'Выберите файл персонажа',
-        'fileExtension': '.character',
-      });
-      completer.complete(result);
-    } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
-      completer.complete(null);
-    }
-
-    return completer.future;
   }
 
   void _showSnackBar(String message) {
@@ -244,6 +163,15 @@ class _CharacterListPageState extends State<CharacterListPage> {
             ),
             Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
+              leading: Icon(Icons.picture_as_pdf, color: theme.colorScheme.onSurface),
+              title: Text('Экспорт в PDF', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _exportToPdf(character);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
               leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
               title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
               onTap: () {
@@ -282,29 +210,45 @@ class _CharacterListPageState extends State<CharacterListPage> {
   }
 
   Future<void> _copyCharacterToClipboard(Character character) async {
-    await ClipboardService.copyCharacterToClipboard(
-      name: character.name,
-      age: character.age,
-      gender: character.gender,
-      raceName: character.race?.name,
-      biography: character.biography,
-      appearance: character.appearance,
-      personality: character.personality,
-      abilities: character.abilities,
-      other: character.other,
-      customFields: character.customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
-    );
-    if (mounted) _showSnackBar('Данные персонажа скопированы');
+    try {
+      await ClipboardService.copyCharacterToClipboard(
+        name: character.name,
+        age: character.age,
+        gender: character.gender,
+        raceName: character.race?.name,
+        biography: character.biography,
+        appearance: character.appearance,
+        personality: character.personality,
+        abilities: character.abilities,
+        other: character.other,
+        customFields: character.customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
+      );
+      if (mounted) _showSnackBar('Данные персонажа скопированы');
+    } catch (e) {
+      if (mounted) _showSnackBar('Ошибка копирования: ${e.toString()}');
+    }
+  }
+
+  Future<void> _exportToPdf(Character character) async {
+    try {
+      setState(() => _isImporting = true);
+      await CharacterExportService(character).exportToPdf();
+      if (mounted) _showSnackBar('PDF успешно экспортирован');
+    } catch (e) {
+      if (mounted) _showSnackBar('Ошибка экспорта в PDF: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
+    }
   }
 
   Future<void> _shareCharacterAsFile(Character character) async {
     try {
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${character.name}.character');
-      await file.writeAsString(jsonEncode(character.toJson()));
-      await Share.shareXFiles([XFile(file.path)], text: 'Файл персонажа ${character.name}');
+      setState(() => _isImporting = true);
+      await CharacterExportService(character).exportToJson();
     } catch (e) {
       if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
     }
   }
 
@@ -389,18 +333,17 @@ class _CharacterListPageState extends State<CharacterListPage> {
   Widget _buildWideLayout(List<Character> characters, List<String> tags, ThemeData theme, List<Character> allCharacters) {
     return Row(
       children: [
-        Container(
-          width: 400,
-          decoration: BoxDecoration(
-            border: Border(right: BorderSide(color: theme.dividerColor)),
-          ),
-          child: Column(
-            children: [
-              if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
-              Expanded(child: _buildCharactersList(characters, theme)),
-            ],
-          ),
+      Container(
+        width: 400,
+        decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: theme.dividerColor))),
+        child: Column(
+          children: [
+            if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
+            Expanded(child: _buildCharactersList(characters, theme)),
+          ],
         ),
+      ),
       Expanded(
         child: _selectedCharacter != null
             ? CharacterDetailPage(character: _selectedCharacter!)
@@ -468,6 +411,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
             );
           }
         },
+        onLongPress: () => _showCharacterContextMenu(character, context),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -500,48 +444,9 @@ class _CharacterListPageState extends State<CharacterListPage> {
                   ],
                 ),
               ),
-              PopupMenuButton(
+              IconButton(
                 icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurfaceVariant),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-                      title: Text('Редактировать', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _editCharacter(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
-                      title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _copyCharacterToClipboard(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
-                      title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
-                    ),
-                    onTap: () => Future(() => _shareCharacterAsFile(character)),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(Icons.delete, color: theme.colorScheme.error),
-                      title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.error,
-                      )),
-                    ),
-                    onTap: () => Future(() => _deleteCharacter(character)),
-                  ),
-                ],
-                surfaceTintColor: theme.colorScheme.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: theme.colorScheme.outline,
-                    width: 1,
-                  ),
-                ),
+                onPressed: () => _showCharacterContextMenu(character, context),
               ),
             ],
           ),

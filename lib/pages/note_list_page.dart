@@ -106,63 +106,61 @@ class _NotesListPageState extends State<NotesListPage> {
   }
 
   void _showNoteContextMenu(Note note, BuildContext context) {
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final theme = Theme.of(context);
 
-    showMenu(
+    showModalBottomSheet(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(
-          overlay.localToGlobal(Offset.zero),
-          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(28),
         ),
-        Offset.zero & overlay.size,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
+              title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _editNote(note);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
+              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _copyNoteToClipboard(note);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
+              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _shareNoteAsFile(note);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
+            ListTile(
+              leading: Icon(Icons.delete, color: theme.colorScheme.error),
+              title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.error,
+              )),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteNote(note);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
-      items: [
-        PopupMenuItem(
-          value: 'edit',
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('Редактировать'),
-            onTap: () {
-              Navigator.pop(context);
-              _editNote(note);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'copy',
-          child: ListTile(
-            leading: const Icon(Icons.copy),
-            title: const Text('Копировать данные'),
-            onTap: () {
-              Navigator.pop(context);
-              _copyNoteToClipboard(note);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'share',
-          child: ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('Поделиться файлом'),
-            onTap: () {
-              Navigator.pop(context);
-              _shareNoteAsFile(note);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: const Icon(Icons.delete, color: Colors.red),
-            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              Navigator.pop(context);
-              _deleteNote(note);
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -416,9 +414,6 @@ class _NotesListPageState extends State<NotesListPage> {
             );
           }
         },
-        onLongPress: () {
-          _showNoteContextMenu(note, context);
-        },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -435,6 +430,10 @@ class _NotesListPageState extends State<NotesListPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
+                    onPressed: () => _showNoteContextMenu(note, context),
                   ),
                 ],
               ),

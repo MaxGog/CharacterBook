@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../models/character_model.dart';
 import '../models/note_model.dart';
+import '../services/clipboard_service.dart';
 
 class NoteEditPage extends StatefulWidget {
   final Note? note;
@@ -115,10 +115,19 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Future<void> _copyToClipboard() async {
-    await Clipboard.setData(ClipboardData(
-      text: '${_titleController.text}\n\n${_contentController.text}',
-    ));
-    if (mounted) _showSnackBar('Текст скопирован в буфер');
+    final charactersBox = Hive.box<Character>('characters');
+    final characterNames = _selectedCharacterIds.map((id) {
+      final character = charactersBox.get(id);
+      return character?.name ?? 'Неизвестный персонаж';
+    }).toList();
+
+    await ClipboardService.copyNoteToClipboard(
+      title: _titleController.text,
+      content: _contentController.text,
+      characterNames: characterNames.isNotEmpty ? characterNames : null,
+    );
+
+    if (mounted) _showSnackBar('Заметка скопирована в буфер');
   }
 
   void _showSnackBar(String message) {
