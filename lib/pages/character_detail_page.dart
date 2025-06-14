@@ -251,7 +251,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
       final bytes = await pdf.save();
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = '${widget.character.name}_character.pdf'
+      final fileName = '${widget.character.name}.pdf'
           .replaceAll(RegExp(r'[^\w\s-]'), '');
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
