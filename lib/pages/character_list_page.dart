@@ -182,63 +182,61 @@ class _CharacterListPageState extends State<CharacterListPage> {
   }
 
   void _showCharacterContextMenu(Character character, BuildContext context) {
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final theme = Theme.of(context);
 
-    showMenu(
+    showModalBottomSheet(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(
-          overlay.localToGlobal(Offset.zero),
-          overlay.localToGlobal(overlay.size.bottomRight(Offset.zero)),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(28),
         ),
-        Offset.zero & overlay.size,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
+              title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _editCharacter(character);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            ListTile(
+              leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
+              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _copyCharacterToClipboard(character);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            ListTile(
+              leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
+              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+              onTap: () {
+                Navigator.pop(context);
+                _shareCharacterAsFile(character);
+              },
+            ),
+            Divider(height: 1, color: theme.colorScheme.surfaceVariant),
+            ListTile(
+              leading: Icon(Icons.delete, color: theme.colorScheme.error),
+              title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.error,
+              )),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteCharacter(character);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
-      items: [
-        PopupMenuItem(
-          value: 'edit',
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('Редактировать'),
-            onTap: () {
-              Navigator.pop(context);
-              _editCharacter(character);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'copy',
-          child: ListTile(
-            leading: const Icon(Icons.copy),
-            title: const Text('Копировать данные'),
-            onTap: () {
-              Navigator.pop(context);
-              _copyCharacterToClipboard(character);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'share',
-          child: ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('Поделиться файлом'),
-            onTap: () {
-              Navigator.pop(context);
-              _shareCharacterAsFile(character);
-            },
-          ),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: const Icon(Icons.delete, color: Colors.red),
-            title: const Text('Удалить', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              Navigator.pop(context);
-              _deleteCharacter(character);
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -477,6 +475,14 @@ class _CharacterListPageState extends State<CharacterListPage> {
       onReorder: (oldIndex, newIndex) async {
         await _reorderCharacters(oldIndex, newIndex);
       },
+      buildDefaultDragHandles: false,
+      proxyDecorator: (child, index, animation) {
+        return Material(
+          elevation: 6,
+          color: Colors.transparent,
+          child: child,
+        );
+      },
     );
   }
 
@@ -500,9 +506,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
             builder: (context) => CharacterDetailPage(character: character),
           ),
         ),
-        onLongPress: () {
-          _showCharacterContextMenu(character, context);
-        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -533,6 +536,50 @@ class _CharacterListPageState extends State<CharacterListPage> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              // Обновленный PopupMenuButton
+              PopupMenuButton(
+                icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurfaceVariant),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
+                      title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _editCharacter(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
+                      title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _copyCharacterToClipboard(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
+                      title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+                    ),
+                    onTap: () => Future(() => _shareCharacterAsFile(character)),
+                  ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      leading: Icon(Icons.delete, color: theme.colorScheme.error),
+                      title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.error,
+                      )),
+                    ),
+                    onTap: () => Future(() => _deleteCharacter(character)),
+                  ),
+                ],
+                surfaceTintColor: theme.colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: theme.colorScheme.outline,
+                    width: 1,
+                  ),
                 ),
               ),
             ],
