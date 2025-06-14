@@ -158,7 +158,6 @@ class CloudBackupService {
         await racesBox.add(Race.fromJson(json));
       }
 
-      // Импорт персонажей
       final charactersBox = Hive.box<Character>('characters');
       await charactersBox.clear();
       final List<dynamic> charactersJson = data['characters'] ?? [];
@@ -166,7 +165,6 @@ class CloudBackupService {
         await charactersBox.add(Character.fromJson(json));
       }
 
-      // Импорт заметок
       final notesBox = Hive.box<Note>('notes');
       await notesBox.clear();
       final List<dynamic> notesJson = data['notes'] ?? [];
