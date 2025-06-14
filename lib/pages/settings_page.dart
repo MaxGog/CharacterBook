@@ -247,7 +247,7 @@ class SettingsPage extends StatelessWidget {
               leading: const Icon(Icons.developer_mode),
               title: const Text('Разработчик'),
               trailing: Text(
-                'Максим Гоглов Алексеевич',
+                'Максим Гоглов',
                 style: Theme.of(context).textTheme.bodyLarge,
               )
             ),
@@ -259,7 +259,7 @@ class SettingsPage extends StatelessWidget {
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.data ?? '1.5.8',
+                    snapshot.data ?? '1.5.9',
                     style: Theme.of(context).textTheme.bodyLarge,
                   );
                 },
