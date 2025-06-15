@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../services/clipboard_service.dart';
+import '../widgets/markdown_context_menu.dart';
 import '../widgets/save_button_widget.dart';
 import '../widgets/unsaved_changes_dialog.dart';
 
@@ -238,119 +239,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
       maxLines: null,
       keyboardType: TextInputType.multiline,
       contextMenuBuilder: (context, editableTextState) {
-        final textEditingValue = editableTextState.currentTextEditingValue;
-        final textSelection = textEditingValue.selection;
-        final selectedText = textSelection.textInside(textEditingValue.text);
+      return MarkdownContextMenu(
+        controller: _contentController,
+        editableTextState: editableTextState,
+      );
+    },
 
-        return AdaptiveTextSelectionToolbar(
-          anchors: editableTextState.contextMenuAnchors,
-          children: [
-            ...editableTextState.contextMenuButtonItems.map((item) {
-              return TextButton(
-                onPressed: item.onPressed,
-                child: Text(item.label ?? ''),
-              );
-            }),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.format_bold, size: 20),
-              onPressed: () => _wrapSelection(_contentController, '**', '**'),
-              tooltip: 'Жирный',
-            ),
-            IconButton(
-              icon: const Icon(Icons.format_italic, size: 20),
-              onPressed: () => _wrapSelection(_contentController, '*', '*'),
-              tooltip: 'Курсив',
-            ),
-            IconButton(
-              icon: const Icon(Icons.format_underline, size: 20),
-              onPressed: () => _wrapSelection(_contentController, '<u>', '</u>'),
-              tooltip: 'Подчеркнутый',
-            ),
-            IconButton(
-              icon: const Icon(Icons.code, size: 20),
-              onPressed: () => _wrapSelection(_contentController, '`', '`'),
-              tooltip: 'Код (inline)',
-            ),
-            if (selectedText.contains('\n'))
-              IconButton(
-                icon: const Icon(Icons.format_quote, size: 20),
-                onPressed: () => _wrapSelection(_contentController, '> ', '', block: true),
-                tooltip: 'Цитата',
-              ),
-            IconButton(
-              icon: const Icon(Icons.format_list_bulleted, size: 20),
-              onPressed: () => _insertAtCursor(_contentController, '- '),
-              tooltip: 'Маркированный список',
-            ),
-            IconButton(
-              icon: const Icon(Icons.format_list_numbered, size: 20),
-              onPressed: () => _insertAtCursor(_contentController, '1. '),
-              tooltip: 'Нумерованный список',
-            ),
-          ],
-        );
-      },
     );
-  }
-
-  void _wrapSelection(
-      TextEditingController controller,
-      String prefix,
-      String suffix, {
-        bool block = false,
-      }) {
-    final text = controller.text;
-    final selection = controller.selection;
-    final selectedText = selection.textInside(text);
-
-    String newText;
-    TextSelection newSelection;
-
-    if (block) {
-      final lines = selectedText.split('\n');
-      final modifiedLines = lines.map((line) => '$prefix$line').join('\n');
-      newText = text.replaceRange(selection.start, selection.end, modifiedLines);
-      newSelection = TextSelection(
-        baseOffset: selection.start,
-        extentOffset: selection.start + modifiedLines.length,
-      );
-    } else {
-      newText = text.replaceRange(selection.start, selection.end, '$prefix$selectedText$suffix');
-      newSelection = TextSelection(
-        baseOffset: selection.start,
-        extentOffset: selection.start + prefix.length + selectedText.length + suffix.length,
-      );
-    }
-
-    setState(() {
-      controller.value = controller.value.copyWith(
-        text: newText,
-        selection: newSelection,
-      );
-    });
-  }
-
-  void _insertAtCursor(TextEditingController controller, String textToInsert) {
-    final selection = controller.selection;
-    final newText = controller.text.replaceRange(
-      selection.start,
-      selection.end,
-      selection.textInside(controller.text).isEmpty
-          ? textToInsert
-          : '$textToInsert${selection.textInside(controller.text)}',
-    );
-
-    final newSelection = TextSelection.collapsed(
-      offset: selection.start + textToInsert.length,
-    );
-
-    setState(() {
-      controller.value = controller.value.copyWith(
-        text: newText,
-        selection: newSelection,
-      );
-    });
   }
 
   InputDecoration _buildInputDecoration(
