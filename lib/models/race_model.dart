@@ -29,6 +29,8 @@ class Race extends HiveObject {
     this.logo,
   });
 
+  static Race empty() => Race(name: '', description: '');
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

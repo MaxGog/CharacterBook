@@ -47,10 +47,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     setState(() {
       _races = raceBox.values.toList();
       if (_character.race != null) {
-        _character.race = _races.firstWhere(
+        final foundRace = _races.firstWhere(
               (r) => r.name == _character.race?.name,
-          orElse: () => _character.race!,
+          orElse: () => Race.empty(),
         );
+
+        _character.race = foundRace.name.isNotEmpty ? foundRace : _character.race;
       }
     });
   }
@@ -113,16 +115,25 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           children: [
             Expanded(
               child: DropdownButtonFormField<Race>(
-                value: _character.race,
+                value: _character.race != null && _races.any((r) => r.name == _character.race?.name)
+                    ? _races.firstWhere((r) => r.name == _character.race?.name)
+                    : null,
                 decoration: InputDecoration(
                   labelText: 'Раса',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                items: _races.map((race) => DropdownMenuItem<Race>(
-                  value: race,
-                  child: Text(race.name),
-                )).toList(),
+                items: [
+                  const DropdownMenuItem<Race>(
+                    value: null,
+                    child: Text('Не выбрано', style: TextStyle(color: Colors.grey)),
+                  ),
+                  ..._races.map((race) => DropdownMenuItem<Race>(
+                    value: race,
+                    child: Text(race.name),
+                  )),
+                ],
                 onChanged: (race) => setState(() => _character.race = race),
+                validator: (value) => value == null ? 'Выберите расу' : null,
               ),
             ),
             IconButton(
