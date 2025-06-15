@@ -60,13 +60,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     final raceBox = Hive.box<Race>('races');
     setState(() {
       _races = raceBox.values.toList();
-      if (_character.race != null) {
-        final foundRace = _races.firstWhere(
-              (r) => r.name == _character.race?.name,
-          orElse: () => Race.empty(),
-        );
 
-        _character.race = foundRace.name.isNotEmpty ? foundRace : _character.race;
+      if (_character.race != null &&
+          !_races.any((r) => r.name == _character.race?.name)) {
+        _races.add(_character.race!);
+      }
+
+      if (_character.race == null && _races.isNotEmpty) {
+        _character.race = _races.first;
       }
     });
   }
@@ -165,6 +166,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     }
   }
 
+  bool _shouldShowField(String fieldName) {
+    if (widget.template == null) return true;
+
+    return widget.template!.containsField(fieldName);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -174,10 +181,8 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     return WillPopScope(
       onWillPop: () async {
         if (!_hasUnsavedChanges) return true;
-
         final shouldSave = await UnsavedChangesDialog().show(context);
         if (shouldSave == null) return false;
-
         if (shouldSave) {
           await _saveCharacter();
           if (mounted) return true;
@@ -208,6 +213,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (widget.template != null)
                   Padding(
@@ -241,96 +247,173 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   onSaved: (value) => _character.name = value!,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextField(
-                        label: 'Возраст',
-                        initialValue: _character.age.toString(),
-                        isRequired: true,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value?.isEmpty ?? true) return 'Введите возраст';
-                          final age = int.tryParse(value!);
-                          if (age == null || age <= 0) return 'Некорректный возраст';
-                          return null;
-                        },
-                        onSaved: (value) => _character.age = int.parse(value!),
-                      ),
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    Expanded(
-                      child: GenderSelectorField(
-                        initialValue: _character.gender,
-                        onChanged: (value) => _character.gender = value!,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                RaceSelectorField(
-                  initialRace: _character.race,
-                  onChanged: (race) => _character.race = race,
-                ),
-                const SizedBox(height: 16),
-                _buildReferenceImageSection(context, colorScheme, textTheme),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Внешность',
-                  initialValue: _character.appearance,
-                  alignLabel: true,
-                  onSaved: (value) => _character.appearance = value!,
-                  maxLines: 5,
-                ),
-                _buildAdditionalImagesSection(context, textTheme, colorScheme),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Характер',
-                  initialValue: _character.personality,
-                  alignLabel: true,
-                  onSaved: (value) => _character.personality = value!,
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Биография',
-                  initialValue: _character.biography,
-                  alignLabel: true,
-                  onSaved: (value) => _character.biography = value!,
-                  maxLines: 7,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Способности',
-                  initialValue: _character.abilities,
-                  alignLabel: true,
-                  onSaved: (value) => _character.abilities = value!,
-                  maxLines: 7,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Прочее',
-                  initialValue: _character.other,
-                  alignLabel: true,
-                  onSaved: (value) => _character.other = value!,
-                  maxLines: 5,
-                ),
-                const SizedBox(height: 32),
+                if (_shouldShowField('age') || _shouldShowField('gender'))
+                  Row(
+                    children: [
+                      if (_shouldShowField('age'))
+                        Expanded(
+                          child: CustomTextField(
+                            label: 'Возраст',
+                            initialValue: _character.age.toString(),
+                            isRequired: _shouldShowField('age'),
+                            keyboardType: TextInputType.number,
+                            validator: _shouldShowField('age') ? (value) {
+                              if (value?.isEmpty ?? true) return 'Введите возраст';
+                              final age = int.tryParse(value!);
+                              if (age == null || age <= 0) return 'Некорректный возраст';
+                              return null;
+                            } : null,
+                            onSaved: _shouldShowField('age')
+                                ? (value) => _character.age = int.parse(value!)
+                                : null,
+                          ),
+                        ),
+                      if (_shouldShowField('age') && _shouldShowField('gender'))
+                        const SizedBox(width: 16),
+                      if (_shouldShowField('gender'))
+                        Expanded(
+                          child: GenderSelectorField(
+                            initialValue: _character.gender,
+                            onChanged: (value) => _character.gender = value!,
+                          ),
+                        ),
+                    ],
+                  ),
+                if (_shouldShowField('age') || _shouldShowField('gender'))
+                  const SizedBox(height: 16),
+                if (_shouldShowField('race'))
+                  RaceSelectorField(
+                    initialRace: _character.race,
+                    onChanged: (race) => _character.race = race,
+                  ),
+                if (_shouldShowField('race')) const SizedBox(height: 16),
+                if (_shouldShowField('referenceImage'))
+                  _buildReferenceImageSection(context, colorScheme, textTheme),
+                if (_shouldShowField('referenceImage')) const SizedBox(height: 16),
+                if (_shouldShowField('appearance'))
+                  CustomTextField(
+                    label: 'Внешность',
+                    initialValue: _character.appearance,
+                    alignLabel: true,
+                    onSaved: (value) => _character.appearance = value!,
+                    maxLines: 5,
+                  ),
+                if (_shouldShowField('appearance')) const SizedBox(height: 16),
+                if (_shouldShowField('additionalImages'))
+                  _buildAdditionalImagesSection(context, textTheme, colorScheme),
+                if (_shouldShowField('additionalImages')) const SizedBox(height: 16),
+                if (_shouldShowField('personality'))
+                  CustomTextField(
+                    label: 'Характер',
+                    initialValue: _character.personality,
+                    alignLabel: true,
+                    onSaved: (value) => _character.personality = value!,
+                    maxLines: 4,
+                  ),
+                if (_shouldShowField('personality')) const SizedBox(height: 16),
+                if (_shouldShowField('biography'))
+                  CustomTextField(
+                    label: 'Биография',
+                    initialValue: _character.biography,
+                    alignLabel: true,
+                    onSaved: (value) => _character.biography = value!,
+                    maxLines: 7,
+                  ),
+                if (_shouldShowField('biography')) const SizedBox(height: 16),
+                if (_shouldShowField('abilities'))
+                  CustomTextField(
+                    label: 'Способности',
+                    initialValue: _character.abilities,
+                    alignLabel: true,
+                    onSaved: (value) => _character.abilities = value!,
+                    maxLines: 7,
+                  ),
+                if (_shouldShowField('abilities')) const SizedBox(height: 16),
+                if (_shouldShowField('other'))
+                  CustomTextField(
+                    label: 'Прочее',
+                    initialValue: _character.other,
+                    alignLabel: true,
+                    onSaved: (value) => _character.other = value!,
+                    maxLines: 5,
+                  ),
+                if (_shouldShowField('other')) const SizedBox(height: 32),
                 CustomFieldsEditor(
                   initialFields: _customFields,
                   onFieldsChanged: (fields) => _customFields = fields,
                 ),
+                const SizedBox(height: 16),
                 SaveButton(
                   onPressed: _saveCharacter,
                   text: 'Сохранить персонажа',
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAdditionalImagesSection(BuildContext context, TextTheme textTheme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text('Дополнительные изображения', style: textTheme.titleMedium),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.add_photo_alternate),
+              onPressed: _pickAdditionalImage,
+              tooltip: 'Добавить изображение',
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_additionalImages.isEmpty)
+          Text(
+            'Нет дополнительных изображений',
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+        if (_additionalImages.isNotEmpty)
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _additionalImages.length,
+              itemBuilder: (context, index) => Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          _additionalImages[index],
+                          fit: BoxFit.cover,
+                          width: 120,
+                          height: 120,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _removeAdditionalImage(index),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -370,60 +453,4 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       ],
     );
   }
-
-  Widget _buildAdditionalImagesSection(BuildContext context, TextTheme textTheme, ColorScheme colorScheme) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text('Дополнительные изображения', style: textTheme.titleMedium),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.add_photo_alternate),
-              onPressed: _pickAdditionalImage,
-              tooltip: 'Добавить изображение',
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (_additionalImages.isEmpty)
-          Text(
-            'Нет дополнительных изображений',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: _additionalImages.length,
-          itemBuilder: (context, index) => Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  _additionalImages[index],
-                  fit: BoxFit.cover,
-                  height: 120,
-                  width: double.infinity,
-                ),
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _removeAdditionalImage(index),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
 }

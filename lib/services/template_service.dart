@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/character_model.dart';
 import '../models/template_model.dart';
+import 'file_picker_service.dart';
 
 class TemplateService {
   static const String _templatesBoxName = 'templates';
@@ -52,5 +53,15 @@ class TemplateService {
       standardFields: includedStandardFields,
       customFields: character.customFields.map((f) => f.copyWith()).toList(),
     );
+  }
+
+  Future<QuestionnaireTemplate?> pickAndImportTemplate() async {
+    try {
+      final file = await FilePickerService().importTemplate();
+      if (file == null) return null;
+      return await importTemplate(file as File);
+    } catch (e) {
+      throw Exception('Ошибка импорта шаблона: ${e.toString()}');
+    }
   }
 }

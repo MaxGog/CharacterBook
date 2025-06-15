@@ -76,19 +76,6 @@ class _TemplatesPageState extends State<TemplatesPage> {
     }
   }
 
-  Future<void> _exportTemplate(QuestionnaireTemplate template) async {
-    try {
-      await _templateService.exportTemplate(template);
-      if (mounted) {
-        _showSnackBar('Шаблон "${template.name}" экспортирован');
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar('Ошибка экспорта: ${e.toString()}');
-      }
-    }
-  }
-
   Future<void> _importTemplate() async {
     try {
       setState(() {
@@ -96,13 +83,46 @@ class _TemplatesPageState extends State<TemplatesPage> {
         _errorMessage = null;
       });
 
-      // TODO: Реализовать импорт шаблона
-      await Future.delayed(const Duration(seconds: 1)); // Заглушка
-      _showSnackBar('Импорт шаблона будет реализован в будущем');
+      final template = await _templateService.pickAndImportTemplate();
+
+      if (template != null) {
+        final box = Hive.box<QuestionnaireTemplate>('templates');
+        if (box.containsKey(template.name)) {
+          final shouldReplace = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Шаблон уже существует'),
+              content: Text('Шаблон "${template.name}" уже существует. Заменить его?'),
+              actions: [
+                TextButton(
+                  child: const Text('Отмена'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+                TextButton(
+                  child: const Text('Заменить'),
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldReplace != true) {
+            if (mounted) _showSnackBar('Импорт отменен');
+            return;
+          }
+        }
+
+        await box.put(template.name, template);
+        if (mounted) _showSnackBar('Шаблон "${template.name}" успешно импортирован');
+        _refreshTemplates();
+      } else {
+        if (mounted) _showSnackBar('Импорт отменен');
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
       });
+      if (mounted) _showSnackBar('Ошибка импорта: ${e.toString()}');
     } finally {
       setState(() {
         _isImporting = false;

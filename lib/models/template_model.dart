@@ -50,4 +50,9 @@ class QuestionnaireTemplate extends HiveObject {
   Character createCharacterFromTemplate() {
     return applyToCharacter(Character.empty());
   }
+
+  bool containsField(String fieldName) {
+    return standardFields.contains(fieldName) ||
+        customFields.any((field) => field.key == fieldName);
+  }
 }

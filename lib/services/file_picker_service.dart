@@ -6,41 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/character_model.dart';
 import '../models/race_model.dart';
+import '../models/template_model.dart';
 
 class FilePickerService {
-  Future<Character?> importCharacter() async {
-    try {
-      String? jsonStr;
-
-      if (kIsWeb) {
-        final uploadInput = html.FileUploadInputElement();
-        uploadInput.accept = '.character';
-        uploadInput.click();
-
-        await uploadInput.onChange.first;
-        final files = uploadInput.files;
-        if (files == null || files.isEmpty) return null;
-
-        final file = files[0];
-        final reader = html.FileReader();
-        reader.readAsText(file);
-        await reader.onLoadEnd.first;
-        jsonStr = reader.result as String;
-      } else {
-        final file = await _pickFileNative();
-        if (file == null) return null;
-        jsonStr = await file.readAsString();
-      }
-
-      if (jsonStr.isEmpty) return null;
-
-      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
-      return Character.fromJson(jsonMap);
-    } catch (e) {
-      throw Exception('Ошибка импорта: ${e.toString()}');
-    }
-  }
-
   Future<File?> _pickFileNative() async {
     if (kIsWeb) return null;
 
@@ -87,6 +55,39 @@ class FilePickerService {
     return completer.future;
   }
 
+  Future<Character?> importCharacter() async {
+    try {
+      String? jsonStr;
+
+      if (kIsWeb) {
+        final uploadInput = html.FileUploadInputElement();
+        uploadInput.accept = '.character';
+        uploadInput.click();
+
+        await uploadInput.onChange.first;
+        final files = uploadInput.files;
+        if (files == null || files.isEmpty) return null;
+
+        final file = files[0];
+        final reader = html.FileReader();
+        reader.readAsText(file);
+        await reader.onLoadEnd.first;
+        jsonStr = reader.result as String;
+      } else {
+        final file = await _pickFileNative();
+        if (file == null) return null;
+        jsonStr = await file.readAsString();
+      }
+
+      if (jsonStr.isEmpty) return null;
+
+      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return Character.fromJson(jsonMap);
+    } catch (e) {
+      throw Exception('Ошибка импорта: ${e.toString()}');
+    }
+  }
+
   Future<Race?> importRace() async {
     try {
       String? jsonStr;
@@ -117,6 +118,39 @@ class FilePickerService {
       return Race.fromJson(jsonMap);
     } catch (e) {
       throw Exception('Ошибка импорта расы: ${e.toString()}');
+    }
+  }
+
+  Future<QuestionnaireTemplate?> importTemplate() async {
+    try {
+      String? jsonStr;
+
+      if (kIsWeb) {
+        final uploadInput = html.FileUploadInputElement();
+        uploadInput.accept = '.chax';
+        uploadInput.click();
+
+        await uploadInput.onChange.first;
+        final files = uploadInput.files;
+        if (files == null || files.isEmpty) return null;
+
+        final file = files[0];
+        final reader = html.FileReader();
+        reader.readAsText(file);
+        await reader.onLoadEnd.first;
+        jsonStr = reader.result as String;
+      } else {
+        final file = await _pickFileNative();
+        if (file == null) return null;
+        jsonStr = await file.readAsString();
+      }
+
+      if (jsonStr.isEmpty) return null;
+
+      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return QuestionnaireTemplate.fromJson(jsonMap);
+    } catch (e) {
+      throw Exception('Ошибка импорта шаблона: ${e.toString()}');
     }
   }
 }

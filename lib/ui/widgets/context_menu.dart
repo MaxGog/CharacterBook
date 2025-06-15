@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../models/character_model.dart';
 import '../../models/note_model.dart';
 import '../../models/race_model.dart';
+import '../../models/template_model.dart';
 import '../../services/clipboard_service.dart';
 import '../../services/character_export_service.dart';
 
@@ -164,6 +165,10 @@ class ContextMenu extends StatelessWidget {
         final note = item as Note;
         fileName = '${note.title}_note.json';
         content = jsonEncode(note.toJson());
+      } else if (item is QuestionnaireTemplate) {
+        final template = item as QuestionnaireTemplate;
+        fileName = '${template.name}.chax';
+        content = jsonEncode(template.toJson());
       } else {
         return;
       }
