@@ -9,9 +9,10 @@ import 'package:share_plus/share_plus.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../widgets/context_menu.dart';
+import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_floating_buttons.dart';
+
 import 'note_management_page.dart';
-import 'settings_page.dart';
 
 class NotesListPage extends StatefulWidget {
   const NotesListPage({super.key});
@@ -457,38 +458,27 @@ class _NotesListPageState extends State<NotesListPage> {
     final isWideScreen = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
-      appBar: AppBar(
-        title: _isSearching
-            ? _buildSearchField(textTheme, colorScheme)
-            : Text(
-          'Мои посты',
-          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        appBar: CustomAppBar(
+          title: 'Мои посты',
+          isSearching: _isSearching,
+          searchController: _searchController,
+          searchHint: 'Поиск по постам...',
+          onSearchToggle: () {
+            setState(() {
+              _isSearching = !_isSearching;
+              if (!_isSearching) {
+                _searchController.clear();
+                _selectedTag = null;
+                _selectedCharacter = null;
+                _filteredNotes = [];
+              }
+            });
+          },
+          onSearchChanged: (query) {
+            final allNotes = Hive.box<Note>('notes').values.toList().cast<Note>();
+            _filterNotes(query, allNotes);
+          },
         ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  _selectedTag = null;
-                  _selectedCharacter = null;
-                  _filteredNotes = [];
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()),
-            ),
-          ),
-        ],
-      ),
       body: ValueListenableBuilder<Box<Note>>(
         valueListenable: Hive.box<Note>('notes').listenable(),
         builder: (context, box, _) {

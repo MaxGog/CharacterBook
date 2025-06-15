@@ -14,6 +14,7 @@ import '../services/clipboard_service.dart';
 import '../services/file_picker_service.dart';
 
 import '../widgets/context_menu.dart';
+import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_floating_buttons.dart';
 
 import 'race_management_page.dart';
@@ -232,42 +233,22 @@ class _RaceListPageState extends State<RaceListPage> {
     final isWideScreen = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
-      appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Поиск рас...',
-            border: InputBorder.none,
-            hintStyle: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          style: textTheme.bodyLarge,
-          onChanged: (query) => _filterRaces(query, Hive.box<Race>('races').values.toList()),
-        )
-            : Text('Расы', style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  _selectedTag = null;
-                  _filteredRaces = [];
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Расы',
+        isSearching: _isSearching,
+        searchController: _searchController,
+        searchHint: 'Поиск рас...',
+        onSearchToggle: () {
+          setState(() {
+            _isSearching = !_isSearching;
+            if (!_isSearching) {
+              _searchController.clear();
+              _selectedTag = null;
+              _filteredRaces = [];
+            }
+          });
+        },
+        onSearchChanged: (query) => _filterRaces(query, Hive.box<Race>('races').values.toList()),
       ),
       body: Column(
         children: [

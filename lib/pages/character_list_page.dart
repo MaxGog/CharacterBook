@@ -10,11 +10,11 @@ import '../services/character_export_service.dart';
 import '../services/file_picker_service.dart';
 
 import '../widgets/context_menu.dart';
+import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_floating_buttons.dart';
 
 import 'character_detail_page.dart';
 import 'character_management_page.dart';
-import 'settings_page.dart';
 
 class CharacterListPage extends StatefulWidget {
   const CharacterListPage({super.key});
@@ -230,7 +230,24 @@ class _CharacterListPageState extends State<CharacterListPage> {
     final isWideScreen = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
-      appBar: _buildAppBar(theme),
+      appBar: CustomAppBar(
+        title: 'Мои персонажи',
+        isSearching: _isSearching,
+        searchController: _searchController,
+        searchHint: 'Поиск персонажей...',
+        onSearchToggle: () => setState(() {
+          _isSearching = !_isSearching;
+          if (!_isSearching) {
+            _searchController.clear();
+            _selectedTag = null;
+            _filteredCharacters = [];
+          }
+        }),
+        onSearchChanged: (query) {
+          final allCharacters = Hive.box<Character>('characters').values.toList().cast<Character>();
+          _filterCharacters(query, allCharacters);
+        },
+      ),
       body: Column(
         children: [
           if (_isImporting) const LinearProgressIndicator(),
@@ -407,52 +424,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
           ),
         ),
       ),
-    );
-  }
-
-  AppBar _buildAppBar(ThemeData theme) {
-    return AppBar(
-      title: _isSearching
-          ? TextField(
-        controller: _searchController,
-        autofocus: true,
-        decoration: InputDecoration(
-          hintText: 'Поиск персонажей...',
-          border: InputBorder.none,
-          hintStyle: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        style: theme.textTheme.bodyLarge,
-        onChanged: (query) {
-          final allCharacters = Hive.box<Character>('characters').values.toList().cast<Character>();
-          _filterCharacters(query, allCharacters);
-        },
-      )
-          : Text(
-        'Мои персонажи',
-        style: theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: Icon(_isSearching ? Icons.close : Icons.search),
-          onPressed: () => setState(() {
-            _isSearching = !_isSearching;
-            if (!_isSearching) {
-              _searchController.clear();
-              _selectedTag = null;
-              _filteredCharacters = [];
-            }
-          }),
-        ),
-        IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage())),
-        ),
-      ],
     );
   }
 
