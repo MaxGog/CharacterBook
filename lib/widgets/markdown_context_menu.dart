@@ -19,13 +19,6 @@ class MarkdownContextMenu extends StatelessWidget {
     return AdaptiveTextSelectionToolbar(
       anchors: editableTextState.contextMenuAnchors,
       children: [
-        ...editableTextState.contextMenuButtonItems.map((item) {
-          return TextButton(
-            onPressed: item.onPressed,
-            child: Text(item.label ?? ''),
-          );
-        }),
-        const SizedBox(width: 8),
         IconButton(
           icon: const Icon(Icons.format_bold, size: 20),
           onPressed: () => _wrapSelection(controller, '**', '**'),
@@ -62,6 +55,12 @@ class MarkdownContextMenu extends StatelessWidget {
           onPressed: () => _insertAtCursor(controller, '1. '),
           tooltip: 'Нумерованный список',
         ),
+        ...editableTextState.contextMenuButtonItems.map((item) {
+          return TextButton(
+            onPressed: item.onPressed,
+            child: Text(item.label ?? ''),
+          );
+        }),
       ],
     );
   }

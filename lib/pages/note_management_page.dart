@@ -239,12 +239,11 @@ class _NoteEditPageState extends State<NoteEditPage> {
       maxLines: null,
       keyboardType: TextInputType.multiline,
       contextMenuBuilder: (context, editableTextState) {
-      return MarkdownContextMenu(
-        controller: _contentController,
-        editableTextState: editableTextState,
-      );
-    },
-
+        return MarkdownContextMenu(
+          controller: _contentController,
+          editableTextState: editableTextState,
+        );
+      },
     );
   }
 
