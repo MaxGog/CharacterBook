@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/race_model.dart';
+import '../widgets/save_button_widget.dart';
 
 class RaceManagementPage extends StatefulWidget {
   final Race? race;
@@ -257,23 +258,8 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
                   maxLines: 7,
                 ),
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: _buttonHeight,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(_borderRadius),
-                      ),
-                    ),
-                    onPressed: _saveRace,
-                    child: Text(
-                      'Сохранить',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
+                SaveButton(
+                  onPressed: _saveRace,
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../services/clipboard_service.dart';
+import '../widgets/save_button_widget.dart';
 
 class NoteEditPage extends StatefulWidget {
   final Note? note;
@@ -398,19 +399,9 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-      ),
+    return SaveButton(
       onPressed: _saveNote,
-      child: Text(
-        'Сохранить пост',
-        style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
-      ),
+      text: 'Сохранить пост',
     );
   }
 

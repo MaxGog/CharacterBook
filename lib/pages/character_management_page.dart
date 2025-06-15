@@ -7,6 +7,8 @@ import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
 import 'package:characterbook/pages/race_management_page.dart';
 
+import '../widgets/save_button_widget.dart';
+
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
 
@@ -600,16 +602,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    return SaveButton(
       onPressed: _saveCharacter,
-      child: Text(
-        'Сохранить',
-        style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
-      ),
+      text: 'Сохранить персонажа',
     );
   }
 
