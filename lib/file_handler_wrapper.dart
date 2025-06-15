@@ -28,7 +28,7 @@ class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
   }
 
   Future<void> _initFileHandling() async {
-    FileHandler.onFileOpened.listen(_handleOpenedFile);
+    FileHandler.onFileOpened.listen(_handleOpenedFile as void Function(dynamic event)?);
 
     final filePath = await FileHandler.getOpenedFile();
     if (filePath != null && mounted) {

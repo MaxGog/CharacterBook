@@ -1,4 +1,4 @@
-package ru.maxgog.characterbook
+package ru.maxgog.listcharacters
 
 import android.content.Intent
 import android.net.Uri
@@ -58,14 +58,29 @@ class MainActivity: FlutterActivity() {
     private fun handleIntent(intent: Intent, result: MethodChannel.Result?) {
         val action = intent.action
         val data = intent.data
+        val type = intent.type
 
         if ((Intent.ACTION_VIEW == action || Intent.ACTION_SEND == action) && data != null) {
-            val filePath = copyFileToCache(data)
-            filePath?.let { path ->
-                result?.success(path) ?: run {
-                    fileHandlerChannel.invokeMethod("onFileOpened", path)
-                }
+            when {
+                data.path?.endsWith(".character") == true -> processFile(data, result)
+                data.path?.endsWith(".race") == true -> processFile(data, result)
+                type == "application/vnd.characterbook.character" -> processFile(data, result)
+                type == "application/vnd.characterbook.race" -> processFile(data, result)
+                type == "application/octet-stream" && data.path?.let {
+                    it.endsWith(".character") || it.endsWith(".race")
+                } == true -> processFile(data, result)
             }
+        }
+    }
+
+    private fun processFile(uri: Uri, result: MethodChannel.Result?) {
+        val filePath = copyFileToCache(uri)
+        filePath?.let { path ->
+            result?.success(path) ?: run {
+                fileHandlerChannel.invokeMethod("onFileOpened", path)
+            }
+        } ?: run {
+            result?.error("FILE_ERROR", "Could not process file", null)
         }
     }
 

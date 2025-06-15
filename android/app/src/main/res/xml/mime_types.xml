@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-types>
+    <mime-type>application/vnd.listcharacters.character</mime-type>
+    <mime-type>application/vnd.listcharacters.race</mime-type>
+</mime-types>
