@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../models/character_model.dart';
 import '../models/note_model.dart';
+import '../widgets/context_menu.dart';
 import 'note_management_page.dart';
 import 'settings_page.dart';
 
@@ -106,60 +107,13 @@ class _NotesListPageState extends State<NotesListPage> {
   }
 
   void _showNoteContextMenu(Note note, BuildContext context) {
-    final theme = Theme.of(context);
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-              title: Text('Редактировать', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _editNote(note);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
-              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _copyNoteToClipboard(note);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
-              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _shareNoteAsFile(note);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.delete, color: theme.colorScheme.error),
-              title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.error,
-              )),
-              onTap: () {
-                Navigator.pop(context);
-                _deleteNote(note);
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      builder: (context) => ContextMenu.note(
+        note: note,
+        onEdit: () => _editNote(note),
+        onDelete: () => _deleteNote(note),
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../models/character_model.dart';
 import '../models/race_model.dart';
 import '../services/clipboard_service.dart';
 import '../services/file_picker_service.dart';
+import '../widgets/context_menu.dart';
 import 'race_management_page.dart';
 import 'settings_page.dart';
 
@@ -174,60 +175,13 @@ class _RaceListPageState extends State<RaceListPage> {
   }
 
   void _showRaceContextMenu(Race race, BuildContext context) {
-    final theme = Theme.of(context);
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-              title: Text('Редактировать', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _editRace(race);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
-              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _copyRaceToClipboard(race);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
-              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
-              onTap: () {
-                Navigator.pop(context);
-                _shareRaceAsFile(race);
-              },
-            ),
-            Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
-            ListTile(
-              leading: Icon(Icons.delete, color: theme.colorScheme.error),
-              title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.error,
-              )),
-              onTap: () {
-                Navigator.pop(context);
-                _deleteRace(race);
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      builder: (context) => ContextMenu.race(
+        race: race,
+        onEdit: () => _editRace(race),
+        onDelete: () => _deleteRace(race),
       ),
     );
   }
