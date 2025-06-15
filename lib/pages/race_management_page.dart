@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../models/race_model.dart';
 
+import '../widgets/avatar_picker_widget.dart';
 import '../widgets/save_button_widget.dart';
 import '../widgets/unsaved_changes_dialog.dart';
 
@@ -115,41 +116,6 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
     );
   }
 
-  Widget _buildLogoPicker() {
-    final theme = Theme.of(context);
-    return Center(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(_logoSize / 2),
-        onTap: _pickLogo,
-        child: Ink(
-          width: _logoSize,
-          height: _logoSize,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(_logoSize / 2),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-              width: 1,
-            ),
-          ),
-          child: _logoBytes != null
-              ? ClipRRect(
-            borderRadius: BorderRadius.circular(_logoSize / 2),
-            child: Image.memory(
-              _logoBytes!,
-              fit: BoxFit.cover,
-            ),
-          )
-              : Icon(
-            Icons.add_photo_alternate,
-            size: 40,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -212,7 +178,18 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLogoPicker(),
+                AvatarPicker(
+                  imageBytes: _logoBytes,
+                  onImageSelected: (bytes) {
+                    setState(() {
+                      _logoBytes = bytes;
+                      _hasUnsavedChanges = true;
+                    });
+                  },
+                  radius: _logoSize / 2,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  placeholderIcon: Icons.add_photo_alternate,
+                ),
                 const SizedBox(height: 24),
                 _buildTextField(
                   controller: _nameController,

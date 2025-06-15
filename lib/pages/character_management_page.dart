@@ -7,6 +7,7 @@ import '../models/character_model.dart';
 import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
 
+import '../widgets/avatar_picker_widget.dart';
 import '../widgets/save_button_widget.dart';
 import '../widgets/unsaved_changes_dialog.dart';
 
@@ -279,10 +280,15 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             key: _formKey,
             child: Column(
               children: [
-                _buildImagePicker(
-                  context: context,
+                AvatarPicker(
                   imageBytes: _character.imageBytes,
-                  onTap: _pickImage,
+                  onImageSelected: (bytes) {
+                    setState(() {
+                      _character.imageBytes = bytes;
+                      _hasUnsavedChanges = true;
+                    });
+                    _saveChanges();
+                  },
                   radius: 60,
                 ),
                 const SizedBox(height: 24),
@@ -331,42 +337,13 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 ),
                 const SizedBox(height: 32),
                 _buildCustomFieldsSection(textTheme),
-                _buildSaveButton(colorScheme, textTheme),
+                SaveButton(
+                  onPressed: _saveCharacter,
+                  text: 'Сохранить персонажа',
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePicker({
-    required BuildContext context,
-    required Uint8List? imageBytes,
-    required VoidCallback onTap,
-    double radius = 60,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(radius),
-      onTap: onTap,
-      child: Ink(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: colorScheme.surfaceContainerHighest,
-        ),
-        child: CircleAvatar(
-          radius: radius,
-          backgroundColor: Colors.transparent,
-          backgroundImage: imageBytes != null ? MemoryImage(imageBytes) : null,
-          child: imageBytes == null
-              ? Icon(
-            Icons.add_a_photo,
-            size: 40,
-            color: colorScheme.onSurfaceVariant,
-          )
-              : null,
         ),
       ),
     );
@@ -575,13 +552,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           );
         }),
       ],
-    );
-  }
-
-  Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
-    return SaveButton(
-      onPressed: _saveCharacter,
-      text: 'Сохранить персонажа',
     );
   }
 
