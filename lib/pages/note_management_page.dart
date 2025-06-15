@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../services/clipboard_service.dart';
+import '../widgets/fields/custom_text_field.dart';
 import '../widgets/markdown_context_menu.dart';
 import '../widgets/save_button_widget.dart';
 import '../widgets/unsaved_changes_dialog.dart';
@@ -26,6 +27,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
   bool _isPreviewMode = false;
   final GlobalKey _contentFieldKey = GlobalKey();
   bool _hasChanges = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -60,9 +62,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Future<void> _saveNote() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      _showSnackBar('Заголовок не может быть пустым');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Заголовок не может быть пустым')),
+      );
       return;
     }
 
@@ -102,25 +108,16 @@ class _NoteEditPageState extends State<NoteEditPage> {
       characterNames: characterNames.isNotEmpty ? characterNames : null,
     );
 
-    if (mounted) _showSnackBar('Заметка скопирована в буфер');
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Заметка скопирована в буфер')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
     return WillPopScope(
@@ -162,82 +159,65 @@ class _NoteEditPageState extends State<NoteEditPage> {
             ),
           ],
         ),
-        body: _buildContent(context, colorScheme, textTheme),
+        body: Form(
+          key: _formKey,
+          child: _buildContent(context),
+        ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildContent(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTitleField(colorScheme, textTheme),
+          CustomTextField(
+            controller: _titleController,
+            label: 'Заголовок',
+            isRequired: true,
+            onChanged: (value) => _checkForChanges(),
+          ),
           const SizedBox(height: 16),
           _buildCharacterSelector(context),
           const SizedBox(height: 16),
           _buildSelectedCharactersChips(context),
           const SizedBox(height: 16),
-          _buildContentField(colorScheme, textTheme),
+          _buildContentField(),
           const SizedBox(height: 24),
-          _buildSaveButton(colorScheme, textTheme),
+          SaveButton(
+            onPressed: _saveNote,
+            text: 'Сохранить пост',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTitleField(ColorScheme colorScheme, TextTheme textTheme) {
-    return TextField(
-      controller: _titleController,
-      decoration: _buildInputDecoration(
-        colorScheme,
-        labelText: 'Заголовок',
-      ),
-      style: textTheme.titleLarge,
-      maxLines: 1,
-    );
-  }
-
-  Widget _buildContentField(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildContentField() {
     if (_isPreviewMode) {
-      return SingleChildScrollView(
+      return Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
         child: MarkdownBody(
           data: _contentController.text,
-          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-            p: textTheme.bodyLarge,
-            h1: textTheme.displayLarge,
-            h2: textTheme.displayMedium,
-            h3: textTheme.displaySmall,
-            h4: textTheme.headlineMedium,
-            h5: textTheme.headlineSmall,
-            h6: textTheme.titleLarge,
-            blockquote: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
-            code: textTheme.bodyLarge?.copyWith(
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              fontFamily: 'monospace',
-            ),
-          ),
+          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
         ),
       );
     }
 
-    return TextField(
+    return CustomTextField(
       key: _contentFieldKey,
       controller: _contentController,
-      decoration: _buildInputDecoration(
-        colorScheme,
-        labelText: 'Содержание (поддерживается Markdown)',
-        contentPadding: const EdgeInsets.all(16),
-        alignLabelWithHint: true,
-      ),
-      style: textTheme.bodyLarge,
+      label: 'Содержание (поддерживается Markdown)',
       maxLines: null,
+      alignLabel: true,
       keyboardType: TextInputType.multiline,
+      onChanged: (value) => _checkForChanges(),
       contextMenuBuilder: (context, editableTextState) {
         return MarkdownContextMenu(
           controller: _contentController,
@@ -247,41 +227,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     );
   }
 
-  InputDecoration _buildInputDecoration(
-      ColorScheme colorScheme, {
-        required String labelText,
-        EdgeInsetsGeometry? contentPadding,
-        bool? alignLabelWithHint,
-      }) {
-    return InputDecoration(
-      labelText: labelText,
-      border: _buildInputBorder(colorScheme.outline),
-      enabledBorder: _buildInputBorder(colorScheme.outline),
-      focusedBorder: _buildInputBorder(colorScheme.primary),
-      filled: true,
-      fillColor: colorScheme.surfaceContainerHighest,
-      contentPadding: contentPadding ??
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      alignLabelWithHint: alignLabelWithHint,
-    );
-  }
-
-  OutlineInputBorder _buildInputBorder(Color color) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: color),
-    );
-  }
-
-  Widget _buildSaveButton(ColorScheme colorScheme, TextTheme textTheme) {
-    return SaveButton(
-      onPressed: _saveNote,
-      text: 'Сохранить пост',
-    );
-  }
-
   Widget _buildCharacterSelector(BuildContext context) {
-    final theme = Theme.of(context);
     final characters = Hive.box<Character>('characters').values.toList();
 
     return Column(
@@ -289,12 +235,12 @@ class _NoteEditPageState extends State<NoteEditPage> {
       children: [
         DropdownButtonFormField<String>(
           value: null,
-          decoration: _buildInputDecoration(
-            theme.colorScheme,
+          decoration: InputDecoration(
             labelText: 'Добавить персонажа',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          dropdownColor: theme.colorScheme.surfaceContainerHighest,
-          style: theme.textTheme.bodyLarge,
+          dropdownColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          style: Theme.of(context).textTheme.bodyLarge,
           borderRadius: BorderRadius.circular(12),
           items: characters.map((character) {
             final characterKey = Hive.box<Character>('characters')
@@ -307,15 +253,15 @@ class _NoteEditPageState extends State<NoteEditPage> {
                 children: [
                   if (isSelected)
                     Icon(Icons.check,
-                        color: theme.colorScheme.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 20),
                   const SizedBox(width: 8),
                   Text(
                     character.name,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -338,7 +284,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
   }
 
   Widget _buildSelectedCharactersChips(BuildContext context) {
-    final theme = Theme.of(context);
     final charactersBox = Hive.box<Character>('characters');
 
     if (_selectedCharacterIds.isEmpty) return const SizedBox();
@@ -349,13 +294,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
       children: _selectedCharacterIds.map((characterId) {
         final character = charactersBox.get(characterId);
         return character != null
-            ? _buildCharacterChip(theme, character, characterId)
+            ? _buildCharacterChip(character, characterId)
             : const SizedBox();
       }).toList(),
     );
   }
 
-  Widget _buildCharacterChip(ThemeData theme, Character character, String characterId) {
+  Widget _buildCharacterChip(Character character, String characterId) {
     return InputChip(
       label: Text(character.name),
       onDeleted: () => setState(() {
@@ -365,9 +310,9 @@ class _NoteEditPageState extends State<NoteEditPage> {
       deleteIcon: Icon(
         Icons.close,
         size: 18,
-        color: theme.colorScheme.onSurfaceVariant,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),

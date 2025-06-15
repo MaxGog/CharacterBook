@@ -8,10 +8,12 @@ import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
 
 import '../widgets/avatar_picker_widget.dart';
+import '../widgets/fields/custom_fields_editor.dart';
+import '../widgets/fields/custom_text_field.dart';
+import '../widgets/fields/gender_selector_field.dart';
+import '../widgets/fields/race_selector_field.dart';
 import '../widgets/save_button_widget.dart';
 import '../widgets/unsaved_changes_dialog.dart';
-
-import 'race_management_page.dart';
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
@@ -25,7 +27,6 @@ class CharacterEditPage extends StatefulWidget {
 class _CharacterEditPageState extends State<CharacterEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
-  final _genders = const ["Мужской", "Женский", "Другой"];
 
   late Character _character;
   late List<Race> _races;
@@ -81,89 +82,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     );
   }
 
-  void _addCustomField() {
-    setState(() {
-      final hasEmpty = _customFields.any((f) => f.key.isEmpty && f.value.isEmpty);
-      if (!hasEmpty) {
-        _customFields.add(CustomField('', ''));
-      }
-    });
-    _hasUnsavedChanges = true;
-    _saveChanges();
-  }
-
-  void _updateCustomField(int index, String key, String value) {
-    setState(() {
-      if (key.trim().isEmpty && value.trim().isEmpty) {
-        _customFields.removeAt(index);
-      } else {
-        _customFields[index] = CustomField(key.trim(), value.trim());
-      }
-      _hasUnsavedChanges = true;
-      _saveChanges();
-    });
-  }
-
-  void _removeCustomField(int index) {
-    setState(() {
-      _customFields.removeAt(index);
-      _saveChanges();
-    });
-  }
-
-  Widget _buildRaceSelector() {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<Race>(
-                value: _character.race != null && _races.any((r) => r.name == _character.race?.name)
-                    ? _races.firstWhere((r) => r.name == _character.race?.name)
-                    : null,
-                decoration: InputDecoration(
-                  labelText: 'Раса',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: [
-                  const DropdownMenuItem<Race>(
-                    value: null,
-                    child: Text('Не выбрано', style: TextStyle(color: Colors.grey)),
-                  ),
-                  ..._races.map((race) => DropdownMenuItem<Race>(
-                    value: race,
-                    child: Text(race.name),
-                  )),
-                ],
-                onChanged: (race) => setState(() => _character.race = race),
-                validator: (value) => value == null ? 'Выберите расу' : null,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RaceManagementPage()),
-                );
-                if (result == true) await _loadRaces();
-              },
-              tooltip: 'Управление расами',
-            ),
-          ],
-        ),
-        if (_character.race != null) ...[
-          const SizedBox(height: 8),
-          Text(_character.race!.description, style: theme.textTheme.bodyMedium),
-        ],
-      ],
-    );
-  }
-
-  Future<void> _pickImage() async => _pickAndSetImage(true);
   Future<void> _pickReferenceImage() async => _pickAndSetImage(false);
 
   Future<void> _pickAndSetImage(bool isMainImage) async {
@@ -292,51 +210,94 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   radius: 60,
                 ),
                 const SizedBox(height: 24),
-                _buildNameField(textTheme),
+                CustomTextField(
+                  label: 'Имя',
+                  initialValue: _character.name,
+                  isRequired: true,
+                  onSaved: (value) => _character.name = value!,
+                ),
                 const SizedBox(height: 16),
-                _buildAgeAndGenderFields(textTheme),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        label: 'Возраст',
+                        initialValue: _character.age.toString(),
+                        isRequired: true,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Введите возраст';
+                          final age = int.tryParse(value!);
+                          if (age == null || age <= 0) return 'Некорректный возраст';
+                          return null;
+                        },
+                        onSaved: (value) => _character.age = int.parse(value!),
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    Expanded(
+                      child: GenderSelectorField(
+                        initialValue: _character.gender,
+                        onChanged: (value) => _character.gender = value!,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
-                _buildRaceSelector(),
+                RaceSelectorField(
+                  initialRace: _character.race,
+                  onChanged: (race) => _character.race = race,
+                ),
                 const SizedBox(height: 16),
                 _buildReferenceImageSection(context, colorScheme, textTheme),
                 const SizedBox(height: 16),
-                _buildTextField(
+                CustomTextField(
                   label: 'Внешность',
-                  value: _character.appearance,
-                  maxLines: 5,
+                  initialValue: _character.appearance,
+                  alignLabel: true,
                   onSaved: (value) => _character.appearance = value!,
+                  maxLines: 5,
                 ),
                 _buildAdditionalImagesSection(context, textTheme, colorScheme),
                 const SizedBox(height: 16),
-                _buildTextField(
+                CustomTextField(
                   label: 'Характер',
-                  value: _character.personality,
-                  maxLines: 4,
+                  initialValue: _character.personality,
+                  alignLabel: true,
                   onSaved: (value) => _character.personality = value!,
+                  maxLines: 4,
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
+                CustomTextField(
                   label: 'Биография',
-                  value: _character.biography,
-                  maxLines: 7,
+                  initialValue: _character.biography,
+                  alignLabel: true,
                   onSaved: (value) => _character.biography = value!,
+                  maxLines: 7,
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
+                CustomTextField(
                   label: 'Способности',
-                  value: _character.abilities,
-                  maxLines: 3,
+                  initialValue: _character.abilities,
+                  alignLabel: true,
                   onSaved: (value) => _character.abilities = value!,
+                  maxLines: 7,
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
+                CustomTextField(
                   label: 'Прочее',
-                  value: _character.other,
-                  maxLines: 5,
+                  initialValue: _character.other,
+                  alignLabel: true,
                   onSaved: (value) => _character.other = value!,
+                  maxLines: 5,
                 ),
                 const SizedBox(height: 32),
-                _buildCustomFieldsSection(textTheme),
+                CustomFieldsEditor(
+                  initialFields: _customFields,
+                  onFieldsChanged: (fields) => _customFields = fields,
+                ),
                 SaveButton(
                   onPressed: _saveCharacter,
                   text: 'Сохранить персонажа',
@@ -346,53 +307,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildNameField(TextTheme textTheme) {
-    return TextFormField(
-      initialValue: _character.name,
-      decoration: _inputDecoration(label: "Имя"),
-      style: textTheme.bodyLarge,
-      validator: (value) => value?.isEmpty ?? true ? 'Введите имя' : null,
-      onSaved: (value) => _character.name = value!,
-    );
-  }
-
-  Widget _buildAgeAndGenderFields(TextTheme textTheme) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            initialValue: _character.age.toString(),
-            decoration: _inputDecoration(label: 'Возраст'),
-            style: textTheme.bodyLarge,
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'Введите возраст';
-              final age = int.tryParse(value!);
-              if (age == null || age <= 0) return 'Некорректный возраст';
-              return null;
-            },
-            onSaved: (value) => _character.age = int.parse(value!),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: DropdownButtonFormField<String>(
-            value: _character.gender,
-            items: _genders.map((gender) => DropdownMenuItem(
-              value: gender,
-              child: Text(gender),
-            )).toList(),
-            decoration: _inputDecoration(label: 'Пол'),
-            style: textTheme.bodyLarge,
-            dropdownColor: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            onChanged: (value) => _character.gender = value!,
-          ),
-        ),
-      ],
     );
   }
 
@@ -430,22 +344,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildTextField({
-    required String label,
-    required String value,
-    required int maxLines,
-    required FormFieldSetter<String> onSaved,
-  }) {
-    return TextFormField(
-      initialValue: value,
-      decoration: _inputDecoration(label: label, alignLabel: true),
-      style: Theme.of(context).textTheme.bodyLarge,
-      maxLines: maxLines,
-      onChanged: (_) => setState(() => _hasUnsavedChanges = true),
-      onSaved: onSaved,
     );
   }
 
@@ -504,62 +402,4 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     );
   }
 
-  Widget _buildCustomFieldsSection(TextTheme textTheme) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text('Дополнительные поля', style: textTheme.titleMedium),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _addCustomField,
-              tooltip: 'Добавить поле',
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ..._customFields.asMap().entries.map((entry) {
-          final index = entry.key;
-          final field = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    initialValue: field.key,
-                    decoration: _inputDecoration(label: 'Название поля'),
-                    onChanged: (value) => _updateCustomField(index, value, field.value),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 3,
-                  child: TextFormField(
-                    initialValue: field.value,
-                    decoration: _inputDecoration(label: 'Значение'),
-                    onChanged: (value) => _updateCustomField(index, field.key, value),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _removeCustomField(index),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  InputDecoration _inputDecoration({required String label, bool alignLabel = false}) {
-    return InputDecoration(
-      labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      alignLabelWithHint: alignLabel,
-    );
-  }
 }
