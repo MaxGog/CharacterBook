@@ -10,6 +10,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? searchHint;
   final ValueChanged<String>? onSearchChanged;
   final List<Widget>? additionalActions;
+  final VoidCallback? onTemplatesPressed;
 
   const CustomAppBar({
     super.key,
@@ -20,6 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.searchHint,
     this.onSearchChanged,
     this.additionalActions,
+    this.onTemplatesPressed,
   });
 
   @override
@@ -51,6 +53,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       actions: [
+        if (!isSearching && onTemplatesPressed != null)
+          IconButton(
+            icon: const Icon(Icons.library_books_outlined),
+            onPressed: onTemplatesPressed,
+            tooltip: 'Шаблоны персонажей',
+          ),
         IconButton(
           icon: Icon(isSearching ? Icons.close : Icons.search),
           onPressed: onSearchToggle,

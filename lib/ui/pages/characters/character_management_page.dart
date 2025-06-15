@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../models/character_model.dart';
 import '../../../models/custom_field_model.dart';
 import '../../../models/race_model.dart';
+import '../../../models/template_model.dart';
 
 import '../../widgets/avatar_picker_widget.dart';
 import '../../widgets/fields/custom_fields_editor.dart';
@@ -17,8 +18,9 @@ import '../../widgets/unsaved_changes_dialog.dart';
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
+  final QuestionnaireTemplate? template;
 
-  const CharacterEditPage({super.key, this.character});
+  const CharacterEditPage({super.key, this.character, this.template});
 
   @override
   State<CharacterEditPage> createState() => _CharacterEditPageState();
@@ -44,7 +46,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   void _initializeFields() {
-    _character = widget.character?.copyWith() ?? Character.empty();
+    if (widget.template != null && widget.character == null) {
+      _character = widget.template!.applyToCharacter(Character.empty());
+    } else {
+      _character = widget.character?.copyWith() ?? Character.empty();
+    }
+
     _customFields = _character.customFields.map((f) => f.copyWith()).toList();
     _additionalImages = List.from(_character.additionalImages);
   }
@@ -180,7 +187,11 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.character == null ? 'Новый персонаж' : 'Редактировать',
+            widget.character == null
+                ? widget.template == null
+                ? 'Новый персонаж'
+                : 'Новый персонаж (из шаблона)'
+                : 'Редактировать',
             style: textTheme.titleLarge,
           ),
           centerTitle: true,
@@ -198,6 +209,19 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             key: _formKey,
             child: Column(
               children: [
+                if (widget.template != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Chip(
+                      label: Text(
+                        'Шаблон: ${widget.template!.name}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      backgroundColor: colorScheme.primaryContainer,
+                    ),
+                  ),
                 AvatarPicker(
                   imageBytes: _character.imageBytes,
                   onImageSelected: (bytes) {

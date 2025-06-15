@@ -29,6 +29,7 @@ void main() async {
   await Hive.openBox<Character>('characters');
   await Hive.openBox<Note>('notes');
   await Hive.openBox<Race>('races');
+  await Hive.openBox<QuestionnaireTemplate>('templates');
 
   final settingsBox = await Hive.openBox('settings');
 

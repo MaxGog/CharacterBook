@@ -4,10 +4,12 @@ import 'package:hive/hive.dart';
 import 'package:characterbook/models/character_model.dart';
 import 'package:characterbook/models/note_model.dart';
 import 'package:characterbook/models/race_model.dart';
+import 'package:characterbook/models/template_model.dart';
 
 import 'characters/character_management_page.dart';
 import 'notes/note_management_page.dart';
 import 'races/race_management_page.dart';
+import 'templates/template_edit_page.dart';
 import 'settings_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -22,6 +24,7 @@ class _SearchPageState extends State<SearchPage> {
   late final List<Character> _characters;
   late final List<Race> _races;
   late final List<Note> _notes;
+  late final List<QuestionnaireTemplate> _templates;
   late List<dynamic> _filteredResults;
   bool _isLoading = true;
   late final FocusNode _searchFocusNode;
@@ -46,13 +49,15 @@ class _SearchPageState extends State<SearchPage> {
       final characterBox = await Hive.openBox<Character>('characters');
       final raceBox = await Hive.openBox<Race>('races');
       final noteBox = await Hive.openBox<Note>('notes');
+      final templateBox = await Hive.openBox<QuestionnaireTemplate>('templates');
 
       if (mounted) {
         setState(() {
           _characters = characterBox.values.toList();
           _races = raceBox.values.toList();
           _notes = noteBox.values.toList();
-          _filteredResults = [..._characters, ..._races, ..._notes];
+          _templates = templateBox.values.toList();
+          _filteredResults = [..._characters, ..._races, ..._notes, ..._templates];
           _isLoading = false;
         });
       }
@@ -68,12 +73,13 @@ class _SearchPageState extends State<SearchPage> {
 
     setState(() {
       if (query.isEmpty) {
-        _filteredResults = [..._characters, ..._races, ..._notes];
+        _filteredResults = [..._characters, ..._races, ..._notes, ..._templates];
       } else {
         _filteredResults = [
           ..._filterCharacters(query),
           ..._filterRaces(query),
           ..._filterNotes(query),
+          ..._filterTemplates(query),
         ];
       }
     });
@@ -108,6 +114,16 @@ class _SearchPageState extends State<SearchPage> {
     }).toList();
   }
 
+  List<QuestionnaireTemplate> _filterTemplates(String query) {
+    return _templates.where((template) {
+      return template.name.toLowerCase().contains(query) ||
+          template.standardFields.any((field) => field.toLowerCase().contains(query)) ||
+          template.customFields.any((field) =>
+          field.key.toLowerCase().contains(query) ||
+              field.value.toLowerCase().contains(query));
+    }).toList();
+  }
+
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     await _loadData();
@@ -124,7 +140,7 @@ class _SearchPageState extends State<SearchPage> {
         title: SearchBar(
           focusNode: _searchFocusNode,
           controller: _searchController,
-          hintText: 'Поиск по персонажам, расам и заметкам...',
+          hintText: 'Поиск по персонажам, расам, заметкам и шаблонам...',
           leading: const Icon(Icons.search),
           elevation: const WidgetStatePropertyAll(1.0),
           shape: WidgetStatePropertyAll(
@@ -244,6 +260,13 @@ class _SearchPageState extends State<SearchPage> {
           builder: (context) => NoteEditPage(note: item),
         ),
       );
+    } else if (item is QuestionnaireTemplate) {
+      return await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TemplateEditPage(template: item),
+        ),
+      );
     }
     return null;
   }
@@ -267,6 +290,7 @@ class _SearchResultItem extends StatelessWidget {
     final isCharacter = item is Character;
     final isRace = item is Race;
     final isNote = item is Note;
+    final isTemplate = item is QuestionnaireTemplate;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -294,7 +318,9 @@ class _SearchResultItem extends StatelessWidget {
                             ? item.name
                             : isRace
                             ? item.name
-                            : item.title,
+                            : isNote
+                            ? item.title
+                            : item.name,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: colorScheme.onSurface,
@@ -308,9 +334,11 @@ class _SearchResultItem extends StatelessWidget {
                             ? item.description.isNotEmpty
                             ? item.description
                             : 'Описание отсутствует'
-                            : item.content.isNotEmpty
+                            : isNote
+                            ? item.content.isNotEmpty
                             ? item.content
-                            : 'Содержание отсутствует',
+                            : 'Содержание отсутствует'
+                            : '${item.standardFields.length + item.customFields.length} полей',
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -360,11 +388,19 @@ class _SearchResultItem extends StatelessWidget {
           color: colorScheme.primary,
         ),
       );
-    } else {
+    } else if (item is Note) {
       return CircleAvatar(
         backgroundColor: colorScheme.surfaceContainerHigh,
         child: Icon(
           Icons.note_outlined,
+          color: colorScheme.primary,
+        ),
+      );
+    } else {
+      return CircleAvatar(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        child: Icon(
+          Icons.library_books_outlined,
           color: colorScheme.primary,
         ),
       );

@@ -5,14 +5,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../models/character_model.dart';
 
+import '../../../models/template_model.dart';
 import '../../../services/clipboard_service.dart';
 import '../../../services/character_export_service.dart';
 import '../../../services/file_picker_service.dart';
 
+import '../../../services/template_service.dart';
 import '../../widgets/context_menu.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_floating_buttons.dart';
 
+import '../templates/templates_page.dart';
 import 'character_detail_page.dart';
 import 'character_management_page.dart';
 
@@ -33,6 +36,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
   int? _draggedItemIndex;
   Character? _selectedCharacter;
   final FilePickerService _filePickerService = FilePickerService();
+  final TemplateService _templateService = TemplateService();
 
   List<String> _generateTags(List<Character> characters) {
     final tags = <String>{};
@@ -158,49 +162,6 @@ class _CharacterListPageState extends State<CharacterListPage> {
     }
   }
 
-  Future<void> _copyCharacterToClipboard(Character character) async {
-    try {
-      await ClipboardService.copyCharacterToClipboard(
-        name: character.name,
-        age: character.age,
-        gender: character.gender,
-        raceName: character.race?.name,
-        biography: character.biography,
-        appearance: character.appearance,
-        personality: character.personality,
-        abilities: character.abilities,
-        other: character.other,
-        customFields: character.customFields.map((f) => {'key': f.key, 'value': f.value}).toList(),
-      );
-      if (mounted) _showSnackBar('Данные персонажа скопированы');
-    } catch (e) {
-      if (mounted) _showSnackBar('Ошибка копирования: ${e.toString()}');
-    }
-  }
-
-  Future<void> _exportToPdf(Character character) async {
-    try {
-      setState(() => _isImporting = true);
-      await CharacterExportService(character).exportToPdf();
-      if (mounted) _showSnackBar('PDF успешно экспортирован');
-    } catch (e) {
-      if (mounted) _showSnackBar('Ошибка экспорта в PDF: ${e.toString()}');
-    } finally {
-      if (mounted) setState(() => _isImporting = false);
-    }
-  }
-
-  Future<void> _shareCharacterAsFile(Character character) async {
-    try {
-      setState(() => _isImporting = true);
-      await CharacterExportService(character).exportToJson();
-    } catch (e) {
-      if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
-    } finally {
-      if (mounted) setState(() => _isImporting = false);
-    }
-  }
-
   Future<void> _reorderCharacters(int oldIndex, int newIndex) async {
     if (oldIndex == newIndex) return;
 
@@ -221,6 +182,24 @@ class _CharacterListPageState extends State<CharacterListPage> {
       setState(() {
         _filterCharacters(_searchController.text, characters);
       });
+    }
+  }
+
+  Future<void> _createFromTemplate() async {
+    final template = await Navigator.push<QuestionnaireTemplate>(
+      context,
+      MaterialPageRoute(builder: (context) => const TemplatesPage()),
+    );
+
+    if (template != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CharacterEditPage(
+            character: template.applyToCharacter(Character.empty()),
+          ),
+        ),
+      );
     }
   }
 
@@ -247,6 +226,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
           final allCharacters = Hive.box<Character>('characters').values.toList().cast<Character>();
           _filterCharacters(query, allCharacters);
         },
+        onTemplatesPressed: _createFromTemplate
       ),
       body: Column(
         children: [
@@ -293,11 +273,12 @@ class _CharacterListPageState extends State<CharacterListPage> {
         ],
       ),
       floatingActionButton: CustomFloatingButtons(
-      onImport: _importCharacter,
-      onAdd: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CharacterEditPage()),
-      ),
+        onImport: _importCharacter,
+        onAdd: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CharacterEditPage()),
+        ),
+        onTemplate: _createFromTemplate,
     ),
     );
   }

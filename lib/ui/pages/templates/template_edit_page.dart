@@ -4,6 +4,7 @@ import 'package:characterbook/services/template_service.dart';
 
 import '../../../models/custom_field_model.dart';
 import '../../widgets/fields/custom_fields_editor.dart';
+import '../../widgets/fields/custom_text_field.dart';
 
 class TemplateEditPage extends StatefulWidget {
   final QuestionnaireTemplate? template;
@@ -84,18 +85,10 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
+              CustomTextField(
+                label: 'Название шаблона',
                 initialValue: _name,
-                decoration: const InputDecoration(
-                  labelText: 'Название шаблона',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Введите название шаблона';
-                  }
-                  return null;
-                },
+                isRequired: true,
                 onSaved: (value) => _name = value!,
               ),
               const SizedBox(height: 24),
@@ -125,11 +118,6 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
                 }).toList(),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Пользовательские поля:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
               CustomFieldsEditor(
                 initialFields: _customFields,
                 onFieldsChanged: (fields) => _customFields = fields,

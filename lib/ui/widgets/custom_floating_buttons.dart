@@ -6,6 +6,8 @@ class CustomFloatingButtons extends StatelessWidget {
   final bool showImportButton;
   final String importTooltip;
   final String addTooltip;
+  final VoidCallback? onTemplate;
+  final String templateTooltip;
 
   const CustomFloatingButtons({
     super.key,
@@ -14,6 +16,8 @@ class CustomFloatingButtons extends StatelessWidget {
     this.showImportButton = true,
     this.importTooltip = 'Импорт из файла',
     this.addTooltip = 'Добавить',
+    this.onTemplate,
+    this.templateTooltip = 'Создать из шаблона',
   });
 
   @override
@@ -29,7 +33,22 @@ class CustomFloatingButtons extends StatelessWidget {
             tooltip: importTooltip,
             child: const Icon(Icons.download),
           ),
-        if (showImportButton && onImport != null) const SizedBox(height: 16),
+
+        if (showImportButton && onImport != null && onTemplate != null)
+          const SizedBox(height: 16),
+
+        if (onTemplate != null)
+          FloatingActionButton(
+            heroTag: 'template_btn',
+            onPressed: onTemplate,
+            mini: true,
+            tooltip: templateTooltip,
+            child: const Icon(Icons.library_books),
+          ),
+
+        if ((showImportButton && onImport != null) || onTemplate != null)
+          const SizedBox(height: 16),
+
         if (onAdd != null)
           FloatingActionButton(
             heroTag: 'add_btn',
