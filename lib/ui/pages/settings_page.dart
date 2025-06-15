@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../providers/theme_provider.dart';
-import '../services/google_drive_service.dart';
+import '../../providers/theme_provider.dart';
+import '../../services/google_drive_service.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

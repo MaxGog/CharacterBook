@@ -35,4 +35,18 @@ class CustomField {
       value ?? this.value,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'key': key,
+      'value': value,
+    };
+  }
+
+  factory CustomField.fromJson(Map<String, dynamic> json) {
+    return CustomField(
+      json['key'],
+      json['value'],
+    );
+  }
 }

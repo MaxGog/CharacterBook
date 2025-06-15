@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../../../models/race_model.dart';
-import '../../pages/race_management_page.dart';
+import '../../pages/races/race_management_page.dart';
 
 class RaceSelectorField extends StatefulWidget {
   final Race? initialRace;

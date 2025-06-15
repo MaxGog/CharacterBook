@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../models/character_model.dart';
+import '../../../models/character_model.dart';
 
-import '../services/clipboard_service.dart';
-import '../services/character_export_service.dart';
-import '../services/file_picker_service.dart';
+import '../../../services/clipboard_service.dart';
+import '../../../services/character_export_service.dart';
+import '../../../services/file_picker_service.dart';
 
-import '../widgets/context_menu.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/custom_floating_buttons.dart';
+import '../../widgets/context_menu.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/custom_floating_buttons.dart';
 
 import 'character_detail_page.dart';
 import 'character_management_page.dart';

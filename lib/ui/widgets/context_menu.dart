@@ -6,11 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../models/character_model.dart';
-import '../models/note_model.dart';
-import '../models/race_model.dart';
-import '../services/clipboard_service.dart';
-import '../services/character_export_service.dart';
+import '../../models/character_model.dart';
+import '../../models/note_model.dart';
+import '../../models/race_model.dart';
+import '../../services/clipboard_service.dart';
+import '../../services/character_export_service.dart';
 
 class ContextMenu extends StatelessWidget {
   final dynamic item;

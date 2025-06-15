@@ -6,11 +6,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../models/character_model.dart';
-import '../models/note_model.dart';
-import '../widgets/context_menu.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/custom_floating_buttons.dart';
+import '../../../models/character_model.dart';
+import '../../../models/note_model.dart';
+import '../../widgets/context_menu.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/custom_floating_buttons.dart';
 
 import 'note_management_page.dart';
 

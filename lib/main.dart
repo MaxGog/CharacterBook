@@ -1,14 +1,10 @@
-//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-//import 'package:googleapis/drive/v2.dart' as drive;
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'package:characterbook/pages/home_page.dart';
+import 'package:characterbook/ui/pages/home_page.dart';
 import 'package:characterbook/services/file_handler.dart';
-import 'package:characterbook/services/google_drive_service.dart';
 
 import 'adapters/custom_field_adapter.dart';
 import 'file_handler_wrapper.dart';
@@ -16,6 +12,7 @@ import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'models/note_model.dart';
 import 'models/race_model.dart';
+import 'models/template_model.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 
@@ -27,6 +24,7 @@ void main() async {
   Hive.registerAdapter(CustomFieldAdapter());
   Hive.registerAdapter(NoteAdapter());
   Hive.registerAdapter(RaceAdapter());
+  Hive.registerAdapter(QuestionnaireTemplateAdapter());
 
   await Hive.openBox<Character>('characters');
   await Hive.openBox<Note>('notes');

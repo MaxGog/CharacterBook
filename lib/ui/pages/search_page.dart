@@ -5,9 +5,9 @@ import 'package:characterbook/models/character_model.dart';
 import 'package:characterbook/models/note_model.dart';
 import 'package:characterbook/models/race_model.dart';
 
-import 'character_management_page.dart';
-import 'note_management_page.dart';
-import 'race_management_page.dart';
+import 'characters/character_management_page.dart';
+import 'notes/note_management_page.dart';
+import 'races/race_management_page.dart';
 import 'settings_page.dart';
 
 class SearchPage extends StatefulWidget {

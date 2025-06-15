@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:characterbook/pages/character_management_page.dart';
-import 'package:characterbook/pages/race_management_page.dart';
+import 'package:characterbook/ui/pages/characters/character_management_page.dart';
+import 'package:characterbook/ui/pages/races/race_management_page.dart';
 import 'package:characterbook/services/file_handler.dart';
 import 'package:flutter/material.dart';
 

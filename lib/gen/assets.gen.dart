@@ -9,16 +9,32 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsFontsGen {
+  const $AssetsFontsGen();
+
+  /// File path: assets/fonts/NotoSans-Bold.ttf
+  String get notoSansBold => 'assets/fonts/NotoSans-Bold.ttf';
+
+  /// File path: assets/fonts/NotoSans-Italic.ttf
+  String get notoSansItalic => 'assets/fonts/NotoSans-Italic.ttf';
+
+  /// File path: assets/fonts/NotoSans-Regular.ttf
+  String get notoSansRegular => 'assets/fonts/NotoSans-Regular.ttf';
+
+  /// List of all assets
+  List<String> get values => [notoSansBold, notoSansItalic, notoSansRegular];
+}
+
 class Assets {
   const Assets._();
 
-  static const String characterTemplate = 'assets/character_template.docx';
+  static const $AssetsFontsGen fonts = $AssetsFontsGen();
   static const String icon = 'assets/icon.svg';
   static const AssetGenImage underdeveloped =
       AssetGenImage('assets/underdeveloped.png');
 
   /// List of all assets
-  static List<dynamic> get values => [characterTemplate, icon, underdeveloped];
+  static List<dynamic> get values => [icon, underdeveloped];
 }
 
 class AssetGenImage {

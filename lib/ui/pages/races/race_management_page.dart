@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import '../models/race_model.dart';
-import '../widgets/avatar_picker_widget.dart';
-import '../widgets/fields/custom_text_field.dart';
-import '../widgets/save_button_widget.dart';
-import '../widgets/unsaved_changes_dialog.dart';
+import '../../../models/race_model.dart';
+import '../../widgets/avatar_picker_widget.dart';
+import '../../widgets/fields/custom_text_field.dart';
+import '../../widgets/save_button_widget.dart';
+import '../../widgets/unsaved_changes_dialog.dart';
 
 class RaceManagementPage extends StatefulWidget {
   final Race? race;

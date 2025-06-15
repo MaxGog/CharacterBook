@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import '../models/character_model.dart';
-import '../models/note_model.dart';
-import '../services/character_export_service.dart';
-import '../services/clipboard_service.dart';
+import '../../../models/character_model.dart';
+import '../../../models/note_model.dart';
+import '../../../services/character_export_service.dart';
+import '../../../services/clipboard_service.dart';
 import 'character_management_page.dart';
 
 class CharacterDetailPage extends StatefulWidget {
