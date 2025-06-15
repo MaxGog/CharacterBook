@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../widgets/context_menu.dart';
+import '../widgets/custom_floating_buttons.dart';
 import 'note_management_page.dart';
 import 'settings_page.dart';
 
@@ -501,13 +502,13 @@ class _NotesListPageState extends State<NotesListPage> {
               : _buildMobileLayout(allNotes, tags, characterNames, colorScheme, textTheme);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => Navigator.push(
+      floatingActionButton: CustomFloatingButtons(
+        showImportButton: false,
+        onAdd: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const NoteEditPage()),
         ),
-      ),
+      )
     );
   }
 

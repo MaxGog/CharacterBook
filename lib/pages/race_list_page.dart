@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,9 +9,13 @@ import 'package:share_plus/share_plus.dart';
 
 import '../models/character_model.dart';
 import '../models/race_model.dart';
+
 import '../services/clipboard_service.dart';
 import '../services/file_picker_service.dart';
+
 import '../widgets/context_menu.dart';
+import '../widgets/custom_floating_buttons.dart';
+
 import 'race_management_page.dart';
 import 'settings_page.dart';
 
@@ -308,31 +313,18 @@ class _RaceListPageState extends State<RaceListPage> {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            heroTag: 'import_btn',
-            onPressed: _importRaceFromFile,
-            mini: true,
-            tooltip: 'Импорт из файла',
-            child: const Icon(Icons.download),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'add_btn',
-            child: const Icon(Icons.add),
-            onPressed: () async {
-              final result = await Navigator.push<bool>(
-                context,
-                MaterialPageRoute(builder: (context) => const RaceManagementPage()),
-              );
-              if (result == true && mounted) {
-                _filterRaces(_searchController.text, Hive.box<Race>('races').values.toList());
-              }
-            },
-          ),
-        ],
+      floatingActionButton: CustomFloatingButtons(
+        onImport: _importRaceFromFile,
+        onAdd: () async {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (context) => const RaceManagementPage()),
+          );
+          if (result == true && mounted) {
+            _filterRaces(_searchController.text,
+                Hive.box<Race>('races').values.toList());
+          }
+        },
       ),
     );
   }
