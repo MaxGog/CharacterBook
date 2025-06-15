@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
+
 import '../models/character_model.dart';
 import '../models/custom_field_model.dart';
 import '../models/race_model.dart';
-import 'package:characterbook/pages/race_management_page.dart';
 
 import '../widgets/save_button_widget.dart';
+import '../widgets/unsaved_changes_dialog.dart';
+
+import 'race_management_page.dart';
 
 class CharacterEditPage extends StatefulWidget {
   final Character? character;
@@ -246,40 +249,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       onWillPop: () async {
         if (!_hasUnsavedChanges) return true;
 
-        final shouldLeave = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Несохраненные изменения'),
-            content: const Text('У вас есть несохраненные изменения. Хотите сохранить перед выходом?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, true);
-                },
-                child: const Text('Не сохранять'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, false);
-                },
-                child: const Text('Сохранить'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, null),
-                child: const Text('Отмена'),
-              ),
-            ],
-          ),
-        );
-        if (shouldLeave == null) return false;
+        final shouldSave = await UnsavedChangesDialog().show(context);
+        if (shouldSave == null) return false;
 
-        if (shouldLeave) {
-          return true;
-        } else {
+        if (shouldSave) {
           await _saveCharacter();
           if (mounted) return true;
-          return false;
         }
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(

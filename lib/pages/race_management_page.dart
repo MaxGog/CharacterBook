@@ -5,7 +5,9 @@ import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/race_model.dart';
+
 import '../widgets/save_button_widget.dart';
+import '../widgets/unsaved_changes_dialog.dart';
 
 class RaceManagementPage extends StatefulWidget {
   final Race? race;
@@ -101,37 +103,6 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
     }
   }
 
-  Future<bool> _checkUnsavedChanges() async {
-    if (!_hasUnsavedChanges) return true;
-
-    final shouldLeave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Несохраненные изменения'),
-        content: const Text('У вас есть несохраненные изменения. Хотите сохранить перед выходом?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Не сохранять'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, true);
-              _saveRace();
-            },
-            child: const Text('Сохранить'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, null),
-            child: const Text('Отмена'),
-          ),
-        ],
-      ),
-    );
-
-    return shouldLeave ?? false;
-  }
-
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -211,7 +182,13 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        return await _checkUnsavedChanges();
+        if (!_hasUnsavedChanges) return true;
+        final shouldSave = await UnsavedChangesDialog(
+          saveText: 'Сохранить расу',
+        ).show(context);
+        if (shouldSave == null) return false;
+        if (shouldSave) await _saveRace();
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(

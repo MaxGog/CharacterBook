@@ -6,6 +6,7 @@ import '../models/character_model.dart';
 import '../models/note_model.dart';
 import '../services/clipboard_service.dart';
 import '../widgets/save_button_widget.dart';
+import '../widgets/unsaved_changes_dialog.dart';
 
 class NoteEditPage extends StatefulWidget {
   final Note? note;
@@ -36,7 +37,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
     _selectedCharacterIds.addAll(widget.note?.characterIds ?? []);
     _isPreviewMode = widget.note != null && !widget.isCopyMode;
 
-    // Добавляем слушатели изменений
     _titleController.addListener(_checkForChanges);
     _contentController.addListener(_checkForChanges);
   }
@@ -56,33 +56,6 @@ class _NoteEditPageState extends State<NoteEditPage> {
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
-  }
-
-  Future<bool> _onWillPop() async {
-    if (!_hasChanges) return true;
-
-    final shouldSave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Есть несохраненные изменения'),
-        content: const Text('Хотите сохранить изменения перед выходом?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Не сохранять'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldSave == true) {
-      await _saveNote();
-    }
-    return true;
   }
 
   Future<void> _saveNote() async {
@@ -150,7 +123,15 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final textTheme = theme.textTheme;
 
     return WillPopScope(
-      onWillPop: _onWillPop,
+      onWillPop: () async {
+        if (!_hasChanges) return true;
+        final shouldSave = await UnsavedChangesDialog(
+          saveText: 'Сохранить заметку',
+        ).show(context);
+        if (shouldSave == null) return false;
+        if (shouldSave) await _saveNote();
+        return true;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(
