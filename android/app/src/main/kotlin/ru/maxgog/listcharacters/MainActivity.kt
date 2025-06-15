@@ -62,13 +62,20 @@ class MainActivity: FlutterActivity() {
 
         if ((Intent.ACTION_VIEW == action || Intent.ACTION_SEND == action) && data != null) {
             when {
-                data.path?.endsWith(".character") == true -> processFile(data, result)
-                data.path?.endsWith(".race") == true -> processFile(data, result)
-                type == "application/vnd.characterbook.character" -> processFile(data, result)
-                type == "application/vnd.characterbook.race" -> processFile(data, result)
-                type == "application/octet-stream" && data.path?.let {
-                    it.endsWith(".character") || it.endsWith(".race")
-                } == true -> processFile(data, result)
+                data.toString().endsWith(".character") -> processFile(data, result)
+                data.toString().endsWith(".race") -> processFile(data, result)
+                type == "application/vnd.listcharacters.character" -> processFile(data, result)
+                type == "application/vnd.listcharacters.race" -> processFile(data, result)
+                type == "application/octet-stream" -> processFile(data, result)
+                else -> {
+                    val path = data.path
+                    if (path != null) {
+                        when {
+                            path.endsWith(".character", ignoreCase = true) -> processFile(data, result)
+                            path.endsWith(".race", ignoreCase = true) -> processFile(data, result)
+                        }
+                    }
+                }
             }
         }
     }
