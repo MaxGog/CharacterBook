@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../generated/l10n.dart';
 import '../../models/character_model.dart';
 import '../../models/note_model.dart';
 import '../../models/race_model.dart';
@@ -75,6 +76,7 @@ class ContextMenu extends StatelessWidget {
   }
 
   Future<void> _copyToClipboard(BuildContext context) async {
+    final s = S.of(context);
     try {
       if (item is Character) {
         final character = item as Character;
@@ -105,8 +107,8 @@ class ContextMenu extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Данные скопированы в буфер'),
+          SnackBar(
+            content: Text(s.copied_to_clipboard),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -115,7 +117,7 @@ class ContextMenu extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка копирования: ${e.toString()}'),
+            content: Text('${s.copy_error}: ${e.toString()}'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -124,6 +126,7 @@ class ContextMenu extends StatelessWidget {
   }
 
   Future<void> _exportToPdf(BuildContext context) async {
+    final s = S.of(context);
     if (item is! Character) return;
 
     try {
@@ -131,8 +134,8 @@ class ContextMenu extends StatelessWidget {
       await exportService.exportToPdf();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('PDF успешно экспортирован'),
+          SnackBar(
+            content: Text(s.pdf_export_success),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -141,7 +144,7 @@ class ContextMenu extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка экспорта в PDF: ${e.toString()}'),
+            content: Text('${s.export_error}: ${e.toString()}'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -150,25 +153,31 @@ class ContextMenu extends StatelessWidget {
   }
 
   Future<void> _shareAsFile(BuildContext context) async {
+    final s = S.of(context);
     try {
       String fileName;
       String content;
+      String shareText;
 
       if (item is Character) {
         final character = item as Character;
         fileName = '${character.name}.character';
+        shareText = s.character_share_text(character.name);
         content = jsonEncode(character.toJson());
       } else if (item is Race) {
         final race = item as Race;
         fileName = '${race.name}.race';
+        shareText = s.race_share_text(race.name);
         content = jsonEncode(race.toJson());
       } else if (item is Note) {
         final note = item as Note;
         fileName = '${note.title}_note.json';
+        shareText = note.title;
         content = jsonEncode(note.toJson());
       } else if (item is QuestionnaireTemplate) {
         final template = item as QuestionnaireTemplate;
         fileName = '${template.name}.chax';
+        shareText = template.name;
         content = jsonEncode(template.toJson());
       } else {
         return;
@@ -177,12 +186,12 @@ class ContextMenu extends StatelessWidget {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/$fileName');
       await file.writeAsString(content);
-      await Share.shareXFiles([XFile(file.path)], text: fileName);
+      await Share.shareXFiles([XFile(file.path)], text: shareText);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка: ${e.toString()}'),
+            content: Text('${s.error}: ${e.toString()}'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -193,6 +202,7 @@ class ContextMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -205,7 +215,7 @@ class ContextMenu extends StatelessWidget {
         children: [
           ListTile(
             leading: Icon(Icons.edit, color: theme.colorScheme.onSurface),
-            title: Text('Редактировать', style: theme.textTheme.bodyLarge),
+            title: Text(s.edit, style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context);
               onEdit();
@@ -215,7 +225,7 @@ class ContextMenu extends StatelessWidget {
             Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.copy, color: theme.colorScheme.onSurface),
-              title: Text('Копировать данные', style: theme.textTheme.bodyLarge),
+              title: Text(s.copy, style: theme.textTheme.bodyLarge),
               onTap: () {
                 Navigator.pop(context);
                 _copyToClipboard(context);
@@ -226,7 +236,7 @@ class ContextMenu extends StatelessWidget {
             Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.picture_as_pdf, color: theme.colorScheme.onSurface),
-              title: Text('Экспорт в PDF', style: theme.textTheme.bodyLarge),
+              title: Text(s.export, style: theme.textTheme.bodyLarge),
               onTap: () {
                 Navigator.pop(context);
                 _exportToPdf(context);
@@ -237,7 +247,7 @@ class ContextMenu extends StatelessWidget {
             Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
             ListTile(
               leading: Icon(Icons.share, color: theme.colorScheme.onSurface),
-              title: Text('Поделиться файлом', style: theme.textTheme.bodyLarge),
+              title: Text(s.share_character, style: theme.textTheme.bodyLarge),
               onTap: () {
                 Navigator.pop(context);
                 _shareAsFile(context);
@@ -247,7 +257,7 @@ class ContextMenu extends StatelessWidget {
           Divider(height: 1, color: theme.colorScheme.surfaceContainerHighest),
           ListTile(
             leading: Icon(Icons.delete, color: theme.colorScheme.error),
-            title: Text('Удалить', style: theme.textTheme.bodyLarge?.copyWith(
+            title: Text(s.delete, style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.error,
             )),
             onTap: () {

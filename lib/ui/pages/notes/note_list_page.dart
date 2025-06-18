@@ -1,11 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
 import '../../../models/note_model.dart';
 import '../../widgets/context_menu.dart';
@@ -27,7 +23,6 @@ class _NotesListPageState extends State<NotesListPage> {
   bool _isSearching = false;
   String? _selectedTag;
   String? _selectedCharacter;
-  int? _draggedItemIndex;
   Note? _selectedNote;
 
   List<String> _getAllTags(List<Note> notes) {
@@ -73,17 +68,17 @@ class _NotesListPageState extends State<NotesListPage> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удалить пост?'),
-        content: Text('Пост "${note.title}" будет удалён безвозвратно'),
+        title: Text(S.of(context).template_delete_title),
+        content: Text('${S.of(context).posts} "${note.title}" ${S.of(context).template_delete_confirm}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
+            child: Text(S.of(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
-              'Удалить',
+              S.of(context).delete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -98,9 +93,9 @@ class _NotesListPageState extends State<NotesListPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Пост "${note.title}" удалён'),
+          content: Text('${S.of(context).posts} "${note.title}" ${S.of(context).template_deleted}'),
           action: SnackBarAction(
-            label: 'Отменить',
+            label: S.of(context).cancel,
             onPressed: () => box.add(note),
           ),
         ),
@@ -130,40 +125,6 @@ class _NotesListPageState extends State<NotesListPage> {
     }
   }
 
-  Future<void> _copyNoteToClipboard(Note note) async {
-    await Clipboard.setData(ClipboardData(
-      text: note.content,
-    ));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Данные поста скопированы'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-    }
-  }
-
-  Future<void> _shareNoteAsFile(Note note) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${note.title}_note.json');
-      await file.writeAsString(jsonEncode(note.toJson()));
-      await Share.shareXFiles([XFile(file.path)], text: 'Файл поста ${note.title}');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> _reorderNotes(int oldIndex, int newIndex) async {
     if (oldIndex == newIndex) return;
 
@@ -185,25 +146,6 @@ class _NotesListPageState extends State<NotesListPage> {
         _filterNotes(_searchController.text, notes);
       });
     }
-  }
-
-  Widget _buildSearchField(TextTheme textTheme, ColorScheme colorScheme) {
-    return TextField(
-      controller: _searchController,
-      autofocus: true,
-      decoration: InputDecoration(
-        hintText: 'Поиск по постам...',
-        border: InputBorder.none,
-        hintStyle: textTheme.bodyLarge?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-      style: textTheme.bodyLarge,
-      onChanged: (query) {
-        final allNotes = Hive.box<Note>('notes').values.toList().cast<Note>();
-        _filterNotes(query, allNotes);
-      },
-    );
   }
 
   Widget _buildFilterChip({
@@ -248,7 +190,7 @@ class _NotesListPageState extends State<NotesListPage> {
         children: [
           if (characterNames.isNotEmpty)
             _buildFilterChip(
-              label: 'Все персонажи',
+              label: '${S.of(context).all} ${S.of(context).characters.toLowerCase()}',
               selected: _selectedCharacter == null,
               onSelected: (isSelected) {
                 setState(() {
@@ -275,7 +217,7 @@ class _NotesListPageState extends State<NotesListPage> {
           )),
           if (tags.isNotEmpty)
             _buildFilterChip(
-              label: 'Все теги',
+              label: S.of(context).all_tags,
               selected: _selectedTag == null,
               onSelected: (isSelected) {
                 setState(() {
@@ -318,15 +260,15 @@ class _NotesListPageState extends State<NotesListPage> {
           const SizedBox(height: 16),
           Text(
             _isSearching && _searchController.text.isNotEmpty
-                ? 'Ничего не найдено'
-                : 'Нет постов',
+                ? S.of(context).nothing_found
+                : '${S.of(context).empty_list} ${S.of(context).posts.toLowerCase()}',
             style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
             _isSearching && _searchController.text.isNotEmpty
-                ? 'Попробуйте изменить параметры поиска'
-                : 'Нажмите + чтобы создать первый пост',
+                ? S.of(context).search_hint
+                : '${S.of(context).create} ${S.of(context).posts.toLowerCase()}',
             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           ),
         ],
@@ -459,10 +401,10 @@ class _NotesListPageState extends State<NotesListPage> {
 
     return Scaffold(
         appBar: CustomAppBar(
-          title: 'Мои посты',
+          title: '${S.of(context).my} ${S.of(context).posts.toLowerCase()}',
           isSearching: _isSearching,
           searchController: _searchController,
-          searchHint: 'Поиск по постам...',
+          searchHint: S.of(context).search_hint,
           onSearchToggle: () {
             setState(() {
               _isSearching = !_isSearching;
@@ -479,26 +421,26 @@ class _NotesListPageState extends State<NotesListPage> {
             _filterNotes(query, allNotes);
           },
         ),
-      body: ValueListenableBuilder<Box<Note>>(
-        valueListenable: Hive.box<Note>('notes').listenable(),
-        builder: (context, box, _) {
-          final allNotes = box.values.toList().cast<Note>();
-          allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          final tags = _getAllTags(allNotes);
-          final characterNames = _getAllCharacterNames(allNotes);
+        body: ValueListenableBuilder<Box<Note>>(
+          valueListenable: Hive.box<Note>('notes').listenable(),
+          builder: (context, box, _) {
+            final allNotes = box.values.toList().cast<Note>();
+            allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+            final tags = _getAllTags(allNotes);
+            final characterNames = _getAllCharacterNames(allNotes);
 
-          return isWideScreen
-              ? _buildWideLayout(allNotes, tags, characterNames, colorScheme, textTheme)
-              : _buildMobileLayout(allNotes, tags, characterNames, colorScheme, textTheme);
-        },
-      ),
-      floatingActionButton: CustomFloatingButtons(
-        showImportButton: false,
-        onAdd: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NoteEditPage()),
+            return isWideScreen
+                ? _buildWideLayout(allNotes, tags, characterNames, colorScheme, textTheme)
+                : _buildMobileLayout(allNotes, tags, characterNames, colorScheme, textTheme);
+          },
         ),
-      )
+        floatingActionButton: CustomFloatingButtons(
+          showImportButton: false,
+          onAdd: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NoteEditPage()),
+          ),
+        )
     );
   }
 
@@ -515,7 +457,6 @@ class _NotesListPageState extends State<NotesListPage> {
 
     return Row(
       children: [
-
         Container(
           width: 400,
           decoration: BoxDecoration(
@@ -556,7 +497,7 @@ class _NotesListPageState extends State<NotesListPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Выберите заметку',
+                  '${S.of(context).select} ${S.of(context).posts.toLowerCase()}',
                   style: textTheme.bodyLarge,
                 ),
               ],

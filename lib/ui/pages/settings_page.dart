@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/drive/v2.dart' as drive;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/google_drive_service.dart';
+import '../../generated/l10n.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -15,39 +15,42 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final s = S.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Настройки"),
+        title: Text(s.settings),
         centerTitle: false,
         scrolledUnderElevation: 1,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _buildThemeSection(context, themeProvider, colorScheme),
+          _buildLanguageSection(context, colorScheme, s),
           const SizedBox(height: 8),
-          _buildBackupSection(context, colorScheme),
+          _buildThemeSection(context, themeProvider, colorScheme, s),
           const SizedBox(height: 8),
-          _buildAboutSection(context, colorScheme),
+          _buildBackupSection(context, colorScheme, s),
           const SizedBox(height: 8),
-          _buildAcknowledgementsSection(context, colorScheme),
+          _buildAboutSection(context, colorScheme, s),
+          const SizedBox(height: 8),
+          _buildAcknowledgementsSection(context, colorScheme, s),
         ],
       ),
     );
   }
 
-  Widget _buildThemeSection(BuildContext context, ThemeProvider themeProvider, ColorScheme colorScheme) {
+  Widget _buildThemeSection(BuildContext context, ThemeProvider themeProvider, ColorScheme colorScheme, S s) {
     final accentColors = {
-      'Системный': Theme.of(context).colorScheme.primary,
-      'Синий': Colors.blue,
-      'Зеленый': Colors.green,
-      'Красный': Colors.red,
-      'Оранжевый': Colors.orange,
-      'Фиолетовый': Colors.purple,
-      'Розовый': Colors.pink,
-      'Бирюзовый': Colors.teal,
-      'Голубой': Colors.lightBlue,
+      s.system: Theme.of(context).colorScheme.primary,
+      s.blue: Colors.blue,
+      s.green: Colors.green,
+      s.red: Colors.red,
+      s.orange: Colors.orange,
+      s.purple: Colors.purple,
+      s.pink: Colors.pink,
+      s.teal: Colors.teal,
+      s.lightBlue: Colors.lightBlue,
     };
 
     return Card(
@@ -63,25 +66,25 @@ class SettingsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                "ТЕМА",
+                s.theme.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
             const SizedBox(height: 12),
-            _buildThemeListTile(themeProvider, ThemeMode.system, "Системная", Icons.phone_android),
-            _buildThemeListTile(themeProvider, ThemeMode.light, "Светлая", Icons.light_mode),
-            _buildThemeListTile(themeProvider, ThemeMode.dark, "Тёмная", Icons.dark_mode),
+            _buildThemeListTile(themeProvider, ThemeMode.system, s.system, Icons.phone_android),
+            _buildThemeListTile(themeProvider, ThemeMode.light, s.light, Icons.light_mode),
+            _buildThemeListTile(themeProvider, ThemeMode.dark, s.dark, Icons.dark_mode),
             const SizedBox(height: 8),
             const Divider(height: 1),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                "АКЦЕНТНЫЙ ЦВЕТ",
+                s.accentColor.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -141,7 +144,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBackupSection(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildBackupSection(BuildContext context, ColorScheme colorScheme, S s) {
     final cloudBackupService = CloudBackupService();
 
     return Card(
@@ -157,7 +160,7 @@ class SettingsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                "РЕЗЕРВНОЕ КОПИРОВАНИЕ",
+                s.backup.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -173,7 +176,7 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     FilledButton.tonalIcon(
                       icon: const Icon(Icons.cloud_upload),
-                      label: const Text('Создать резервную копию'),
+                      label: Text(s.createBackup),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
@@ -186,7 +189,7 @@ class SettingsPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     FilledButton.tonalIcon(
                       icon: const Icon(Icons.cloud_download),
-                      label: const Text('Восстановить данные'),
+                      label: Text(s.restoreData),
                       onPressed: isBackingUp || isRestoring
                           ? null
                           : () => _handleBackupAction(
@@ -213,7 +216,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildAboutSection(BuildContext context, ColorScheme colorScheme, S s) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 0,
@@ -227,7 +230,7 @@ class SettingsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                "О ПРИЛОЖЕНИИ",
+                s.aboutApp.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -235,26 +238,26 @@ class SettingsPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.title),
-              title: const Text('Название'),
-              trailing: Text(
-                'CharacterBook',
-                style: Theme.of(context).textTheme.bodyLarge,
-              )
+                leading: const Icon(Icons.title),
+                title: Text(s.name),
+                trailing: Text(
+                  s.app_name,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                )
             ),
             const SizedBox(height: 8),
             ListTile(
-              leading: const Icon(Icons.developer_mode),
-              title: const Text('Разработчик'),
-              trailing: Text(
-                'Максим Гоглов',
-                style: Theme.of(context).textTheme.bodyLarge,
-              )
+                leading: const Icon(Icons.developer_mode),
+                title: Text(s.developer),
+                trailing: Text(
+                  'Максим Гоглов',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                )
             ),
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('Версия'),
+              title: Text(s.version),
               trailing: FutureBuilder<String>(
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
@@ -283,7 +286,7 @@ class SettingsPage extends StatelessWidget {
                       Image.asset('assets/underdeveloped.png'),
                       const SizedBox(height: 8),
                       Text(
-                        'GitHub репозиторий',
+                        s.githubRepo,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: colorScheme.primary,
                         ),
@@ -299,7 +302,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAcknowledgementsSection(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildAcknowledgementsSection(BuildContext context, ColorScheme colorScheme, S s) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 0,
@@ -313,7 +316,7 @@ class SettingsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                "БЛАГОДАРНОСТИ",
+                s.acknowledgements.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -334,6 +337,52 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Widget _buildLanguageSection(BuildContext context, ColorScheme colorScheme, S s) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(
+                s.language.toUpperCase(),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(s.language),
+              trailing: DropdownButton<Locale>(
+                value: Provider.of<LocaleProvider>(context).locale,
+                onChanged: (Locale? newLocale) {
+                  if (newLocale != null) {
+                    Provider.of<LocaleProvider>(context, listen: false).setLocale(newLocale);
+                  }
+                },
+                items: S.delegate.supportedLocales.map((Locale locale) {
+                  return DropdownMenuItem<Locale>(
+                    value: locale,
+                    child: Text(_displayName(locale)),
+                  );
+                }).toList(),
+                underline: Container(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleBackupAction(
       BuildContext context,
       Future Function(BuildContext) action,
@@ -346,7 +395,7 @@ class SettingsPage extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Операция выполнена успешно'),
+            content: Text(S.of(context).operationCompleted),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -358,7 +407,7 @@ class SettingsPage extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка: ${e.toString()}'),
+            content: Text('${S.of(context).error}: ${e.toString()}'),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -380,6 +429,14 @@ class SettingsPage extends StatelessWidget {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
+    }
+  }
+
+  String _displayName(Locale locale) {
+    switch (locale.languageCode) {
+      case 'ru': return 'Русский';
+      case 'en': return 'English';
+      default: return locale.languageCode;
     }
   }
 }

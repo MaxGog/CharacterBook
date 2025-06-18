@@ -137,7 +137,7 @@ class Character extends HiveObject {
     return Character(
       name: '',
       age: 20,
-      gender: 'Мужской',
+      gender: 'male',
       biography: '',
       personality: '',
       appearance: '',

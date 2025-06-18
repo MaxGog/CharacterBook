@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
+import '../../../generated/l10n.dart';
 
 class CustomFloatingButtons extends StatelessWidget {
   final VoidCallback? onImport;
   final VoidCallback? onAdd;
   final bool showImportButton;
-  final String importTooltip;
-  final String addTooltip;
+  final String? importTooltip;
+  final String? addTooltip;
   final VoidCallback? onTemplate;
-  final String templateTooltip;
+  final String? templateTooltip;
 
   const CustomFloatingButtons({
     super.key,
     this.onImport,
     this.onAdd,
     this.showImportButton = true,
-    this.importTooltip = 'Импорт из файла',
-    this.addTooltip = 'Добавить',
+    this.importTooltip,
+    this.addTooltip,
     this.onTemplate,
-    this.templateTooltip = 'Создать из шаблона',
+    this.templateTooltip,
   });
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -30,7 +33,7 @@ class CustomFloatingButtons extends StatelessWidget {
             heroTag: 'import_btn',
             onPressed: onImport,
             mini: true,
-            tooltip: importTooltip,
+            tooltip: importTooltip ?? s.import_template_tooltip,
             child: const Icon(Icons.download),
           ),
 
@@ -42,7 +45,7 @@ class CustomFloatingButtons extends StatelessWidget {
             heroTag: 'template_btn',
             onPressed: onTemplate,
             mini: true,
-            tooltip: templateTooltip,
+            tooltip: templateTooltip ?? s.create_from_template_tooltip,
             child: const Icon(Icons.library_books),
           ),
 
@@ -52,7 +55,7 @@ class CustomFloatingButtons extends StatelessWidget {
         if (onAdd != null)
           FloatingActionButton(
             heroTag: 'add_btn',
-            tooltip: addTooltip,
+            tooltip: addTooltip ?? s.create,
             onPressed: onAdd,
             child: const Icon(Icons.add),
           ),

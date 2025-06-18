@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/custom_field_model.dart';
 import 'custom_text_field.dart';
 
@@ -64,12 +65,12 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
       children: [
         Row(
           children: [
-            Text('Дополнительные поля', style: Theme.of(context).textTheme.titleMedium),
+            Text(S.of(context).custom_fields, style: Theme.of(context).textTheme.titleMedium),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: _addField,
-              tooltip: 'Добавить поле',
+              tooltip: S.of(context).create,
             ),
           ],
         ),
@@ -85,7 +86,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   flex: 2,
                   child: CustomTextField(
                     initialValue: field.key,
-                    label: 'Название поля',
+                    label: S.of(context).template_name_label,
                     onChanged: (value) => _updateField(index, value, field.value),
                   ),
                 ),
@@ -94,13 +95,14 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   flex: 3,
                   child: CustomTextField(
                     initialValue: field.value,
-                    label: 'Значение',
+                    label: S.of(context).description,
                     onChanged: (value) => _updateField(index, field.key, value),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () => _removeField(index),
+                  tooltip: S.of(context).delete,
                 ),
               ],
             ),

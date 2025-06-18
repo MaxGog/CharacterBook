@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
 
+import '../../../generated/l10n.dart';
 import '../../models/template_model.dart';
 import '../../services/file_picker_service.dart';
 import '../../services/template_service.dart';
@@ -15,8 +16,8 @@ class TemplateActions {
       BuildContext context,
       QuestionnaireTemplate template,
       ) async {
+    final s = S.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final templateService = TemplateService();
 
     try {
       final jsonStr = jsonEncode(template.toJson());
@@ -32,11 +33,11 @@ class TemplateActions {
       }
 
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Шаблон "${template.name}" успешно экспортирован')),
+        SnackBar(content: Text(s.template_exported(template.name))),
       );
     } catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Ошибка экспорта: ${e.toString()}')),
+        SnackBar(content: Text('${s.export_error}: ${e.toString()}')),
       );
     }
   }
@@ -62,16 +63,15 @@ class TemplateActions {
       BuildContext context,
       Function(QuestionnaireTemplate) onImported,
       ) async {
+    final s = S.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final filePickerService = FilePickerService();
 
     try {
       if (kIsWeb) {
-        final template = await _importTemplateWeb();
+        final template = await _importTemplateWeb(context);
         if (template != null) onImported(template);
       } else {
-
-        final file = await _pickFileNative();
+        final file = await _pickFileNative(context);
         if (file != null) {
           final jsonStr = await file.readAsString();
           final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
@@ -80,12 +80,13 @@ class TemplateActions {
       }
     } catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Ошибка импорта: ${e.toString()}')),
+        SnackBar(content: Text('${s.import_error}: ${e.toString()}')),
       );
     }
   }
 
-  static Future<File?> _pickFileNative() async {
+  static Future<File?> _pickFileNative(BuildContext context) async {
+    final s = S.of(context);
     try {
       if (Platform.isAndroid || Platform.isIOS) {
         const channel = MethodChannel('file_picker');
@@ -93,21 +94,22 @@ class TemplateActions {
         if (filePath == null || filePath.isEmpty) return null;
         return File(filePath);
       } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        final filePath = await _showDesktopFilePicker();
+        final filePath = await _showDesktopFilePicker(context);
         if (filePath == null) return null;
         return File(filePath);
       }
     } on PlatformException catch (e) {
       debugPrint('Failed to pick file: ${e.message}');
-      throw Exception('Ошибка выбора файла: ${e.message}');
+      throw Exception('${s.file_pick_error}: ${e.message}');
     } catch (e) {
       debugPrint('Error picking file: $e');
-      throw Exception('Ошибка выбора файла: $e');
+      throw Exception('${s.file_pick_error}: $e');
     }
     return null;
   }
 
-  static Future<String?> _showDesktopFilePicker() async {
+  static Future<String?> _showDesktopFilePicker(BuildContext context) async {
+    final s = S.of(context);
     if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
       return null;
     }
@@ -117,7 +119,7 @@ class TemplateActions {
 
     try {
       final result = await filePickerChannel.invokeMethod<String>('pickFile', {
-        'dialogTitle': 'Выберите файл шаблона',
+        'dialogTitle': s.select_template_file,
         'fileExtension': '.chax',
       });
       completer.complete(result);
@@ -129,7 +131,7 @@ class TemplateActions {
     return completer.future;
   }
 
-  static Future<QuestionnaireTemplate?> _importTemplateWeb() async {
+  static Future<QuestionnaireTemplate?> _importTemplateWeb(BuildContext context) async {
     final uploadInput = html.FileUploadInputElement()
       ..accept = '.chax'
       ..multiple = false;
@@ -160,14 +162,12 @@ class TemplateActions {
         'file_type': 'application/json',
       });
     } on PlatformException catch (e) {
-      debugPrint('Ошибка открытия файла: ${e.message}');
+      debugPrint('Failed to open file: ${e.message}');
     }
   }
 }
 
 Future<Directory> getApplicationDocumentsDirectory() async {
-  if (kIsWeb) throw UnsupportedError('Недоступно для веба');
-
   if (Platform.isAndroid || Platform.isIOS) {
     final path = await MethodChannel('file_picker')
         .invokeMethod<String>('getApplicationDocumentsDirectory');

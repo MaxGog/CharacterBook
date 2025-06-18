@@ -7,6 +7,7 @@ import 'package:characterbook/ui/widgets/context_menu.dart';
 import 'package:characterbook/ui/widgets/custom_app_bar.dart';
 import 'package:characterbook/ui/widgets/custom_floating_buttons.dart';
 import 'package:characterbook/ui/pages/templates/template_edit_page.dart';
+import '../../../generated/l10n.dart';
 
 class TemplatesPage extends StatefulWidget {
   const TemplatesPage({super.key});
@@ -48,19 +49,19 @@ class _TemplatesPageState extends State<TemplatesPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удаление шаблона'),
-        content: const Text('Вы уверены, что хотите удалить этот шаблон?'),
+        title: Text(S.of(context).template_delete_title),
+        content: Text(S.of(context).template_delete_confirm),
         actions: [
           TextButton(
             child: Text(
-              'Отмена',
+              S.of(context).cancel,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           TextButton(
             child: Text(
-              'Удалить',
+              S.of(context).delete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onPressed: () => Navigator.of(context).pop(true),
@@ -71,7 +72,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
 
     if (confirmed ?? false) {
       await _templateService.deleteTemplate(name);
-      if (mounted) _showSnackBar('Шаблон удален');
+      if (mounted) _showSnackBar(S.of(context).template_deleted);
       _refreshTemplates();
     }
   }
@@ -91,15 +92,15 @@ class _TemplatesPageState extends State<TemplatesPage> {
           final shouldReplace = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Шаблон уже существует'),
-              content: Text('Шаблон "${template.name}" уже существует. Заменить его?'),
+              title: Text(S.of(context).template_exists),
+              content: Text(S.of(context).template_replace_confirm(template.name)),
               actions: [
                 TextButton(
-                  child: const Text('Отмена'),
+                  child: Text(S.of(context).cancel),
                   onPressed: () => Navigator.of(context).pop(false),
                 ),
                 TextButton(
-                  child: const Text('Заменить'),
+                  child: Text(S.of(context).replace),
                   onPressed: () => Navigator.of(context).pop(true),
                 ),
               ],
@@ -107,22 +108,22 @@ class _TemplatesPageState extends State<TemplatesPage> {
           );
 
           if (shouldReplace != true) {
-            if (mounted) _showSnackBar('Импорт отменен');
+            if (mounted) _showSnackBar(S.of(context).import_cancelled);
             return;
           }
         }
 
         await box.put(template.name, template);
-        if (mounted) _showSnackBar('Шаблон "${template.name}" успешно импортирован');
+        if (mounted) _showSnackBar(S.of(context).template_imported(template.name));
         _refreshTemplates();
       } else {
-        if (mounted) _showSnackBar('Импорт отменен');
+        if (mounted) _showSnackBar(S.of(context).import_cancelled);
       }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
       });
-      if (mounted) _showSnackBar('Ошибка импорта: ${e.toString()}');
+      if (mounted) _showSnackBar(S.of(context).import_error(e.toString()));
     } finally {
       setState(() {
         _isImporting = false;
@@ -175,7 +176,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
     );
 
     if (result == true && mounted) {
-      _showSnackBar('Персонаж создан из шаблона "${template.name}"');
+      _showSnackBar(S.of(context).character_created_from_template(template.name));
     }
   }
 
@@ -197,10 +198,10 @@ class _TemplatesPageState extends State<TemplatesPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Шаблоны анкет',
+        title: S.of(context).templates,
         isSearching: _isSearching,
         searchController: _searchController,
-        searchHint: 'Поиск шаблонов...',
+        searchHint: S.of(context).search,
         onSearchToggle: () => setState(() {
           _isSearching = !_isSearching;
           if (!_isSearching) {
@@ -258,9 +259,9 @@ class _TemplatesPageState extends State<TemplatesPage> {
             builder: (context) => TemplateEditPage(onSaved: _refreshTemplates),
           ),
         ),
-        importTooltip: 'Импорт шаблона',
-        addTooltip: 'Создать шаблон',
-        templateTooltip: 'Создать из шаблона',
+        importTooltip: S.of(context).import_template_tooltip,
+        addTooltip: S.of(context).create_template_tooltip,
+        templateTooltip: S.of(context).create_from_template_tooltip,
       ),
     );
   }
@@ -289,7 +290,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Выберите шаблон',
+                  S.of(context).select_template,
                   style: theme.textTheme.bodyLarge,
                 ),
               ],
@@ -352,7 +353,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
                   children: [
                     Text(template.name, style: theme.textTheme.bodyLarge),
                     Text(
-                      '${template.standardFields.length + template.customFields.length} полей',
+                      S.of(context).fields_count(template.standardFields.length + template.customFields.length),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface,
                       ),
@@ -385,8 +386,8 @@ class _TemplatesPageState extends State<TemplatesPage> {
             const SizedBox(height: 16),
             Text(
               _isSearching && _searchController.text.isNotEmpty
-                  ? 'Шаблоны не найдены'
-                  : 'Нет шаблонов',
+                  ? S.of(context).templates_not_found
+                  : S.of(context).no_templates,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
@@ -394,7 +395,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
             if (!_isSearching)
               TextButton(
                 onPressed: _importTemplate,
-                child: const Text('Импортировать шаблон'),
+                child: Text(S.of(context).import_template),
               ),
           ],
         ),
@@ -422,7 +423,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Стандартные поля:',
+            S.of(context).standard_fields,
             style: theme.textTheme.titleMedium,
           ),
           ...template.standardFields.map((field) => ListTile(
@@ -431,7 +432,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
           )),
           if (template.customFields.isNotEmpty) ...[
             Text(
-              'Пользовательские поля:',
+              S.of(context).custom_fields,
               style: theme.textTheme.titleMedium,
             ),
             ...template.customFields.map((field) => ListTile(
@@ -446,12 +447,12 @@ class _TemplatesPageState extends State<TemplatesPage> {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Назад'),
+                child: Text(S.of(context).back),
               ),
               const SizedBox(width: 16),
               FilledButton(
                 onPressed: () => _createCharacterFromTemplate(template),
-                child: const Text('Создать персонажа'),
+                child: Text(S.of(context).create_character),
               ),
             ],
           ),

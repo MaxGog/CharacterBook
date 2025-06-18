@@ -6,6 +6,7 @@ import 'package:characterbook/models/note_model.dart';
 import 'package:characterbook/models/race_model.dart';
 import 'package:characterbook/models/template_model.dart';
 
+import '../../generated/l10n.dart';
 import 'characters/character_management_page.dart';
 import 'notes/note_management_page.dart';
 import 'races/race_management_page.dart';
@@ -140,7 +141,7 @@ class _SearchPageState extends State<SearchPage> {
         title: SearchBar(
           focusNode: _searchFocusNode,
           controller: _searchController,
-          hintText: 'Поиск по персонажам, расам, заметкам и шаблонам...',
+          hintText: S.of(context).search_hint,
           leading: const Icon(Icons.search),
           elevation: const WidgetStatePropertyAll(1.0),
           shape: WidgetStatePropertyAll(
@@ -194,8 +195,8 @@ class _SearchPageState extends State<SearchPage> {
                       const SizedBox(height: 16),
                       Text(
                         _searchController.text.isEmpty
-                            ? 'Данные не найдены'
-                            : 'Ничего не найдено по запросу',
+                            ? S.of(context).no_data_found
+                            : S.of(context).nothing_found,
                         style: textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -290,7 +291,6 @@ class _SearchResultItem extends StatelessWidget {
     final isCharacter = item is Character;
     final isRace = item is Race;
     final isNote = item is Note;
-    final isTemplate = item is QuestionnaireTemplate;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -329,16 +329,16 @@ class _SearchResultItem extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         isCharacter
-                            ? item.race?.name ?? 'Без расы'
+                            ? item.race?.name ?? S.of(context).no_race
                             : isRace
                             ? item.description.isNotEmpty
                             ? item.description
-                            : 'Описание отсутствует'
+                            : S.of(context).no_description
                             : isNote
                             ? item.content.isNotEmpty
                             ? item.content
-                            : 'Содержание отсутствует'
-                            : '${item.standardFields.length + item.customFields.length} полей',
+                            : S.of(context).no_content
+                            : S.of(context).fields_count({item.standardFields.length + item.customFields.length}),
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

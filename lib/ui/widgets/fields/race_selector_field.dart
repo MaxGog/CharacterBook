@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/race_model.dart';
 import '../../pages/races/race_management_page.dart';
 
@@ -47,6 +48,7 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,14 +59,14 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
               child: DropdownButtonFormField<Race>(
                 value: _selectedRace,
                 decoration: InputDecoration(
-                  labelText: 'Раса',
+                  labelText: s.race,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items: [
                   if (!widget.isRequired)
-                    const DropdownMenuItem<Race>(
+                    DropdownMenuItem<Race>(
                       value: null,
-                      child: Text('Не выбрано', style: TextStyle(color: Colors.grey)),
+                      child: Text(s.not_selected, style: TextStyle(color: Colors.grey)),
                     ),
                   ..._races.map((race) => DropdownMenuItem<Race>(
                     value: race,
@@ -76,7 +78,7 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
                   widget.onChanged?.call(race);
                 },
                 validator: (value) => widget.isRequired && value == null
-                    ? 'Выберите расу'
+                    ? s.select_race_error
                     : null,
               ),
             ),
@@ -89,7 +91,7 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
                 );
                 if (result == true) await _loadRaces();
               },
-              tooltip: 'Управление расами',
+              tooltip: s.race_management,
             ),
           ],
         ),

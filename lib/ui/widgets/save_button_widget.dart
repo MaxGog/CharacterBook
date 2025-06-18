@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
+
 class SaveButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
@@ -9,7 +11,7 @@ class SaveButton extends StatelessWidget {
   const SaveButton({
     super.key,
     required this.onPressed,
-    this.text = 'Сохранить',
+    this.text = 'Save',
     this.height = 50.0,
     this.borderRadius = 12.0,
   });

@@ -1,8 +1,7 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-
+import '../../../generated/l10n.dart';
 import '../../../models/race_model.dart';
 import '../../widgets/avatar_picker_widget.dart';
 import '../../widgets/fields/custom_text_field.dart';
@@ -21,7 +20,6 @@ class RaceManagementPage extends StatefulWidget {
 class _RaceManagementPageState extends State<RaceManagementPage> {
   static const _logoSize = 120.0;
   static const _borderRadius = 12.0;
-  static const _buttonHeight = 50.0;
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
@@ -64,7 +62,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
   Future<void> _saveRace() async {
     if (!_formKey.currentState!.validate()) return;
     if (_nameController.text.isEmpty) {
-      _showError('Введите название расы');
+      _showError(S.of(context).enter_race_name);
       return;
     }
 
@@ -84,7 +82,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      _showError('Ошибка сохранения: $e');
+      _showError('${S.of(context).save_error}: $e');
     }
   }
 
@@ -103,12 +101,13 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
 
     return WillPopScope(
       onWillPop: () async {
         if (!_hasUnsavedChanges) return true;
         final shouldSave = await UnsavedChangesDialog(
-          saveText: 'Сохранить расу',
+          saveText: s.save_race,
         ).show(context);
         if (shouldSave == null) return false;
         if (shouldSave) await _saveRace();
@@ -117,7 +116,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.race == null ? 'Новая раса' : 'Редактировать расу',
+            widget.race == null ? s.new_race : s.edit_race,
             style: theme.textTheme.titleLarge,
           ),
           centerTitle: true,
@@ -125,7 +124,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveRace,
-              tooltip: 'Сохранить',
+              tooltip: s.save,
             ),
           ],
         ),
@@ -151,27 +150,27 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
                 const SizedBox(height: 24),
                 CustomTextField(
                   controller: _nameController,
-                  label: 'Название расы',
+                  label: s.race_name,
                   isRequired: true,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _descriptionController,
-                  label: 'Описание',
+                  label: s.description,
                   maxLines: 3,
                   alignLabel: true,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _biologyController,
-                  label: 'Биология',
+                  label: s.biology,
                   maxLines: 5,
                   alignLabel: true,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _backstoryController,
-                  label: 'Предыстория',
+                  label: s.backstory,
                   maxLines: 7,
                   alignLabel: true,
                 ),

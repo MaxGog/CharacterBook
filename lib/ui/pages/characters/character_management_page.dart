@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
 import '../../../models/custom_field_model.dart';
 import '../../../models/race_model.dart';
@@ -105,7 +106,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         await _updateCharacter();
       }
     } catch (e) {
-      _showError('Ошибка при выборе изображения: ${e.toString()}');
+      _showError('${S.of(context).error}: ${e.toString()}');
     }
   }
 
@@ -125,7 +126,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         await _updateCharacter();
       }
     } catch (e) {
-      _showError('Ошибка при выборе изображения: ${e.toString()}');
+      _showError('${S.of(context).error}: ${e.toString()}');
     }
   }
 
@@ -164,7 +165,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+            SnackBar(content: Text('${S.of(context).save_error}: ${e.toString()}')),
           );
         }
       }
@@ -195,9 +196,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           title: Text(
             widget.character == null
                 ? widget.template == null
-                ? 'Новый персонаж'
-                : 'Новый персонаж (из шаблона)'
-                : 'Редактировать',
+                ? S.of(context).new_character
+                : '${S.of(context).new_character} (${S.of(context).from_template})'
+                : S.of(context).edit,
             style: textTheme.titleLarge,
           ),
           centerTitle: true,
@@ -205,7 +206,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveCharacter,
-              tooltip: 'Сохранить',
+              tooltip: S.of(context).save,
             ),
           ],
         ),
@@ -221,7 +222,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Chip(
                       label: Text(
-                        'Шаблон: ${widget.template!.name}',
+                        '${S.of(context).template}: ${widget.template!.name}',
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                         ),
@@ -242,7 +243,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 ),
                 const SizedBox(height: 24),
                 CustomTextField(
-                  label: 'Имя',
+                  label: S.of(context).name,
                   initialValue: _character.name,
                   isRequired: true,
                   onSaved: (value) => _character.name = value!,
@@ -255,14 +256,14 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                       if (_shouldShowField('age'))
                         Expanded(
                           child: CustomTextField(
-                            label: 'Возраст',
+                            label: S.of(context).age,
                             initialValue: _character.age.toString(),
                             isRequired: _shouldShowField('age'),
                             keyboardType: TextInputType.number,
                             validator: _shouldShowField('age') ? (value) {
-                              if (value?.isEmpty ?? true) return 'Введите возраст';
+                              if (value?.isEmpty ?? true) return S.of(context).enter_age;
                               final age = int.tryParse(value!);
-                              if (age == null || age <= 0) return 'Некорректный возраст';
+                              if (age == null || age <= 0) return S.of(context).invalid_age;
                               return null;
                             } : null,
                             onSaved: _shouldShowField('age')
@@ -301,7 +302,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('referenceImage')) const SizedBox(height: 16),
                 if (_shouldShowField('appearance'))
                   CustomTextField(
-                    label: 'Внешность',
+                    label: S.of(context).appearance,
                     initialValue: _character.appearance,
                     alignLabel: true,
                     onSaved: (value) => _character.appearance = value!,
@@ -314,7 +315,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('additionalImages')) const SizedBox(height: 16),
                 if (_shouldShowField('personality'))
                   CustomTextField(
-                    label: 'Характер',
+                    label: S.of(context).personality,
                     initialValue: _character.personality,
                     alignLabel: true,
                     onSaved: (value) => _character.personality = value!,
@@ -324,7 +325,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('personality')) const SizedBox(height: 16),
                 if (_shouldShowField('biography'))
                   CustomTextField(
-                    label: 'Биография',
+                    label: S.of(context).biography,
                     initialValue: _character.biography,
                     alignLabel: true,
                     onSaved: (value) => _character.biography = value!,
@@ -334,7 +335,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('biography')) const SizedBox(height: 16),
                 if (_shouldShowField('abilities'))
                   CustomTextField(
-                    label: 'Способности',
+                    label: S.of(context).abilities,
                     initialValue: _character.abilities,
                     alignLabel: true,
                     onSaved: (value) => _character.abilities = value!,
@@ -344,7 +345,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('abilities')) const SizedBox(height: 16),
                 if (_shouldShowField('other'))
                   CustomTextField(
-                    label: 'Прочее',
+                    label: S.of(context).other,
                     initialValue: _character.other,
                     alignLabel: true,
                     onSaved: (value) => _character.other = value!,
@@ -362,7 +363,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 const SizedBox(height: 16),
                 SaveButton(
                   onPressed: _saveCharacter,
-                  text: 'Сохранить персонажа',
+                  text: S.of(context).save,
                 ),
                 const SizedBox(height: 16),
               ],
@@ -379,19 +380,19 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       children: [
         Row(
           children: [
-            Text('Дополнительные изображения', style: textTheme.titleMedium),
+            Text(S.of(context).additional_images, style: textTheme.titleMedium),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.add_photo_alternate),
               onPressed: _pickAdditionalImage,
-              tooltip: 'Добавить изображение',
+              tooltip: S.of(context).add_picture,
             ),
           ],
         ),
         const SizedBox(height: 8),
         if (_additionalImages.isEmpty)
           Text(
-            'Нет дополнительных изображений',
+            S.of(context).no_additional_images,
             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         if (_additionalImages.isNotEmpty)
@@ -438,7 +439,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     return Column(
       children: [
         Text(
-          'Референс персонажа',
+          S.of(context).reference_image,
           style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
         ),
         const SizedBox(height: 8),

@@ -27,10 +27,8 @@ class FilePickerService {
         return File(filePath);
       }
     } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
       throw Exception('Ошибка выбора файла: ${e.message}');
     } catch (e) {
-      debugPrint('Error picking file: $e');
       throw Exception('Ошибка выбора файла: $e');
     }
     return null;
@@ -48,7 +46,6 @@ class FilePickerService {
         'fileExtension': fileExtension,
       });
     } on PlatformException catch (e) {
-      debugPrint('Failed to pick file: ${e.message}');
       return null;
     }
   }

@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../generated/l10n.dart';
+
 class AvatarPicker extends StatelessWidget {
   final Uint8List? imageBytes;
   final Function(Uint8List) onImageSelected;
@@ -22,6 +24,7 @@ class AvatarPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
     final picker = ImagePicker();
 
     Future<void> pickImage() async {
@@ -34,7 +37,7 @@ class AvatarPicker extends StatelessWidget {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка при выборе изображения: $e'),
+            content: Text(s.image_picker_error(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

@@ -1,16 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
 import '../../../models/race_model.dart';
 
-import '../../../services/clipboard_service.dart';
 import '../../../services/file_picker_service.dart';
 
 import '../../widgets/context_menu.dart';
@@ -18,7 +14,6 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_floating_buttons.dart';
 
 import 'race_management_page.dart';
-import '../settings_page.dart';
 
 class RaceListPage extends StatefulWidget {
   const RaceListPage({super.key});
@@ -76,7 +71,7 @@ class _RaceListPageState extends State<RaceListPage> {
     final confirmed = await _showDeleteConfirmationDialog();
     if (confirmed ?? false) {
       await Hive.box<Race>('races').delete(race.key);
-      if (mounted) _showSnackBar('Раса удалена');
+      if (mounted) _showSnackBar(S.of(context).race_deleted);
     }
   }
 
@@ -93,7 +88,7 @@ class _RaceListPageState extends State<RaceListPage> {
       final box = Hive.box<Race>('races');
       await box.add(race);
 
-      _showSnackBar('Раса "${race.name}" успешно импортирована');
+      _showSnackBar(S.of(context).race_imported(race.name));
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -111,20 +106,20 @@ class _RaceListPageState extends State<RaceListPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удаление расы'),
-        content: const Text('Вы уверены, что хотите удалить эту расу?'),
+        title: Text(S.of(context).race_delete_title),
+        content: Text(S.of(context).race_delete_confirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
-              'Отмена',
+              S.of(context).cancel,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Удалить',
+              S.of(context).delete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -137,37 +132,16 @@ class _RaceListPageState extends State<RaceListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Невозможно удалить расу'),
-        content: const Text('Эта раса используется персонажами. Сначала измените их расу.'),
+        title: Text(S.of(context).race_delete_error_title),
+        content: Text(S.of(context).race_delete_error_content),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(S.of(context).ok),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _copyRaceToClipboard(Race race) async {
-    await ClipboardService.copyRaceToClipboard(
-      name: race.name,
-      description: race.description,
-      biology: race.biology,
-      backstory: race.backstory,
-    );
-    if (mounted) _showSnackBar('Раса скопирована в буфер');
-  }
-
-  Future<void> _shareRaceAsFile(Race race) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${race.name}.race');
-      await file.writeAsString(jsonEncode(race.toJson()));
-      await Share.shareXFiles([XFile(file.path)], text: 'Файл расы ${race.name}');
-    } catch (e) {
-      if (mounted) _showSnackBar('Ошибка: ${e.toString()}');
-    }
   }
 
   void _showSnackBar(String message) {
@@ -234,10 +208,10 @@ class _RaceListPageState extends State<RaceListPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Расы',
+        title: S.of(context).races,
         isSearching: _isSearching,
         searchController: _searchController,
-        searchHint: 'Поиск рас...',
+        searchHint: S.of(context).search_race_hint,
         onSearchToggle: () {
           setState(() {
             _isSearching = !_isSearching;
@@ -389,7 +363,7 @@ class _RaceListPageState extends State<RaceListPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Выберите расу',
+                  S.of(context).select_race,
                   style: textTheme.bodyLarge,
                 ),
               ],
@@ -413,8 +387,8 @@ class _RaceListPageState extends State<RaceListPage> {
           const SizedBox(height: 16),
           Text(
             _isSearching && _searchController.text.isNotEmpty
-                ? 'Ничего не найдено'
-                : 'Нет созданных рас',
+                ? S.of(context).nothing_found
+                : S.of(context).no_races_created,
             style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
           ),
         ],
@@ -510,7 +484,7 @@ class _RaceListPageState extends State<RaceListPage> {
                   children: [
                     Text(race.name, style: textTheme.bodyLarge),
                     Text(
-                      race.description.isNotEmpty ? race.description : 'Нет описания',
+                      race.description.isNotEmpty ? race.description : S.of(context).no_description,
                       style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -543,8 +517,8 @@ class _RaceListPageState extends State<RaceListPage> {
             const SizedBox(height: 16),
             Text(
               _isSearching && _searchController.text.isNotEmpty
-                  ? 'Ничего не найдено'
-                  : 'Нет созданных рас',
+                  ? S.of(context).nothing_found
+                  : S.of(context).no_races_created,
               style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
             ),
           ],

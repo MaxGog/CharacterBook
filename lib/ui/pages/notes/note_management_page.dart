@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
 import '../../../models/note_model.dart';
 import '../../../services/clipboard_service.dart';
@@ -34,7 +35,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     super.initState();
     final initialTitle = widget.note?.title ?? '';
     _titleController = TextEditingController(
-      text: widget.isCopyMode ? 'Копия: $initialTitle' : initialTitle,
+      text: widget.isCopyMode ? '${S.of(context).copy}: $initialTitle' : initialTitle,
     );
     _contentController = TextEditingController(text: widget.note?.content ?? '');
     _selectedCharacterIds.addAll(widget.note?.characterIds ?? []);
@@ -67,7 +68,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Заголовок не может быть пустым')),
+        SnackBar(content: Text(S.of(context).save_error)),
       );
       return;
     }
@@ -99,7 +100,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final charactersBox = Hive.box<Character>('characters');
     final characterNames = _selectedCharacterIds.map((id) {
       final character = charactersBox.get(id);
-      return character?.name ?? 'Неизвестный персонаж';
+      return character?.name ?? S.of(context).no_data_found;
     }).toList();
 
     await ClipboardService.copyNoteToClipboard(
@@ -110,7 +111,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Заметка скопирована в буфер')),
+        SnackBar(content: Text(S.of(context).operationCompleted)),
       );
     }
   }
@@ -124,7 +125,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
       onWillPop: () async {
         if (!_hasChanges) return true;
         final shouldSave = await UnsavedChangesDialog(
-          saveText: 'Сохранить заметку',
+          saveText: S.of(context).save,
         ).show(context);
         if (shouldSave == null) return false;
         if (shouldSave) await _saveNote();
@@ -134,10 +135,10 @@ class _NoteEditPageState extends State<NoteEditPage> {
         appBar: AppBar(
           title: Text(
             widget.note == null
-                ? 'Новый пост'
+                ? S.of(context).create
                 : widget.isCopyMode
-                ? 'Копировать пост'
-                : 'Редактировать пост',
+                ? '${S.of(context).copy} ${S.of(context).posts.toLowerCase()}'
+                : S.of(context).edit,
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -145,17 +146,17 @@ class _NoteEditPageState extends State<NoteEditPage> {
             IconButton(
               icon: const Icon(Icons.copy_all),
               onPressed: _copyToClipboard,
-              tooltip: 'Копировать в буфер',
+              tooltip: S.of(context).copy,
             ),
             IconButton(
               icon: Icon(_isPreviewMode ? Icons.edit : Icons.preview),
               onPressed: () => setState(() => _isPreviewMode = !_isPreviewMode),
-              tooltip: _isPreviewMode ? 'Редактировать' : 'Предпросмотр',
+              tooltip: _isPreviewMode ? S.of(context).edit : S.of(context).empty_list,
             ),
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveNote,
-              tooltip: 'Сохранить',
+              tooltip: S.of(context).save,
             ),
           ],
         ),
@@ -175,7 +176,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
         children: [
           CustomTextField(
             controller: _titleController,
-            label: 'Заголовок',
+            label: S.of(context).name,
             isRequired: true,
             onChanged: (value) => _checkForChanges(),
           ),
@@ -188,7 +189,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
           const SizedBox(height: 24),
           SaveButton(
             onPressed: _saveNote,
-            text: 'Сохранить пост',
+            text: S.of(context).save,
           ),
         ],
       ),
@@ -213,7 +214,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     return CustomTextField(
       key: _contentFieldKey,
       controller: _contentController,
-      label: 'Содержание (поддерживается Markdown)',
+      label: '${S.of(context).description} (${S.of(context).no_content})',
       maxLines: null,
       alignLabel: true,
       keyboardType: TextInputType.multiline,
@@ -236,7 +237,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
         DropdownButtonFormField<String>(
           value: null,
           decoration: InputDecoration(
-            labelText: 'Добавить персонажа',
+            labelText: '${S.of(context).create} ${S.of(context).character.toLowerCase()}',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
           dropdownColor: Theme.of(context).colorScheme.surfaceContainerHighest,

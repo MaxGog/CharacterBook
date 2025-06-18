@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n.dart';
+
 class CustomTextField extends StatelessWidget {
   final String label;
   final String? initialValue;
@@ -43,15 +45,15 @@ class CustomTextField extends StatelessWidget {
       style: theme.textTheme.bodyLarge,
       maxLines: maxLines,
       keyboardType: keyboardType,
-      validator: validator ?? (isRequired ? _defaultValidator : null),
+      validator: validator ?? (isRequired ? (value) => _defaultValidator(context, value) : null),
       onSaved: onSaved,
       onChanged: onChanged,
       contextMenuBuilder: contextMenuBuilder,
     );
   }
 
-  String? _defaultValidator(String? value) {
-    if (value?.isEmpty ?? true) return 'Обязательное поле';
+  String? _defaultValidator(BuildContext context, String? value) {
+    if (value?.isEmpty ?? true) return S.of(context).required_field_error;
     return null;
   }
 }

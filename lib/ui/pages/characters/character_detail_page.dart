@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
 import '../../../models/note_model.dart';
 import '../../../services/character_service.dart';
@@ -41,7 +42,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
           .toList()
         ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     } catch (e) {
-      debugPrint('Ошибка загрузки связанных постов: $e');
+      debugPrint('${S.of(context).error_loading_notes}: $e');
     } finally {
       if (mounted) {
         setState(() {});
@@ -53,16 +54,16 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удалить персонажа?'),
-        content: const Text('Вы уверены, что хотите удалить этого персонажа? Это действие нельзя отменить.'),
+        title: Text(S.of(context).character_delete_title),
+        content: Text(S.of(context).character_delete_confirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
+            child: Text(S.of(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+            child: Text(S.of(context).delete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -81,7 +82,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Персонаж удален')),
+            SnackBar(content: Text(S.of(context).character_deleted)),
           );
           Navigator.pop(context);
         }
@@ -89,7 +90,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка при удалении: ${e.toString()}')),
+          SnackBar(content: Text('${S.of(context).delete_error}: ${e.toString()}')),
         );
       }
     }
@@ -99,9 +100,9 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     try {
       final exportService = CharacterService.forExport(widget.character);
       await exportService.exportToPdf();
-      _showSnackBar('PDF успешно экспортирован', isError: false);
+      _showSnackBar(S.of(context).pdf_export_success, isError: false);
     } catch (e) {
-      _showSnackBar('Ошибка экспорта: ${e.toString()}');
+      _showSnackBar('${S.of(context).export_error}: ${e.toString()}');
     }
   }
 
@@ -109,9 +110,9 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     try {
       final exportService = CharacterService.forExport(widget.character);
       await exportService.exportToJson();
-      _showSnackBar('Файл готов к отправке', isError: false);
+      _showSnackBar(S.of(context).file_ready, isError: false);
     } catch (e) {
-      _showSnackBar('Ошибка экспорта: ${e.toString()}');
+      _showSnackBar('${S.of(context).export_error}: ${e.toString()}');
     }
   }
 
@@ -131,9 +132,9 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             .map((field) => {'key': field.key, 'value': field.value})
             .toList(),
       );
-      _showSnackBar('Скопировано в буфер обмена', isError: false);
+      _showSnackBar(S.of(context).copied_to_clipboard, isError: false);
     } catch (e) {
-      _showSnackBar('Ошибка копирования: ${e.toString()}');
+      _showSnackBar('${S.of(context).copy_error}: ${e.toString()}');
     }
   }
 
@@ -161,7 +162,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             title: Text(title),
             actions: [
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
+                icon: Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -219,7 +220,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: SelectableText(
-        content.isNotEmpty ? content : 'Нет информации',
+        content.isNotEmpty ? content : S.of(context).no_information,
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
@@ -316,7 +317,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     final theme = Theme.of(context);
     return widget.character.imageBytes != null
         ? InkWell(
-      onTap: () => _showFullImage(widget.character.imageBytes!, 'Аватар персонажа'),
+      onTap: () => _showFullImage(widget.character.imageBytes!, S.of(context).character_avatar),
       child: CircleAvatar(
         radius: 80,
         backgroundImage: MemoryImage(widget.character.imageBytes!),
@@ -337,7 +338,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
     final theme = Theme.of(context);
     return InkWell(
       onTap: widget.character.referenceImageBytes != null
-          ? () => _showFullImage(widget.character.referenceImageBytes!, 'Референс персонажа')
+          ? () => _showFullImage(widget.character.referenceImageBytes!, S.of(context).character_reference)
           : null,
       borderRadius: BorderRadius.circular(12),
       child: Ink(
@@ -373,7 +374,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
       itemBuilder: (context, index) => InkWell(
         onTap: () => _showFullImage(
           widget.character.additionalImages[index],
-          'Галерея персонажа ${index + 1}',
+          '${S.of(context).character_gallery} ${index + 1}',
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
@@ -440,16 +441,16 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
               'pdf' => _exportToPdf(),
               _ => null,
             },
-            tooltip: 'Поделиться персонажем',
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'file', child: Text('Файл (.character)')),
-              PopupMenuItem(value: 'pdf', child: Text('Документ PDF (.pdf)')),
+            tooltip: S.of(context).share_character,
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'file', child: Text(S.of(context).file_character)),
+              PopupMenuItem(value: 'pdf', child: Text(S.of(context).file_pdf)),
             ],
           ),
           IconButton(
               icon: Icon(Icons.copy, color: colorScheme.onSurface),
               onPressed: _copyToClipboard,
-              tooltip: 'Скопировать персонажа'
+              tooltip: S.of(context).copy_character
           ),
           IconButton(
               icon: Icon(Icons.edit, color: colorScheme.onSurface),
@@ -459,12 +460,12 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
                   builder: (context) => CharacterEditPage(character: widget.character),
                 ),
               ),
-              tooltip: 'Редактировать персонажа'
+              tooltip: S.of(context).edit_character
           ),
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: _confirmDelete,
-            tooltip: 'Удалить персонажа',
+            tooltip: S.of(context).delete_character,
           ),
         ],
       ),
@@ -476,7 +477,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                'Обновлено: ${widget.character.lastEdited}',
+                '${S.of(context).last_updated}: ${widget.character.lastEdited}',
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -484,34 +485,34 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ),
             const SizedBox(height: 16),
 
-            _buildSectionTitle('Основная информация', 'basic', Icons.info),
+            _buildSectionTitle(S.of(context).basic_info, 'basic', Icons.info),
             if (_expandedSections['basic']!) ...[
               Center(child: _buildAvatar()),
               const SizedBox(height: 24),
-              _buildInfoRow('Имя', widget.character.name, Icons.badge),
-              _buildInfoRow('Возраст', '${widget.character.age} лет', Icons.cake),
-              _buildInfoRow('Пол', widget.character.gender, Icons.transgender),
+              _buildInfoRow(S.of(context).name, widget.character.name, Icons.badge),
+              _buildInfoRow(S.of(context).age, '${widget.character.age} ${S.of(context).years}', Icons.cake),
+              _buildInfoRow(S.of(context).gender, widget.character.gender, Icons.transgender),
               if (widget.character.race != null)
-                _buildInfoRow('Раса', widget.character.race!.name, Icons.people),
+                _buildInfoRow(S.of(context).race, widget.character.race!.name, Icons.people),
               const SizedBox(height: 16),
             ],
 
-            _buildSectionTitle('Референс персонажа', 'reference', Icons.image_search),
+            _buildSectionTitle(S.of(context).character_reference, 'reference', Icons.image_search),
             if (_expandedSections['reference']!) ...[
               Center(child: _buildReferenceImage()),
               const SizedBox(height: 16),
             ],
 
-            _buildSection('Внешность', 'appearance', widget.character.appearance, Icons.face_retouching_natural),
-            _buildSection('Характер', 'personality', widget.character.personality, Icons.psychology),
-            _buildSection('Биография', 'biography', widget.character.biography, Icons.history_edu),
+            _buildSection(S.of(context).appearance, 'appearance', widget.character.appearance, Icons.face_retouching_natural),
+            _buildSection(S.of(context).personality, 'personality', widget.character.personality, Icons.psychology),
+            _buildSection(S.of(context).biography, 'biography', widget.character.biography, Icons.history_edu),
             if (widget.character.abilities.isNotEmpty)
-              _buildSection('Способности', 'abilities', widget.character.abilities, Icons.auto_awesome),
+              _buildSection(S.of(context).abilities, 'abilities', widget.character.abilities, Icons.auto_awesome),
             if (widget.character.other.isNotEmpty)
-              _buildSection('Прочее', 'other', widget.character.other, Icons.more_horiz),
+              _buildSection(S.of(context).other, 'other', widget.character.other, Icons.more_horiz),
 
             if (widget.character.additionalImages.isNotEmpty) ...[
-              _buildSectionTitle('Галерея персонажа', 'additionalImages', Icons.photo_library),
+              _buildSectionTitle(S.of(context).character_gallery, 'additionalImages', Icons.photo_library),
               if (_expandedSections['additionalImages']!) ...[
                 _buildGallery(),
                 const SizedBox(height: 16),
@@ -519,7 +520,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ],
 
             if (widget.character.customFields.isNotEmpty) ...[
-              _buildSectionTitle('Дополнительные поля', 'customFields', Icons.list_alt),
+              _buildSectionTitle(S.of(context).custom_fields, 'customFields', Icons.list_alt),
               if (_expandedSections['customFields']!) ...[
                 _buildCustomFields(),
                 const SizedBox(height: 16),
@@ -527,7 +528,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
             ],
 
             if (_relatedNotes.isNotEmpty) ...[
-              _buildSectionTitle('Связанные посты', 'notes', Icons.note),
+              _buildSectionTitle(S.of(context).related_notes, 'notes', Icons.note),
               if (_expandedSections['notes']!) ...[
                 ListView.builder(
                   shrinkWrap: true,

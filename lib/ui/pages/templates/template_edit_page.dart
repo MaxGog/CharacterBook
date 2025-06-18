@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:characterbook/models/template_model.dart';
 import 'package:characterbook/services/template_service.dart';
-
+import '../../../generated/l10n.dart';
 import '../../../models/custom_field_model.dart';
 import '../../widgets/fields/custom_fields_editor.dart';
 import '../../widgets/fields/custom_text_field.dart';
@@ -105,7 +105,9 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.template == null ? 'Новый шаблон' : 'Редактирование',
+            widget.template == null
+                ? S.of(context).new_template
+                : S.of(context).edit_template,
             style: textTheme.headlineSmall?.copyWith(
               color: colorScheme.onSurface,
             ),
@@ -126,14 +128,14 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomTextField(
-                  label: 'Название шаблона',
+                  label: S.of(context).template_name_label,
                   initialValue: _name,
                   isRequired: true,
                   onSaved: (value) => _name = value!,
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Стандартные поля:',
+                  S.of(context).standard_fields,
                   style: textTheme.titleLarge?.copyWith(
                     color: colorScheme.onSurface,
                   ),
@@ -195,7 +197,7 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
                     ),
                   ),
                   child: Text(
-                    'Сохранить шаблон',
+                    S.of(context).save_template,
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onPrimary,
                     ),
@@ -211,30 +213,18 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
 
   String _getFieldDisplayName(String field) {
     switch (field) {
-      case 'name':
-        return 'Имя';
-      case 'age':
-        return 'Возраст';
-      case 'gender':
-        return 'Пол';
-      case 'biography':
-        return 'Биография';
-      case 'personality':
-        return 'Характер';
-      case 'appearance':
-        return 'Внешность';
-      case 'abilities':
-        return 'Способности';
-      case 'other':
-        return 'Прочее';
-      case 'image':
-        return 'Основное изображение';
-      case 'referenceImage':
-        return 'Референс';
-      case 'additionalImages':
-        return 'Доп. изображения';
-      default:
-        return field;
+      case 'name': return S.of(context).name;
+      case 'age': return S.of(context).age;
+      case 'gender': return S.of(context).gender;
+      case 'biography': return S.of(context).biography;
+      case 'personality': return S.of(context).personality;
+      case 'appearance': return S.of(context).appearance;
+      case 'abilities': return S.of(context).abilities;
+      case 'other': return S.of(context).other;
+      case 'image': return S.of(context).main_image;
+      case 'referenceImage': return S.of(context).reference_image;
+      case 'additionalImages': return S.of(context).additional_images;
+      default: return field;
     }
   }
 }

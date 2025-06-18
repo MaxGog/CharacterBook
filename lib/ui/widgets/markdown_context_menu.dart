@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../generated/l10n.dart';
 
 class MarkdownContextMenu extends StatelessWidget {
   final TextEditingController controller;
@@ -12,6 +13,7 @@ class MarkdownContextMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final textEditingValue = editableTextState.currentTextEditingValue;
     final textSelection = textEditingValue.selection;
     final selectedText = textSelection.textInside(textEditingValue.text);
@@ -22,38 +24,38 @@ class MarkdownContextMenu extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.format_bold, size: 20),
           onPressed: () => _wrapSelection(controller, '**', '**'),
-          tooltip: 'Жирный',
+          tooltip: s.markdown_bold,
         ),
         IconButton(
           icon: const Icon(Icons.format_italic, size: 20),
           onPressed: () => _wrapSelection(controller, '*', '*'),
-          tooltip: 'Курсив',
+          tooltip: s.markdown_italic,
         ),
         IconButton(
           icon: const Icon(Icons.format_underline, size: 20),
           onPressed: () => _wrapSelection(controller, '<u>', '</u>'),
-          tooltip: 'Подчеркнутый',
+          tooltip: s.markdown_underline,
         ),
         IconButton(
           icon: const Icon(Icons.code, size: 20),
           onPressed: () => _wrapSelection(controller, '`', '`'),
-          tooltip: 'Код (inline)',
+          tooltip: s.markdown_inline_code,
         ),
         if (selectedText.contains('\n'))
           IconButton(
             icon: const Icon(Icons.format_quote, size: 20),
             onPressed: () => _wrapSelection(controller, '> ', '', block: true),
-            tooltip: 'Цитата',
+            tooltip: s.markdown_quote,
           ),
         IconButton(
           icon: const Icon(Icons.format_list_bulleted, size: 20),
           onPressed: () => _insertAtCursor(controller, '- '),
-          tooltip: 'Маркированный список',
+          tooltip: s.markdown_bullet_list,
         ),
         IconButton(
           icon: const Icon(Icons.format_list_numbered, size: 20),
           onPressed: () => _insertAtCursor(controller, '1. '),
-          tooltip: 'Нумерованный список',
+          tooltip: s.markdown_numbered_list,
         ),
         ...editableTextState.contextMenuButtonItems.map((item) {
           return TextButton(

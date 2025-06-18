@@ -19,19 +19,15 @@ class CloudBackupService {
     try {
       final charactersBox = Hive.box<Character>('characters');
       final characters = charactersBox.values.toList();
-      final charactersJson = jsonEncode(characters.map((c) => c.toJson()).toList());
 
       final notesBox = Hive.box<Note>('notes');
       final notes = notesBox.values.toList();
-      final notesJson = jsonEncode(notes.map((n) => n.toJson()).toList());
 
       final racesBox = Hive.box<Race>('races');
       final races = racesBox.values.toList();
-      final racesJson = jsonEncode(races.map((r) => r.toJson()).toList());
 
       final templatesBox = Hive.box<QuestionnaireTemplate>('templates');
       final templates = templatesBox.values.toList();
-      final templatesJson = jsonEncode(templates.map((t) => t.toJson()).toList());
 
       final backupData = {
         'characters': characters,
@@ -178,7 +174,6 @@ class CloudBackupService {
       final jsonStr = await _importFromGoogleDrive('characterbook_backup');
       final Map<String, dynamic> data = jsonDecode(jsonStr);
 
-      // Импорт рас (должен быть перед персонажами, так как персонажи ссылаются на расы)
       final racesBox = Hive.box<Race>('races');
       await racesBox.clear();
       final List<dynamic> racesJson = data['races'] ?? [];
@@ -186,7 +181,6 @@ class CloudBackupService {
         await racesBox.add(Race.fromJson(json));
       }
 
-      // Импорт шаблонов (должен быть перед персонажами)
       final templatesBox = Hive.box<QuestionnaireTemplate>('templates');
       await templatesBox.clear();
       final List<dynamic> templatesJson = data['templates'] ?? [];

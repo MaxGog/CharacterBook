@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../generated/l10n.dart';
+
 class ImagePickerField extends StatelessWidget {
   final Uint8List? initialImage;
   final ValueChanged<Uint8List?> onImageSelected;
@@ -13,17 +15,21 @@ class ImagePickerField extends StatelessWidget {
     super.key,
     this.initialImage,
     required this.onImageSelected,
-    this.label = 'Изображение',
+    this.label = 'image',
     this.size = 120,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context);
 
     return Column(
       children: [
-        Text(label, style: theme.textTheme.bodyLarge),
+        Text(
+          label == 'image' ? s.image : label,
+          style: theme.textTheme.bodyLarge,
+        ),
         const SizedBox(height: 8),
         InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -63,7 +69,7 @@ class ImagePickerField extends StatelessWidget {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при выборе изображения: $e')),
+        SnackBar(content: Text(S.of(context).image_picker_error(e.toString()))),
       );
     }
   }

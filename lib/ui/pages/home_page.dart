@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../generated/l10n.dart';
 import 'characters/character_list_page.dart';
 import 'notes/note_list_page.dart';
 import 'races/race_list_page.dart';
@@ -37,26 +38,26 @@ class _HomePageState extends State<HomePage> {
                 });
               },
               labelType: NavigationRailLabelType.all,
-              destinations: const [
+              destinations: [
                 NavigationRailDestination(
                   icon: Icon(Icons.people_alt_outlined),
                   selectedIcon: Icon(Icons.people_alt),
-                  label: Text('Персонажи'),
+                  label: Text(S.of(context).characters),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.emoji_people_outlined),
                   selectedIcon: Icon(Icons.emoji_people),
-                  label: Text('Расы'),
+                  label: Text(S.of(context).races),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.note_alt_outlined),
                   selectedIcon: Icon(Icons.note_alt),
-                  label: Text('Посты'),
+                  label: Text(S.of(context).posts),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.search),
                   selectedIcon: Icon(Icons.search_outlined),
-                  label: Text('Поиск'),
+                  label: Text(S.of(context).search),
                 ),
               ],
             ),
@@ -73,26 +74,26 @@ class _HomePageState extends State<HomePage> {
             _currentIndex = index;
           });
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.people_alt_outlined),
             selectedIcon: Icon(Icons.people_alt),
-            label: 'Персонажи',
+            label: S.of(context).characters,
           ),
           NavigationDestination(
             icon: Icon(Icons.emoji_people_outlined),
             selectedIcon: Icon(Icons.emoji_people),
-            label: 'Расы',
+            label: S.of(context).races,
           ),
           NavigationDestination(
             icon: Icon(Icons.note_alt_outlined),
             selectedIcon: Icon(Icons.note_alt),
-            label: 'Посты',
+            label: S.of(context).posts,
           ),
           NavigationDestination(
             icon: Icon(Icons.search),
             selectedIcon: Icon(Icons.search_outlined),
-            label: 'Поиск',
+            label: S.of(context).search,
           ),
         ],
       )

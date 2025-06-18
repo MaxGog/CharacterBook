@@ -1,18 +1,14 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../generated/l10n.dart';
 import '../../../models/character_model.dart';
-
 import '../../../models/template_model.dart';
 import '../../../services/file_picker_service.dart';
-
-import '../../../services/template_service.dart';
 import '../../widgets/context_menu.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_floating_buttons.dart';
-
 import '../templates/templates_page.dart';
 import 'character_detail_page.dart';
 import 'character_management_page.dart';
@@ -31,10 +27,8 @@ class _CharacterListPageState extends State<CharacterListPage> {
   bool _isImporting = false;
   String? _selectedTag;
   String? _errorMessage;
-  int? _draggedItemIndex;
   Character? _selectedCharacter;
   final FilePickerService _filePickerService = FilePickerService();
-  final TemplateService _templateService = TemplateService();
 
   List<String> _generateTags(List<Character> characters) {
     final tags = <String>{};
@@ -42,19 +36,19 @@ class _CharacterListPageState extends State<CharacterListPage> {
     for (final character in characters) {
       tags.add(character.gender);
       tags.add(switch (character.age) {
-        < 18 => 'Дети',
-        < 30 => 'Молодые',
-        < 50 => 'Взрослые',
-        _ => 'Пожилые',
+        < 18 => S.of(context).children,
+        < 30 => S.of(context).young,
+        < 50 => S.of(context).adults,
+        _ => S.of(context).elderly,
       });
-      if (character.name.length <= 4) tags.add('Короткое имя');
+      if (character.name.length <= 4) tags.add(S.of(context).short_name);
     }
 
     final sortTags = [
-      'А-Я',
-      'Я-А',
-      'Возраст ↑',
-      'Возраст ↓',
+      S.of(context).a_to_z,
+      S.of(context).z_to_a,
+      S.of(context).age_asc,
+      S.of(context).age_desc,
     ];
 
     return [...tags.toList()..sort(), ...sortTags];
@@ -69,27 +63,27 @@ class _CharacterListPageState extends State<CharacterListPage> {
             character.gender.toLowerCase().contains(query.toLowerCase());
 
         final matchesTag = _selectedTag == null ||
-            _selectedTag == 'А-Я' ||
-            _selectedTag == 'Я-А' ||
-            _selectedTag == 'Возраст ↑' ||
-            _selectedTag == 'Возраст ↓' ||
+            _selectedTag == S.of(context).a_to_z ||
+            _selectedTag == S.of(context).z_to_a ||
+            _selectedTag == S.of(context).age_asc ||
+            _selectedTag == S.of(context).age_desc ||
             (character.gender == _selectedTag) ||
-            (_selectedTag == 'Дети' && character.age < 18) ||
-            (_selectedTag == 'Молодые' && character.age < 30) ||
-            (_selectedTag == 'Взрослые' && character.age < 50) ||
-            (_selectedTag == 'Пожилые' && character.age >= 50) ||
-            (_selectedTag == 'Короткое имя' && character.name.length <= 4);
+            (_selectedTag == S.of(context).children && character.age < 18) ||
+            (_selectedTag == S.of(context).young && character.age < 30) ||
+            (_selectedTag == S.of(context).adults && character.age < 50) ||
+            (_selectedTag == S.of(context).elderly && character.age >= 50) ||
+            (_selectedTag == S.of(context).short_name && character.name.length <= 4);
 
         return matchesSearch && matchesTag;
       }).toList();
 
-      if (_selectedTag == 'А-Я') {
+      if (_selectedTag == S.of(context).a_to_z) {
         filtered.sort((a, b) => a.name.compareTo(b.name));
-      } else if (_selectedTag == 'Я-А') {
+      } else if (_selectedTag == S.of(context).z_to_a) {
         filtered.sort((a, b) => b.name.compareTo(a.name));
-      } else if (_selectedTag == 'Возраст ↑') {
+      } else if (_selectedTag == S.of(context).age_asc) {
         filtered.sort((a, b) => a.age.compareTo(b.age));
-      } else if (_selectedTag == 'Возраст ↓') {
+      } else if (_selectedTag == S.of(context).age_desc) {
         filtered.sort((a, b) => b.age.compareTo(a.age));
       }
 
@@ -114,7 +108,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
       final box = Hive.box<Character>('characters');
       await box.add(character);
 
-      _showSnackBar('Персонаж "${character.name}" успешно импортирован');
+      _showSnackBar(S.of(context).character_imported(character.name));
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -208,23 +202,23 @@ class _CharacterListPageState extends State<CharacterListPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Мои персонажи',
-        isSearching: _isSearching,
-        searchController: _searchController,
-        searchHint: 'Поиск персонажей...',
-        onSearchToggle: () => setState(() {
-          _isSearching = !_isSearching;
-          if (!_isSearching) {
-            _searchController.clear();
-            _selectedTag = null;
-            _filteredCharacters = [];
-          }
-        }),
-        onSearchChanged: (query) {
-          final allCharacters = Hive.box<Character>('characters').values.toList().cast<Character>();
-          _filterCharacters(query, allCharacters);
-        },
-        onTemplatesPressed: _createFromTemplate
+          title: S.of(context).my_characters,
+          isSearching: _isSearching,
+          searchController: _searchController,
+          searchHint: S.of(context).search_characters,
+          onSearchToggle: () => setState(() {
+            _isSearching = !_isSearching;
+            if (!_isSearching) {
+              _searchController.clear();
+              _selectedTag = null;
+              _filteredCharacters = [];
+            }
+          }),
+          onSearchChanged: (query) {
+            final allCharacters = Hive.box<Character>('characters').values.toList().cast<Character>();
+            _filterCharacters(query, allCharacters);
+          },
+          onTemplatesPressed: _createFromTemplate
       ),
       body: Column(
         children: [
@@ -277,45 +271,45 @@ class _CharacterListPageState extends State<CharacterListPage> {
           MaterialPageRoute(builder: (context) => const CharacterEditPage()),
         ),
         onTemplate: _createFromTemplate,
-    ),
+      ),
     );
   }
 
   Widget _buildWideLayout(List<Character> characters, List<String> tags, ThemeData theme, List<Character> allCharacters) {
     return Row(
       children: [
-      Container(
-        width: 400,
-        decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: theme.dividerColor))),
-        child: Column(
-          children: [
-            if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
-            Expanded(child: _buildCharactersList(characters, theme)),
-          ],
-        ),
-      ),
-      Expanded(
-        child: _selectedCharacter != null
-            ? CharacterDetailPage(character: _selectedCharacter!)
-            : Center(
+        Container(
+          width: 400,
+          decoration: BoxDecoration(
+              border: Border(right: BorderSide(color: theme.dividerColor))),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.person_outline,
-                size: 48,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Выберите персонажа',
-                style: theme.textTheme.bodyLarge,
-              ),
+              if (tags.isNotEmpty) _buildTagFilter(tags, theme, allCharacters),
+              Expanded(child: _buildCharactersList(characters, theme)),
             ],
           ),
         ),
-      ),
+        Expanded(
+          child: _selectedCharacter != null
+              ? CharacterDetailPage(character: _selectedCharacter!)
+              : Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.person_outline,
+                  size: 48,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  S.of(context).select_character,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -387,7 +381,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
                   children: [
                     Text(character.name, style: theme.textTheme.bodyLarge),
                     Text(
-                      '${character.age} лет, ${character.gender}',
+                      '${character.age} ${S.of(context).years}, ${character.gender}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface,
                       ),
@@ -453,8 +447,8 @@ class _CharacterListPageState extends State<CharacterListPage> {
             const SizedBox(height: 16),
             Text(
               _isSearching && _searchController.text.isNotEmpty
-                  ? 'Ничего не найдено'
-                  : 'Нет персонажей',
+                  ? S.of(context).nothing_found
+                  : S.of(context).no_characters,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
@@ -462,7 +456,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
             if (!_isSearching)
               TextButton(
                 onPressed: _importCharacter,
-                child: const Text('Импортировать персонажа'),
+                child: Text(S.of(context).import_character),
               ),
           ],
         ),
@@ -491,19 +485,19 @@ class _CharacterListPageState extends State<CharacterListPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Удаление персонажа'),
-        content: const Text('Вы уверены, что хотите удалить этого персонажа?'),
+        title: Text(S.of(context).character_delete_title),
+        content: Text(S.of(context).character_delete_confirm),
         actions: [
           TextButton(
             child: Text(
-              'Отмена',
+              S.of(context).cancel,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           TextButton(
             child: Text(
-              'Удалить',
+              S.of(context).delete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onPressed: () => Navigator.of(context).pop(true),
@@ -514,7 +508,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
 
     if (confirmed ?? false) {
       await Hive.box<Character>('characters').delete(character.key);
-      if (mounted) _showSnackBar('Персонаж удален');
+      if (mounted) _showSnackBar(S.of(context).character_deleted);
     }
   }
 }

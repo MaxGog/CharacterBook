@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n.dart';
 import '../pages/settings_page.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -29,6 +30,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final s = S.of(context);
 
     return AppBar(
       title: isSearching
@@ -36,7 +38,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         controller: searchController,
         autofocus: true,
         decoration: InputDecoration(
-          hintText: searchHint ?? 'Поиск...',
+          hintText: searchHint ?? s.search_hint,
           border: InputBorder.none,
           hintStyle: textTheme.bodyLarge?.copyWith(
             color: colorScheme.onSurfaceVariant,
@@ -57,11 +59,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             icon: const Icon(Icons.library_books_outlined),
             onPressed: onTemplatesPressed,
-            tooltip: 'Шаблоны персонажей',
+            tooltip: s.templates,
           ),
         IconButton(
           icon: Icon(isSearching ? Icons.close : Icons.search),
           onPressed: onSearchToggle,
+          tooltip: s.search,
         ),
         ...?additionalActions,
         IconButton(
@@ -70,6 +73,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             context,
             MaterialPageRoute(builder: (context) => const SettingsPage()),
           ),
+          tooltip: s.settings,
         ),
       ],
     );
