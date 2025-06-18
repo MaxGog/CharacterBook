@@ -74,15 +74,10 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
     });
   }
 
-  Future<void> _saveChanges() async {
-    try {
-      await _characterService.saveCharacter(
-        _buildCharacter(),
-        key: widget.character?.key,
-      );
-    } catch (e) {
-      debugPrint('Ошибка автосохранения: $e');
-    }
+  Future<void> _updateCharacter() async {
+    setState(() {
+      _character = _buildCharacter();
+    });
   }
 
   Character _buildCharacter() {
@@ -107,7 +102,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           }
           _hasUnsavedChanges = true;
         });
-        await _saveChanges();
+        await _updateCharacter();
       }
     } catch (e) {
       _showError('Ошибка при выборе изображения: ${e.toString()}');
@@ -127,7 +122,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           _additionalImages.add(bytes);
           _hasUnsavedChanges = true;
         });
-        await _saveChanges();
+        await _updateCharacter();
       }
     } catch (e) {
       _showError('Ошибка при выборе изображения: ${e.toString()}');
@@ -139,7 +134,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _additionalImages.removeAt(index);
       _hasUnsavedChanges = true;
     });
-    _saveChanges();
+    _updateCharacter();
   }
 
   void _showError(String message) {
@@ -241,7 +236,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                       _character.imageBytes = bytes;
                       _hasUnsavedChanges = true;
                     });
-                    _saveChanges();
+                    _updateCharacter();
                   },
                   radius: 60,
                 ),
