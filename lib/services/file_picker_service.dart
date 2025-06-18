@@ -141,7 +141,6 @@ class FilePickerService {
       }
 
       if (jsonStr == null || jsonStr.isEmpty) {
-        debugPrint('Empty or invalid JSON content');
         return null;
       }
 
@@ -150,8 +149,6 @@ class FilePickerService {
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       return QuestionnaireTemplate.fromJson(jsonMap);
     } catch (e, stackTrace) {
-      debugPrint('Error importing template: $e');
-      debugPrint('Stack trace: $stackTrace');
       throw Exception('Ошибка импорта шаблона: ${e.toString()}');
     }
   }
