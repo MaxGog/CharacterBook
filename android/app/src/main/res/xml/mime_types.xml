@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mime-types xmlns:android="http://schemas.android.com/apk/res/android">
-    <mime-type android:value="application/vnd.listcharacters.character"/>
-    <mime-type android:value="application/vnd.listcharacters.race"/>
+<mime-types>
+    <mime-type>application/vnd.character</mime-type>
+    <mime-type>application/vnd.race</mime-type>
+    <mime-type>application/vnd.chax</mime-type>
 </mime-types>

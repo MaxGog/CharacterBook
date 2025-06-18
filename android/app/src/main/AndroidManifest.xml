@@ -34,36 +34,17 @@
             </intent-filter>
 
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="file"/>
-                <data android:scheme="content"/>
-                <data android:mimeType="*/*"/>
-                <data android:host="*"/>
-                <data android:pathPattern=".*\\.character"/>
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="file"/>
-                <data android:scheme="content"/>
-                <data android:mimeType="*/*"/>
-                <data android:host="*"/>
-                <data android:pathPattern=".*\\.race"/>
-            </intent-filter>
-
-            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.character" />
+                <data android:pathPattern=".*\\.race" />
                 <data android:pathPattern=".*\\.chax" />
-                <data android:pathPattern=".*\\..*\\.chax" />
+                <data android:mimeType="application/vnd.character" />
+                <data android:mimeType="application/vnd.race" />
+                <data android:mimeType="application/vnd.chax" />
             </intent-filter>
         </activity>
 
