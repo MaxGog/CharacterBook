@@ -338,43 +338,77 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildLanguageSection(BuildContext context, ColorScheme colorScheme, S s) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: colorScheme.surfaceContainerLow,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: colorScheme.surfaceContainerLow,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 s.language.toUpperCase(),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurface,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1.0,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.language),
-              title: Text(s.language),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.language,
+                  color: colorScheme.onSecondaryContainer,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                s.language,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
               trailing: DropdownButton<Locale>(
                 value: Provider.of<LocaleProvider>(context).locale,
                 onChanged: (Locale? newLocale) {
                   if (newLocale != null) {
-                    Provider.of<LocaleProvider>(context, listen: false).setLocale(newLocale);
+                    Provider.of<LocaleProvider>(context, listen: false)
+                        .setLocale(newLocale);
                   }
                 },
                 items: S.delegate.supportedLocales.map((Locale locale) {
                   return DropdownMenuItem<Locale>(
                     value: locale,
-                    child: Text(_displayName(locale)),
+                    child: Text(
+                      _displayName(locale),
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
                   );
                 }).toList(),
                 underline: Container(),
+                borderRadius: BorderRadius.circular(12),
+                dropdownColor: colorScheme.surfaceContainerHigh,
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              minLeadingWidth: 12,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ],
