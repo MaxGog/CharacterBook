@@ -5,6 +5,7 @@ import 'package:characterbook/services/template_service.dart';
 import '../../../models/custom_field_model.dart';
 import '../../widgets/fields/custom_fields_editor.dart';
 import '../../widgets/fields/custom_text_field.dart';
+import '../../widgets/unsaved_changes_dialog.dart';
 
 class TemplateEditPage extends StatefulWidget {
   final QuestionnaireTemplate? template;
@@ -27,6 +28,7 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
   late String _name;
   late List<String> _standardFields;
   late List<CustomField> _customFields;
+  bool _hasChanges = false;
 
   final List<String> _availableStandardFields = [
     'name',
@@ -50,6 +52,18 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
     _customFields = widget.template?.customFields.map((f) => f.copyWith()).toList() ?? [];
   }
 
+  Future<bool> _hasUnsavedChanges() async {
+    if (!_hasChanges) return false;
+
+    final result = await UnsavedChangesDialog().show(context);
+    if (result == null) return true;
+
+    if (result == true) {
+      await _saveTemplate();
+    }
+    return false;
+  }
+
   Future<void> _saveTemplate() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -61,68 +75,134 @@ class _TemplateEditPageState extends State<TemplateEditPage> {
       );
 
       await _templateService.saveTemplate(template);
+      setState(() => _hasChanges = false);
       if (widget.onSaved != null) widget.onSaved!();
       if (mounted) Navigator.pop(context);
     }
   }
 
+  void _markAsChanged() {
+    if (!_hasChanges) {
+      setState(() => _hasChanges = true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.template == null ? 'Новый шаблон' : 'Редактирование'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveTemplate,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final canPop = !await _hasUnsavedChanges();
+        if (canPop && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.template == null ? 'Новый шаблон' : 'Редактирование',
+            style: textTheme.headlineSmall?.copyWith(
+              color: colorScheme.onSurface,
+            ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomTextField(
-                label: 'Название шаблона',
-                initialValue: _name,
-                isRequired: true,
-                onSaved: (value) => _name = value!,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Стандартные поля:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _availableStandardFields.map((field) {
-                  final isSelected = _standardFields.contains(field);
-                  return FilterChip(
-                    label: Text(_getFieldDisplayName(field)),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _standardFields.add(field);
-                        } else {
-                          _standardFields.remove(field);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              CustomFieldsEditor(
-                initialFields: _customFields,
-                onFieldsChanged: (fields) => _customFields = fields,
-              ),
-            ],
+          actions: [
+            IconButton(
+              icon: Icon(Icons.save, color: colorScheme.primary),
+              onPressed: _saveTemplate,
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            onChanged: _markAsChanged,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomTextField(
+                  label: 'Название шаблона',
+                  initialValue: _name,
+                  isRequired: true,
+                  onSaved: (value) => _name = value!,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Стандартные поля:',
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _availableStandardFields.map((field) {
+                    final isSelected = _standardFields.contains(field);
+                    return FilterChip(
+                      label: Text(
+                        _getFieldDisplayName(field),
+                        style: textTheme.labelLarge?.copyWith(
+                          color: isSelected
+                              ? colorScheme.onSecondaryContainer
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _standardFields.add(field);
+                          } else {
+                            _standardFields.remove(field);
+                          }
+                        });
+                        _markAsChanged();
+                      },
+                      backgroundColor: colorScheme.surfaceContainerHighest,
+                      selectedColor: colorScheme.secondaryContainer,
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: isSelected
+                              ? colorScheme.secondaryContainer
+                              : colorScheme.outline,
+                        ),
+                      ),
+                      showCheckmark: false,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+                CustomFieldsEditor(
+                  initialFields: _customFields,
+                  onFieldsChanged: (fields) {
+                    _customFields = fields;
+                    _markAsChanged();
+                  },
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _saveTemplate,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Сохранить шаблон',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
