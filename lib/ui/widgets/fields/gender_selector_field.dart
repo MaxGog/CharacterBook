@@ -19,23 +19,18 @@ class GenderSelectorField extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
 
-    final localizedGenders = genders.map((gender) {
-      switch (gender) {
-        case "male": return s.male;
-        case "female": return s.female;
-        case "another": return s.another;
-        default: return gender;
-      }
-    }).toList();
+    final genderLocalizations = {
+      "male": s.male,
+      "female": s.female,
+      "another": s.another,
+    };
 
     return DropdownButtonFormField<String>(
-      value: initialValue,
-      items: genders.asMap().entries.map((entry) {
-        final index = entry.key;
-        final gender = entry.value;
+      value: genders.contains(initialValue) ? initialValue : null,
+      items: genders.map((gender) {
         return DropdownMenuItem(
           value: gender,
-          child: Text(localizedGenders[index]),
+          child: Text(genderLocalizations[gender] ?? gender),
         );
       }).toList(),
       decoration: InputDecoration(

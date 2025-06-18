@@ -31,59 +31,66 @@ class _CharacterListPageState extends State<CharacterListPage> {
   final FilePickerService _filePickerService = FilePickerService();
 
   List<String> _generateTags(List<Character> characters) {
+    final s = S.of(context);
     final tags = <String>{};
 
-    for (final character in characters) {
-      tags.add(character.gender);
-      tags.add(switch (character.age) {
-        < 18 => S.of(context).children,
-        < 30 => S.of(context).young,
-        < 50 => S.of(context).adults,
-        _ => S.of(context).elderly,
-      });
-      if (character.name.length <= 4) tags.add(S.of(context).short_name);
-    }
+    tags.addAll([s.male, s.female, s.another]);
+
+    final ageTags = {
+      s.children: (age) => age < 18,
+      s.young: (age) => age < 30,
+      s.adults: (age) => age < 50,
+      s.elderly: (age) => age >= 50,
+    };
+
+    tags.add(s.short_name);
 
     final sortTags = [
-      S.of(context).a_to_z,
-      S.of(context).z_to_a,
-      S.of(context).age_asc,
-      S.of(context).age_desc,
+      s.a_to_z,
+      s.z_to_a,
+      s.age_asc,
+      s.age_desc,
     ];
 
-    return [...tags.toList()..sort(), ...sortTags];
+    return [...tags, ...sortTags];
   }
 
   void _filterCharacters(String query, List<Character> allCharacters) {
     setState(() {
+      final s = S.of(context);
+
       List<Character> filtered = allCharacters.where((character) {
         final matchesSearch = query.isEmpty ||
             character.name.toLowerCase().contains(query.toLowerCase()) ||
             character.age.toString().contains(query) ||
-            character.gender.toLowerCase().contains(query.toLowerCase());
+            s.male.toLowerCase().contains(query.toLowerCase()) ||
+            s.female.toLowerCase().contains(query.toLowerCase()) ||
+            s.another.toLowerCase().contains(query.toLowerCase());
 
         final matchesTag = _selectedTag == null ||
-            _selectedTag == S.of(context).a_to_z ||
-            _selectedTag == S.of(context).z_to_a ||
-            _selectedTag == S.of(context).age_asc ||
-            _selectedTag == S.of(context).age_desc ||
-            (character.gender == _selectedTag) ||
-            (_selectedTag == S.of(context).children && character.age < 18) ||
-            (_selectedTag == S.of(context).young && character.age < 30) ||
-            (_selectedTag == S.of(context).adults && character.age < 50) ||
-            (_selectedTag == S.of(context).elderly && character.age >= 50) ||
-            (_selectedTag == S.of(context).short_name && character.name.length <= 4);
+            _selectedTag == s.a_to_z ||
+            _selectedTag == s.z_to_a ||
+            _selectedTag == s.age_asc ||
+            _selectedTag == s.age_desc ||
+            _selectedTag == s.short_name && character.name.length <= 4 ||
+            (_selectedTag == s.male && character.gender == 'male') ||
+            (_selectedTag == s.female && character.gender == 'female') ||
+            (_selectedTag == s.another && character.gender == 'another') ||
+            (_selectedTag == s.children && character.age < 18) ||
+            (_selectedTag == s.young && character.age < 30) ||
+            (_selectedTag == s.adults && character.age < 50) ||
+            (_selectedTag == s.elderly && character.age >= 50);
 
         return matchesSearch && matchesTag;
       }).toList();
 
-      if (_selectedTag == S.of(context).a_to_z) {
+      if (_selectedTag == s.a_to_z) {
         filtered.sort((a, b) => a.name.compareTo(b.name));
-      } else if (_selectedTag == S.of(context).z_to_a) {
+      } else if (_selectedTag == s.z_to_a) {
         filtered.sort((a, b) => b.name.compareTo(a.name));
-      } else if (_selectedTag == S.of(context).age_asc) {
+      } else if (_selectedTag == s.age_asc) {
         filtered.sort((a, b) => a.age.compareTo(b.age));
-      } else if (_selectedTag == S.of(context).age_desc) {
+      } else if (_selectedTag == s.age_desc) {
         filtered.sort((a, b) => b.age.compareTo(a.age));
       }
 
@@ -93,6 +100,16 @@ class _CharacterListPageState extends State<CharacterListPage> {
         _selectedCharacter = null;
       }
     });
+  }
+
+  String _getLocalizedGender(String genderKey) {
+    final s = S.of(context);
+    switch (genderKey) {
+      case 'male': return s.male;
+      case 'female': return s.female;
+      case 'another': return s.another;
+      default: return genderKey;
+    }
   }
 
   Future<void> _importCharacter() async {
@@ -381,7 +398,7 @@ class _CharacterListPageState extends State<CharacterListPage> {
                   children: [
                     Text(character.name, style: theme.textTheme.bodyLarge),
                     Text(
-                      '${character.age} ${S.of(context).years}, ${character.gender}',
+                      '${character.age} ${S.of(context).years}, ${_getLocalizedGender(character.gender)}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface,
                       ),
