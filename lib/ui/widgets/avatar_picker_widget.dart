@@ -41,25 +41,33 @@ class AvatarPicker extends StatelessWidget {
       }
     }
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(radius),
-      onTap: pickImage,
-      child: Ink(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: backgroundColor ?? theme.colorScheme.surfaceContainerHighest,
-        ),
-        child: CircleAvatar(
-          radius: radius,
-          backgroundColor: Colors.transparent,
-          backgroundImage: imageBytes != null ? MemoryImage(imageBytes!) : null,
-          child: imageBytes == null
-              ? Icon(
-            placeholderIcon ?? Icons.add_a_photo,
-            size: radius * 0.6,
-            color: theme.colorScheme.onSurfaceVariant,
-          )
-              : null,
+    return Center(
+      child: Material(
+        shape: const CircleBorder(),
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: radius * 2,
+          height: radius * 2,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: pickImage,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: backgroundColor ?? theme.colorScheme.surfaceContainerHighest,
+              ),
+              child: imageBytes != null
+                  ? Image.memory(
+                imageBytes!,
+                fit: BoxFit.cover,
+              )
+                  : Icon(
+                placeholderIcon ?? Icons.add_a_photo,
+                size: radius * 0.6,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         ),
       ),
     );
