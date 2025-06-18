@@ -1,10 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:characterbook/models/race_model.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 
-import '../generated/l10n.dart';
 import 'custom_field_model.dart';
 
 part 'character_model.g.dart';

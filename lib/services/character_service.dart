@@ -194,7 +194,7 @@ class CharacterService {
       }
 
       final bytes = await pdf.save();
-      final fileName = '${character!.name}.pdf'.replaceAll(RegExp(r'[^\w\s-]'), '');
+      final fileName = '${character!.name}.pdf';
       await _saveAndShareFile(bytes, fileName,
         text: 'Характеристика персонажа ${character!.name}',
         subject: 'PDF с характеристикой персонажа',
