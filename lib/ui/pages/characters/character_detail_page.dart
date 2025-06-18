@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../../models/character_model.dart';
 import '../../../models/note_model.dart';
-import '../../../services/character_export_service.dart';
+import '../../../services/character_service.dart';
 import '../../../services/clipboard_service.dart';
 import 'character_management_page.dart';
 
@@ -97,7 +97,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
   Future<void> _exportToPdf() async {
     try {
-      final exportService = CharacterExportService(widget.character);
+      final exportService = CharacterService.forExport(widget.character);
       await exportService.exportToPdf();
       _showSnackBar('PDF успешно экспортирован', isError: false);
     } catch (e) {
@@ -107,7 +107,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
 
   Future<void> _exportToJson() async {
     try {
-      final exportService = CharacterExportService(widget.character);
+      final exportService = CharacterService.forExport(widget.character);
       await exportService.exportToJson();
       _showSnackBar('Файл готов к отправке', isError: false);
     } catch (e) {

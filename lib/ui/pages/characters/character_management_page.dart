@@ -1,12 +1,13 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/services.dart';
 
 import '../../../models/character_model.dart';
 import '../../../models/custom_field_model.dart';
 import '../../../models/race_model.dart';
 import '../../../models/template_model.dart';
+import '../../../services/character_service.dart';
 
 import '../../widgets/avatar_picker_widget.dart';
 import '../../widgets/fields/custom_fields_editor.dart';
@@ -29,17 +30,18 @@ class CharacterEditPage extends StatefulWidget {
 class _CharacterEditPageState extends State<CharacterEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
+  late final CharacterService _characterService;
 
   late Character _character;
   late List<Race> _races;
   late List<CustomField> _customFields;
   late List<Uint8List> _additionalImages;
-
   bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
     super.initState();
+    _characterService = CharacterService.forDatabase();
     _initializeFields();
     _loadRaces();
     _hasUnsavedChanges = widget.character == null;
@@ -74,10 +76,10 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
   Future<void> _saveChanges() async {
     try {
-      final box = Hive.box<Character>('characters');
-      if (widget.character != null && widget.character!.key != null) {
-        await box.put(widget.character!.key, _buildCharacter());
-      }
+      await _characterService.saveCharacter(
+        _buildCharacter(),
+        key: widget.character?.key,
+      );
     } catch (e) {
       debugPrint('Ошибка автосохранения: $e');
     }
@@ -103,7 +105,9 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
           } else {
             _character.referenceImageBytes = bytes;
           }
+          _hasUnsavedChanges = true;
         });
+        await _saveChanges();
       }
     } catch (e) {
       _showError('Ошибка при выборе изображения: ${e.toString()}');
@@ -119,7 +123,11 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
-        setState(() => _additionalImages.add(bytes));
+        setState(() {
+          _additionalImages.add(bytes);
+          _hasUnsavedChanges = true;
+        });
+        await _saveChanges();
       }
     } catch (e) {
       _showError('Ошибка при выборе изображения: ${e.toString()}');
@@ -127,7 +135,11 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
   }
 
   void _removeAdditionalImage(int index) {
-    setState(() => _additionalImages.removeAt(index));
+    setState(() {
+      _additionalImages.removeAt(index);
+      _hasUnsavedChanges = true;
+    });
+    _saveChanges();
   }
 
   void _showError(String message) {
@@ -144,14 +156,12 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
       _formKey.currentState!.save();
 
       try {
-        final box = Hive.box<Character>('characters');
         final character = _buildCharacter();
 
-        if (widget.character != null && widget.character!.key != null) {
-          await box.put(widget.character!.key, character);
-        } else {
-          await box.add(character);
-        }
+        await _characterService.saveCharacter(
+          character,
+          key: widget.character?.key,
+        );
 
         setState(() => _hasUnsavedChanges = false);
 
@@ -168,7 +178,6 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
 
   bool _shouldShowField(String fieldName) {
     if (widget.template == null) return true;
-
     return widget.template!.containsField(fieldName);
   }
 
@@ -183,10 +192,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
         if (!_hasUnsavedChanges) return true;
         final shouldSave = await UnsavedChangesDialog().show(context);
         if (shouldSave == null) return false;
-        if (shouldSave) {
-          await _saveCharacter();
-          if (mounted) return true;
-        }
+        if (shouldSave) await _saveCharacter();
         return true;
       },
       child: Scaffold(
@@ -245,6 +251,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                   initialValue: _character.name,
                   isRequired: true,
                   onSaved: (value) => _character.name = value!,
+                  onChanged: (_) => _hasUnsavedChanges = true,
                 ),
                 const SizedBox(height: 16),
                 if (_shouldShowField('age') || _shouldShowField('gender'))
@@ -266,6 +273,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                             onSaved: _shouldShowField('age')
                                 ? (value) => _character.age = int.parse(value!)
                                 : null,
+                            onChanged: (_) => _hasUnsavedChanges = true,
                           ),
                         ),
                       if (_shouldShowField('age') && _shouldShowField('gender'))
@@ -274,7 +282,10 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                         Expanded(
                           child: GenderSelectorField(
                             initialValue: _character.gender,
-                            onChanged: (value) => _character.gender = value!,
+                            onChanged: (value) {
+                              _character.gender = value!;
+                              _hasUnsavedChanges = true;
+                            },
                           ),
                         ),
                     ],
@@ -284,7 +295,10 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                 if (_shouldShowField('race'))
                   RaceSelectorField(
                     initialRace: _character.race,
-                    onChanged: (race) => _character.race = race,
+                    onChanged: (race) {
+                      _character.race = race;
+                      _hasUnsavedChanges = true;
+                    },
                   ),
                 if (_shouldShowField('race')) const SizedBox(height: 16),
                 if (_shouldShowField('referenceImage'))
@@ -296,6 +310,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     initialValue: _character.appearance,
                     alignLabel: true,
                     onSaved: (value) => _character.appearance = value!,
+                    onChanged: (_) => _hasUnsavedChanges = true,
                     maxLines: 5,
                   ),
                 if (_shouldShowField('appearance')) const SizedBox(height: 16),
@@ -308,6 +323,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     initialValue: _character.personality,
                     alignLabel: true,
                     onSaved: (value) => _character.personality = value!,
+                    onChanged: (_) => _hasUnsavedChanges = true,
                     maxLines: 4,
                   ),
                 if (_shouldShowField('personality')) const SizedBox(height: 16),
@@ -317,6 +333,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     initialValue: _character.biography,
                     alignLabel: true,
                     onSaved: (value) => _character.biography = value!,
+                    onChanged: (_) => _hasUnsavedChanges = true,
                     maxLines: 7,
                   ),
                 if (_shouldShowField('biography')) const SizedBox(height: 16),
@@ -326,6 +343,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     initialValue: _character.abilities,
                     alignLabel: true,
                     onSaved: (value) => _character.abilities = value!,
+                    onChanged: (_) => _hasUnsavedChanges = true,
                     maxLines: 7,
                   ),
                 if (_shouldShowField('abilities')) const SizedBox(height: 16),
@@ -335,12 +353,16 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
                     initialValue: _character.other,
                     alignLabel: true,
                     onSaved: (value) => _character.other = value!,
+                    onChanged: (_) => _hasUnsavedChanges = true,
                     maxLines: 5,
                   ),
                 if (_shouldShowField('other')) const SizedBox(height: 32),
                 CustomFieldsEditor(
                   initialFields: _customFields,
-                  onFieldsChanged: (fields) => _customFields = fields,
+                  onFieldsChanged: (fields) {
+                    _customFields = fields;
+                    _hasUnsavedChanges = true;
+                  },
                 ),
                 const SizedBox(height: 16),
                 SaveButton(
@@ -384,7 +406,7 @@ class _CharacterEditPageState extends State<CharacterEditPage> {
               scrollDirection: Axis.horizontal,
               itemCount: _additionalImages.length,
               itemBuilder: (context, index) => Padding(
-                padding: EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 8),
                 child: SizedBox(
                   width: 120,
                   height: 120,

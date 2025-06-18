@@ -10,8 +10,8 @@ import '../../models/character_model.dart';
 import '../../models/note_model.dart';
 import '../../models/race_model.dart';
 import '../../models/template_model.dart';
+import '../../services/character_service.dart';
 import '../../services/clipboard_service.dart';
-import '../../services/character_export_service.dart';
 
 class ContextMenu extends StatelessWidget {
   final dynamic item;
@@ -127,7 +127,8 @@ class ContextMenu extends StatelessWidget {
     if (item is! Character) return;
 
     try {
-      await CharacterExportService(item as Character).exportToPdf();
+      final exportService = CharacterService.forExport(item as Character);
+      await exportService.exportToPdf();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
