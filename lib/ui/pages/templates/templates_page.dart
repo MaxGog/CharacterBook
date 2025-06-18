@@ -148,7 +148,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
         item: template,
         onEdit: () => _editTemplate(template),
         onDelete: () => _deleteTemplate(template.name),
-        showExportPdf: true,
+        showExportPdf: false,
         showCopy: false,
       ),
     );

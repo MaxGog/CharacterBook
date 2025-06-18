@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 import 'character_model.dart';
 import 'custom_field_model.dart';
+import 'dart:convert';
 
 part 'template_model.g.dart';
 
@@ -31,13 +32,53 @@ class QuestionnaireTemplate extends HiveObject {
   }
 
   factory QuestionnaireTemplate.fromJson(Map<String, dynamic> json) {
-    return QuestionnaireTemplate(
-      name: json['name'],
-      standardFields: List<String>.from(json['standardFields'] ?? []),
-      customFields: (json['customFields'] as List?)
-          ?.map((e) => CustomField.fromJson(e))
-          .toList() ?? [],
-    );
+    try {
+      if (json['name'] == null) {
+        throw const FormatException('Missing required field: name');
+      }
+
+      return QuestionnaireTemplate(
+        name: json['name'] as String,
+        standardFields: _parseStandardFields(json['standardFields']),
+        customFields: _parseCustomFields(json['customFields']),
+      );
+    } catch (e) {
+      throw FormatException('Failed to parse QuestionnaireTemplate: $e');
+    }
+  }
+
+  static List<String> _parseStandardFields(dynamic fields) {
+    if (fields == null) return [];
+    if (fields is! List) {
+      throw FormatException('standardFields should be a List');
+    }
+    return List<String>.from(fields);
+  }
+
+  static List<CustomField> _parseCustomFields(dynamic fields) {
+    if (fields == null) return [];
+    if (fields is! List) {
+      throw FormatException('customFields should be a List');
+    }
+
+    return fields.map((e) {
+      try {
+        return CustomField.fromJson(e as Map<String, dynamic>);
+      } catch (e) {
+        throw FormatException('Failed to parse CustomField: $e');
+      }
+    }).toList();
+  }
+
+  factory QuestionnaireTemplate.fromJsonString(String jsonString) {
+    try {
+      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      return QuestionnaireTemplate.fromJson(decoded);
+    } on FormatException catch (e) {
+      throw FormatException('Invalid JSON format: $e');
+    } catch (e) {
+      throw FormatException('Failed to decode JSON: $e');
+    }
   }
 
   Character applyToCharacter(Character character) {

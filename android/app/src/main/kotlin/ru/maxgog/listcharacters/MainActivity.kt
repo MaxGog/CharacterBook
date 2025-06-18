@@ -64,8 +64,10 @@ class MainActivity: FlutterActivity() {
             when {
                 data.toString().endsWith(".character") -> processFile(data, result)
                 data.toString().endsWith(".race") -> processFile(data, result)
+                data.toString().endsWith(".chax") -> processFile(data, result)
                 type == "application/vnd.listcharacters.character" -> processFile(data, result)
                 type == "application/vnd.listcharacters.race" -> processFile(data, result)
+                type == "application/vnd.listcharacters.chax" -> processFile(data, result)
                 type == "application/octet-stream" -> processFile(data, result)
                 else -> {
                     val path = data.path
@@ -73,6 +75,7 @@ class MainActivity: FlutterActivity() {
                         when {
                             path.endsWith(".character", ignoreCase = true) -> processFile(data, result)
                             path.endsWith(".race", ignoreCase = true) -> processFile(data, result)
+                            path.endsWith(".chax", ignoreCase = true) -> processFile(data, result)
                         }
                     }
                 }

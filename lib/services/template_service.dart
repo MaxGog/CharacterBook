@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/character_model.dart';
@@ -57,9 +56,7 @@ class TemplateService {
 
   Future<QuestionnaireTemplate?> pickAndImportTemplate() async {
     try {
-      final file = await FilePickerService().importTemplate();
-      if (file == null) return null;
-      return await importTemplate(file as File);
+      return await FilePickerService().importTemplate();
     } catch (e) {
       throw Exception('Ошибка импорта шаблона: ${e.toString()}');
     }

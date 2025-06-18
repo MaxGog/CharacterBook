@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
@@ -9,17 +10,19 @@ import '../models/race_model.dart';
 import '../models/template_model.dart';
 
 class FilePickerService {
-  Future<File?> _pickFileNative() async {
+  Future<File?> _pickFileNative({String? fileExtension}) async {
     if (kIsWeb) return null;
 
     try {
       if (Platform.isAndroid || Platform.isIOS) {
         const channel = MethodChannel('file_picker');
-        final filePath = await channel.invokeMethod<String>('pickFile');
+        final filePath = await channel.invokeMethod<String>('pickFile', {
+          'fileExtension': fileExtension,
+        });
         if (filePath == null || filePath.isEmpty) return null;
         return File(filePath);
       } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        final filePath = await _showDesktopFilePicker();
+        final filePath = await _showDesktopFilePicker(fileExtension: fileExtension);
         if (filePath == null) return null;
         return File(filePath);
       }
@@ -33,26 +36,21 @@ class FilePickerService {
     return null;
   }
 
-  Future<String?> _showDesktopFilePicker() async {
+  Future<String?> _showDesktopFilePicker({String? fileExtension}) async {
     if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
       return null;
     }
 
-    final completer = Completer<String?>();
     final filePickerChannel = const MethodChannel('file_picker');
-
     try {
-      final result = await filePickerChannel.invokeMethod<String>('pickFile', {
-        'dialogTitle': 'Выберите файл персонажа',
-        'fileExtension': '.character',
+      return await filePickerChannel.invokeMethod<String>('pickFile', {
+        'dialogTitle': 'Выберите файл',
+        'fileExtension': fileExtension,
       });
-      completer.complete(result);
     } on PlatformException catch (e) {
       debugPrint('Failed to pick file: ${e.message}');
-      completer.complete(null);
+      return null;
     }
-
-    return completer.future;
   }
 
   Future<Character?> importCharacter() async {
@@ -74,7 +72,7 @@ class FilePickerService {
         await reader.onLoadEnd.first;
         jsonStr = reader.result as String;
       } else {
-        final file = await _pickFileNative();
+        final file = await _pickFileNative(fileExtension: '.character');
         if (file == null) return null;
         jsonStr = await file.readAsString();
       }
@@ -107,7 +105,7 @@ class FilePickerService {
         await reader.onLoadEnd.first;
         jsonStr = reader.result as String;
       } else {
-        final file = await _pickFileNative();
+        final file = await _pickFileNative(fileExtension: '.race');
         if (file == null) return null;
         jsonStr = await file.readAsString();
       }
@@ -138,18 +136,25 @@ class FilePickerService {
         final reader = html.FileReader();
         reader.readAsText(file);
         await reader.onLoadEnd.first;
-        jsonStr = reader.result as String;
+        jsonStr = reader.result as String?;
       } else {
-        final file = await _pickFileNative();
+        final file = await _pickFileNative(fileExtension: '.chax');
         if (file == null) return null;
         jsonStr = await file.readAsString();
       }
 
-      if (jsonStr.isEmpty) return null;
+      if (jsonStr == null || jsonStr.isEmpty) {
+        debugPrint('Empty or invalid JSON content');
+        return null;
+      }
+
+      debugPrint('JSON content start: ${jsonStr.substring(0, min(100, jsonStr.length))}...');
 
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       return QuestionnaireTemplate.fromJson(jsonMap);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Error importing template: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Ошибка импорта шаблона: ${e.toString()}');
     }
   }
