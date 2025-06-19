@@ -262,7 +262,7 @@ class SettingsPage extends StatelessWidget {
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.data ?? '1.5.9',
+                    snapshot.data ?? '1.6.0',
                     style: Theme.of(context).textTheme.bodyLarge,
                   );
                 },
