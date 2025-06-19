@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:characterbook/services/file_picker_service.dart';
-import 'package:characterbook/ui/pages/characters/character_management_page.dart';
-import 'package:characterbook/ui/pages/races/race_management_page.dart';
+
 import '../models/character_model.dart';
 import '../models/race_model.dart';
 import '../models/template_model.dart';
+import '../ui/pages/characters/character_management_page.dart';
+import '../ui/pages/races/race_management_page.dart';
+import '../ui/pages/templates/template_edit_page.dart';
 import 'file_handler.dart';
 
 class FileHandlerWrapper extends StatefulWidget {
@@ -21,7 +23,6 @@ class FileHandlerWrapper extends StatefulWidget {
 
 class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
   bool _isHandlingFile = false;
-  final FilePickerService _filePickerService = FilePickerService();
 
   @override
   void initState() {
@@ -84,7 +85,7 @@ class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
           break;
         case 'chax':
           final template = QuestionnaireTemplate.fromJson(json);
-          debugPrint('Imported template: ${template.name}');
+          _navigateToTemplateManagement(template);
           break;
       }
     } catch (e, stackTrace) {
@@ -99,14 +100,26 @@ class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
   }
 
   void _navigateToCharacterEdit(Character character) {
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => CharacterEditPage(character: character))
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CharacterEditPage(character: character),
+      ),
     );
   }
 
   void _navigateToRaceManagement(Race race) {
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => RaceManagementPage(race: race))
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RaceManagementPage(race: race),
+      ),
+    );
+  }
+
+  void _navigateToTemplateManagement(QuestionnaireTemplate template) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TemplateEditPage(template: template),
+      ),
     );
   }
 
