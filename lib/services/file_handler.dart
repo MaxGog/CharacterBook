@@ -17,11 +17,12 @@ class FileHandler {
     });
   }
 
-  static Future<String?> getOpenedFile() async {
+  static Future<Map<String, dynamic>?> getOpenedFile() async {
     try {
-      return await _channel.invokeMethod<String>('getOpenedFile');
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('getOpenedFile');
+      return result?.cast<String, dynamic>();
     } on PlatformException catch (e) {
-      print("Error getting opened file: ${e.message}");
+      debugPrint("Error getting opened file: ${e.message}");
       return null;
     }
   }

@@ -7,7 +7,7 @@ import 'package:characterbook/ui/pages/home_page.dart';
 import 'package:characterbook/services/file_handler.dart';
 
 import 'adapters/custom_field_adapter.dart';
-import 'file_handler_wrapper.dart';
+import 'services/file_handler_wrapper.dart';
 import 'generated/l10n.dart';
 import 'models/character_model.dart';
 import 'models/note_model.dart';

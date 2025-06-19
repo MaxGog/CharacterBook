@@ -15,6 +15,7 @@ import android.os.Bundle
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import android.provider.OpenableColumns
 
 class MainActivity: FlutterActivity() {
     private val TAG = "MainActivity"
@@ -115,11 +116,21 @@ class MainActivity: FlutterActivity() {
 
     private fun processFile(uri: Uri, result: MethodChannel.Result?) {
         try {
-            val filePath = copyFileToCache(uri)
+            val originalName = getOriginalFileNameWithExtension(uri)
+            val filePath = copyFileToCache(uri, originalName)
+
             filePath?.let { path ->
+                val fileType = when {
+                    originalName.endsWith(".character", ignoreCase = true) -> "character"
+                    originalName.endsWith(".race", ignoreCase = true) -> "race"
+                    originalName.endsWith(".chax", ignoreCase = true) -> "chax"
+                    else -> originalName.substringAfterLast('.', "")
+                }
+
                 fileHandlerChannel.invokeMethod("onFileOpened", mapOf(
                     "path" to path,
-                    "type" to path.substringAfterLast('.', "")
+                    "type" to fileType,
+                    "originalName" to originalName
                 ))
                 result?.success(path)
             } ?: run {
@@ -127,6 +138,49 @@ class MainActivity: FlutterActivity() {
             }
         } catch (e: Exception) {
             result?.error("FILE_ERROR", "Error: ${e.message}", null)
+        }
+    }
+
+    private fun getOriginalFileNameWithExtension(uri: Uri): String {
+        return when (uri.scheme) {
+            "content" -> {
+                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        if (nameIndex != -1) {
+                            return cursor.getString(nameIndex) ?: generateFileName(uri)
+                        }
+                    }
+                    generateFileName(uri)
+                } ?: generateFileName(uri)
+            }
+            "file" -> uri.lastPathSegment ?: generateFileName(uri)
+            else -> generateFileName(uri)
+        }
+    }
+
+    private fun generateFileName(uri: Uri): String {
+        return "imported_file_${System.currentTimeMillis()}.${getExtensionFromMime(uri)}"
+    }
+
+    private fun getExtensionFromMime(uri: Uri): String {
+        return when (contentResolver.getType(uri)) {
+            "application/json" -> "json"
+            else -> "dat"
+        }
+    }
+
+    private fun copyFileToCache(uri: Uri, fileName: String): String? {
+        return try {
+            val outputFile = File(applicationContext.cacheDir, fileName)
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(outputFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            outputFile.absolutePath
+        } catch (e: Exception) {
+            null
         }
     }
 
