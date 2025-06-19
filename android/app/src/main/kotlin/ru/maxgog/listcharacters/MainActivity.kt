@@ -60,22 +60,19 @@ class MainActivity: FlutterActivity() {
         val data = intent.data
         val type = intent.type
 
-        if ((Intent.ACTION_VIEW == action || Intent.ACTION_SEND == action) && data != null) {
+        if (Intent.ACTION_VIEW == action && data != null) {
             when {
-                data.toString().endsWith(".character") -> processFile(data, result)
-                data.toString().endsWith(".race") -> processFile(data, result)
-                data.toString().endsWith(".chax") -> processFile(data, result)
-                type == "application/vnd.listcharacters.character" -> processFile(data, result)
-                type == "application/vnd.listcharacters.race" -> processFile(data, result)
-                type == "application/vnd.listcharacters.chax" -> processFile(data, result)
-                type == "application/octet-stream" -> processFile(data, result)
+                data.toString().contains(".character") -> processFile(data, result)
+                data.toString().contains(".race") -> processFile(data, result)
+                data.toString().contains(".chax") -> processFile(data, result)
+                type == "application/json" -> processFile(data, result)
                 else -> {
                     val path = data.path
                     if (path != null) {
                         when {
-                            path.endsWith(".character", ignoreCase = true) -> processFile(data, result)
-                            path.endsWith(".race", ignoreCase = true) -> processFile(data, result)
-                            path.endsWith(".chax", ignoreCase = true) -> processFile(data, result)
+                            path.contains(".character", ignoreCase = true) -> processFile(data, result)
+                            path.contains(".race", ignoreCase = true) -> processFile(data, result)
+                            path.contains(".chax", ignoreCase = true) -> processFile(data, result)
                         }
                     }
                 }
@@ -87,7 +84,10 @@ class MainActivity: FlutterActivity() {
         val filePath = copyFileToCache(uri)
         filePath?.let { path ->
             result?.success(path) ?: run {
-                fileHandlerChannel.invokeMethod("onFileOpened", path)
+                fileHandlerChannel.invokeMethod("onFileOpened", mapOf(
+                    "path" to path,
+                    "name" to File(path).name
+                ))
             }
         } ?: run {
             result?.error("FILE_ERROR", "Could not process file", null)
