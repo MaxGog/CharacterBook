@@ -3,6 +3,10 @@ package ru.maxgog.listcharacters
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.NonNull
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,10 +17,13 @@ import java.io.FileOutputStream
 import java.io.InputStream
 
 class MainActivity: FlutterActivity() {
+    private val TAG = "MainActivity"
     private val CHANNEL = "file_picker"
     private val FILE_HANDLE_CHANNEL = "file_handler"
     private var result: MethodChannel.Result? = null
     private lateinit var fileHandlerChannel: MethodChannel
+    private val STORAGE_PERMISSION_CODE = 102
+    private var pendingFileUri: Uri? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -36,10 +43,14 @@ class MainActivity: FlutterActivity() {
 
         fileHandlerChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, FILE_HANDLE_CHANNEL)
         fileHandlerChannel.setMethodCallHandler { call, result ->
-            if (call.method == "getOpenedFile") {
-                handleIntent(intent, result)
-            } else {
-                result.notImplemented()
+            when (call.method) {
+                "getOpenedFile" -> {
+                    pendingFileUri?.let { uri ->
+                        processFile(uri, result)
+                        pendingFileUri = null
+                    } ?: result.success(null)
+                }
+                else -> result.notImplemented()
             }
         }
     }
@@ -55,42 +66,67 @@ class MainActivity: FlutterActivity() {
         handleIntent(intent, null)
     }
 
+    private fun handleIntent(intent: Intent) {
+        handleIntent(intent, null)
+    }
+
     private fun handleIntent(intent: Intent, result: MethodChannel.Result?) {
         val action = intent.action
         val data = intent.data
         val type = intent.type
 
         if (Intent.ACTION_VIEW == action && data != null) {
-            when {
-                data.toString().contains(".character") -> processFile(data, result)
-                data.toString().contains(".race") -> processFile(data, result)
-                data.toString().contains(".chax") -> processFile(data, result)
-                type == "application/json" -> processFile(data, result)
+            pendingFileUri = data
+            val fileType = when {
+                data.toString().contains(".character") -> "character"
+                data.toString().contains(".race") -> "race"
+                data.toString().contains(".chax") -> "chax"
+                type == "application/json" -> "json"
                 else -> {
-                    val path = data.path
-                    if (path != null) {
-                        when {
-                            path.contains(".character", ignoreCase = true) -> processFile(data, result)
-                            path.contains(".race", ignoreCase = true) -> processFile(data, result)
-                            path.contains(".chax", ignoreCase = true) -> processFile(data, result)
-                        }
+                    val path = data.path ?: ""
+                    when {
+                        path.contains(".character", ignoreCase = true) -> "character"
+                        path.contains(".race", ignoreCase = true) -> "race"
+                        path.contains(".chax", ignoreCase = true) -> "chax"
+                        else -> "unknown"
                     }
                 }
+            }
+
+            if (fileType != "unknown") {
+                showImportDialog(data, fileType, result)
+            } else {
+                result?.error("UNKNOWN_TYPE", "Unknown file type", null)
             }
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == STORAGE_PERMISSION_CODE && grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            handleIntent(intent, null)
+        }
+    }
+
     private fun processFile(uri: Uri, result: MethodChannel.Result?) {
-        val filePath = copyFileToCache(uri)
-        filePath?.let { path ->
-            result?.success(path) ?: run {
+        try {
+            val filePath = copyFileToCache(uri)
+            filePath?.let { path ->
                 fileHandlerChannel.invokeMethod("onFileOpened", mapOf(
                     "path" to path,
-                    "name" to File(path).name
+                    "type" to path.substringAfterLast('.', "")
                 ))
+                result?.success(path)
+            } ?: run {
+                result?.error("FILE_ERROR", "Could not copy file", null)
             }
-        } ?: run {
-            result?.error("FILE_ERROR", "Could not process file", null)
+        } catch (e: Exception) {
+            result?.error("FILE_ERROR", "Error: ${e.message}", null)
         }
     }
 
@@ -118,13 +154,12 @@ class MainActivity: FlutterActivity() {
 
     private fun copyFileToCache(uri: Uri): String? {
         return try {
-            val contentResolver: ContentResolver = applicationContext.contentResolver
-            val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val cacheDir = applicationContext.cacheDir
-            val fileName = getFileName(contentResolver, uri) ?: "file_${System.currentTimeMillis()}"
-            val outputFile = File(cacheDir, fileName)
+            val contentResolver = applicationContext.contentResolver
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val fileName = uri.lastPathSegment ?: "imported_file"
+            val outputFile = File(applicationContext.cacheDir, fileName)
 
-            inputStream?.use { input ->
+            inputStream.use { input ->
                 FileOutputStream(outputFile).use { output ->
                     input.copyTo(output)
                 }
@@ -132,16 +167,26 @@ class MainActivity: FlutterActivity() {
 
             outputFile.absolutePath
         } catch (e: Exception) {
-            e.printStackTrace()
             null
         }
     }
 
-    private fun getFileName(contentResolver: ContentResolver, uri: Uri): String? {
-        val name = uri.lastPathSegment ?: return null
-        if (name.startsWith("/")) {
-            return name.substringAfterLast('/')
-        }
-        return name
+    private fun showImportDialog(uri: Uri, fileType: String, result: MethodChannel.Result?) {
+        fileHandlerChannel.invokeMethod("showImportDialog", mapOf(
+            "uri" to uri.toString(),
+            "type" to fileType
+        ), object : MethodChannel.Result {
+            override fun success(result: Any?) {
+                processFile(uri, result as? MethodChannel.Result)
+            }
+
+            override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+                result?.error(errorCode, errorMessage, errorDetails)
+            }
+
+            override fun notImplemented() {
+                processFile(uri, result)
+            }
+        })
     }
 }

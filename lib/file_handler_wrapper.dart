@@ -28,38 +28,43 @@ class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
   }
 
   Future<void> _initFileHandling() async {
-    FileHandler.onFileOpened.listen(_handleOpenedFile as void Function(dynamic event)?);
+    FileHandler.onFileOpened.listen((data) {
+      if (mounted && data is Map) {
+        _handleFile(data['path'], data['type']);
+      }
+    });
 
     final filePath = await FileHandler.getOpenedFile();
-    if (filePath != null && mounted) {
-      setState(() => _isHandlingFile = true);
-      _handleOpenedFile(filePath);
+    if (mounted && filePath != null) {
+      _handleFile(filePath, filePath.split('.').last);
     }
   }
 
-  void _handleOpenedFile(String filePath) {
-    final file = File(filePath);
-    final extension = file.path.split('.').last.toLowerCase();
+  Future<void> _handleFile(String path, String type) async {
+    if (!mounted) return;
 
-    if (extension == 'character') {
-      _handleCharacterFile(file);
-    } else if (extension == 'race') {
-      _handleRaceFile(file);
-    }
-  }
+    setState(() => _isHandlingFile = true);
 
-  Future<void> _handleCharacterFile(File file) async {
     try {
+      final file = File(path);
+      if (!await file.exists()) {
+        throw Exception("File not found");
+      }
+
       final content = await file.readAsString();
       final json = jsonDecode(content);
-      final character = Character.fromJson(json);
 
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => CharacterEditPage(character: character),
-      ));
+      if (type == 'character') {
+        final character = Character.fromJson(json);
+        _navigateToCharacterEdit(character);
+      } else if (type == 'race') {
+        final race = Race.fromJson(json);
+        _navigateToRaceManagement(race);
+      } else {
+        throw Exception("Unsupported file type");
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка загрузки персонажа: $e')));
+      _showError(e);
     } finally {
       if (mounted) {
         setState(() => _isHandlingFile = false);
@@ -67,23 +72,22 @@ class _FileHandlerWrapperState extends State<FileHandlerWrapper> {
     }
   }
 
-  Future<void> _handleRaceFile(File file) async {
-    try {
-      final content = await file.readAsString();
-      final json = jsonDecode(content);
-      final race = Race.fromJson(json);
+  void _navigateToCharacterEdit(Character character) {
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => CharacterEditPage(character: character))
+    );
+  }
 
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => RaceManagementPage(race: race),
-      ));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка загрузки расы: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isHandlingFile = false);
-      }
-    }
+  void _navigateToRaceManagement(Race race) {
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => RaceManagementPage(race: race))
+    );
+  }
+
+  void _showError(dynamic error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: ${error.toString()}'))
+    );
   }
 
   @override
