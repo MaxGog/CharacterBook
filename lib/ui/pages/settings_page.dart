@@ -262,7 +262,7 @@ class SettingsPage extends StatelessWidget {
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.data ?? '1.6.0',
+                    snapshot.data ?? '1.6.1',
                     style: Theme.of(context).textTheme.bodyLarge,
                   );
                 },
@@ -338,51 +338,36 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildLanguageSection(BuildContext context, ColorScheme colorScheme, S s) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: colorScheme.surfaceContainerLow,
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.only(left: 8),
               child: Text(
                 s.language.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.language,
-                  color: colorScheme.onSecondaryContainer,
-                  size: 20,
-                ),
-              ),
-              title: Text(
-                s.language,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(s.language),
               trailing: DropdownButton<Locale>(
-                value: Provider.of<LocaleProvider>(context).locale,
+                value: localeProvider.locale,
                 onChanged: (Locale? newLocale) {
                   if (newLocale != null) {
-                    Provider.of<LocaleProvider>(context, listen: false)
-                        .setLocale(newLocale);
+                    localeProvider.setLocale(newLocale);
                   }
                 },
                 items: S.delegate.supportedLocales.map((Locale locale) {
@@ -401,14 +386,9 @@ class SettingsPage extends StatelessWidget {
                   Icons.arrow_drop_down,
                   color: colorScheme.onSurfaceVariant,
                 ),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              minLeadingWidth: 12,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ],
