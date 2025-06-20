@@ -42,7 +42,6 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildThemeSection(BuildContext context, ThemeProvider themeProvider, ColorScheme colorScheme, S s) {
     final accentColors = {
-      s.system: Theme.of(context).colorScheme.primary,
       s.blue: Colors.blue,
       s.green: Colors.green,
       s.red: Colors.red,
