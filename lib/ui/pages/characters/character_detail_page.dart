@@ -119,6 +119,7 @@ class _CharacterDetailPageState extends State<CharacterDetailPage> {
   Future<void> _copyToClipboard() async {
     try {
       await ClipboardService.copyCharacterToClipboard(
+        context: context,
         name: widget.character.name,
         age: widget.character.age,
         gender: widget.character.gender,

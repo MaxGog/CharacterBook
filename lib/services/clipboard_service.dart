@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
-import 'package:flutter/services.dart';
+import '../generated/l10n.dart';
 
 class ClipboardService {
   static Future<void> copyCharacterToClipboard({
+    required BuildContext context,
     required String name,
     required int age,
     required String gender,
@@ -15,19 +17,20 @@ class ClipboardService {
     required String other,
     required List<Map<String, String>> customFields,
   }) async {
+    final s = S.of(context);
     final buffer = StringBuffer()
-      ..writeln('Имя: $name')
-      ..writeln('Возраст: $age')
-      ..writeln('Пол: $gender')
-      ..writeln('Раса: ${raceName ?? "Не указана"}')
-      ..writeln('Биография: $biography')
-      ..writeln('Внешность: $appearance')
-      ..writeln('Характер: $personality')
-      ..writeln('Способности: $abilities')
-      ..writeln('Прочее: $other');
+      ..writeln('${s.name}: $name')
+      ..writeln('${s.age}: $age')
+      ..writeln('${s.gender}: $gender')
+      ..writeln('${s.race}: ${raceName ?? s.no_race}')
+      ..writeln('${s.biography}: $biography')
+      ..writeln('${s.appearance}: $appearance')
+      ..writeln('${s.personality}: $personality')
+      ..writeln('${s.abilities}: $abilities')
+      ..writeln('${s.other}: $other');
 
     if (customFields.isNotEmpty) {
-      buffer.writeln('\nДополнительные поля:');
+      buffer.writeln('\n${s.custom_fields}:');
       for (final field in customFields) {
         buffer.writeln('${field['key']}: ${field['value']}');
       }
@@ -37,38 +40,31 @@ class ClipboardService {
   }
 
   static Future<void> copyRaceToClipboard({
+    required BuildContext context,
     required String name,
     required String description,
     required String biology,
     required String backstory,
   }) async {
+    final s = S.of(context);
     final buffer = StringBuffer()
-      ..writeln('Раса: $name')
-      ..writeln('\nОписание:')
+      ..writeln('${s.race}: $name')
+      ..writeln('\n${s.description}:')
       ..writeln(description)
-      ..writeln('\nБиология:')
+      ..writeln('\n${s.biology}:')
       ..writeln(biology)
-      ..writeln('\nПредыстория:')
+      ..writeln('\n${s.backstory}:')
       ..writeln(backstory);
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
   }
 
   static Future<void> copyNoteToClipboard({
-    required String title,
+    required BuildContext context,
     required String content,
-    List<String>? characterNames,
   }) async {
     final buffer = StringBuffer()
-      ..writeln('Заметка: $title')
-      ..writeln('\nСодержание:')
       ..writeln(content);
-
-    if (characterNames != null && characterNames.isNotEmpty) {
-      buffer
-        ..writeln('\nСвязанные персонажи:')
-        ..writeln(characterNames.join(', '));
-    }
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
   }

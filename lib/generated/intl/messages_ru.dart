@@ -22,6 +22,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(name) => "Персонаж создан из шаблона \"${name}\"";
 
+  static String m12(name) => "Персонаж \"${name}\" успешно экспортирован";
+
   static String m1(name) => "Персонаж \"${name}\" успешно импортирован";
 
   static String m2(name) => "Файл персонажа ${name}";
@@ -90,9 +92,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Удалить персонажа?"),
         "character_deleted":
             MessageLookupByLibrary.simpleMessage("Персонаж удален"),
+        "character_exported": m12,
         "character_gallery":
             MessageLookupByLibrary.simpleMessage("Галерея персонажа"),
         "character_imported": m1,
+        "character_management":
+            MessageLookupByLibrary.simpleMessage("Управление персонажами"),
         "character_reference":
             MessageLookupByLibrary.simpleMessage("Референс персонажа"),
         "character_share_text": m2,
@@ -130,6 +135,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Создать персонажа"),
         "create_from_template_tooltip":
             MessageLookupByLibrary.simpleMessage("Создать из шаблона"),
+        "create_template":
+            MessageLookupByLibrary.simpleMessage("Создать шаблон"),
         "create_template_tooltip":
             MessageLookupByLibrary.simpleMessage("Создать шаблон"),
         "custom_fields":
@@ -156,7 +163,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "error": MessageLookupByLibrary.simpleMessage("Ошибка"),
         "error_loading_notes": MessageLookupByLibrary.simpleMessage(
             "Ошибка загрузки связанных постов"),
-        "export": MessageLookupByLibrary.simpleMessage("Экспорт"),
+        "export": MessageLookupByLibrary.simpleMessage("Экспорт в PDF"),
         "export_error": MessageLookupByLibrary.simpleMessage("Ошибка экспорта"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
         "fields_count": m4,
@@ -292,8 +299,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "select_template_file":
             MessageLookupByLibrary.simpleMessage("Выберите файл шаблона"),
         "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
-        "share_character":
-            MessageLookupByLibrary.simpleMessage("Поделиться персонажем"),
+        "share_character": MessageLookupByLibrary.simpleMessage("Поделиться"),
         "short_name": MessageLookupByLibrary.simpleMessage("Короткое имя"),
         "standard_fields":
             MessageLookupByLibrary.simpleMessage("Стандартные поля"),

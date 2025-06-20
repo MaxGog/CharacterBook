@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
@@ -10,6 +9,7 @@ import '../models/race_model.dart';
 import '../models/template_model.dart';
 
 class FilePickerService {
+
   Future<File?> _pickFileNative({String? fileExtension}) async {
     if (kIsWeb) return null;
 
@@ -27,9 +27,9 @@ class FilePickerService {
         return File(filePath);
       }
     } on PlatformException catch (e) {
-      throw Exception('Ошибка выбора файла: ${e.message}');
+      throw Exception(e);
     } catch (e) {
-      throw Exception('Ошибка выбора файла: $e');
+      throw Exception(e);
     }
     return null;
   }
@@ -42,7 +42,7 @@ class FilePickerService {
     final filePickerChannel = const MethodChannel('file_picker');
     try {
       return await filePickerChannel.invokeMethod<String>('pickFile', {
-        'dialogTitle': 'Выберите файл',
+        'dialogTitle': 'Select the file',
         'fileExtension': fileExtension,
       });
     } on PlatformException catch (e) {
@@ -79,7 +79,7 @@ class FilePickerService {
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       return Character.fromJson(jsonMap);
     } catch (e) {
-      throw Exception('Ошибка импорта: ${e.toString()}');
+      throw Exception(e);
     }
   }
 
@@ -112,7 +112,7 @@ class FilePickerService {
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       return Race.fromJson(jsonMap);
     } catch (e) {
-      throw Exception('Ошибка импорта расы: ${e.toString()}');
+      throw Exception(e);
     }
   }
 
@@ -144,12 +144,10 @@ class FilePickerService {
         return null;
       }
 
-      debugPrint('JSON content start: ${jsonStr.substring(0, min(100, jsonStr.length))}...');
-
       final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
       return QuestionnaireTemplate.fromJson(jsonMap);
-    } catch (e, stackTrace) {
-      throw Exception('Ошибка импорта шаблона: ${e.toString()}');
+    } catch (e) {
+      throw Exception(e);
     }
   }
 }

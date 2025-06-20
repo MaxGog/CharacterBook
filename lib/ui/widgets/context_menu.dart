@@ -81,6 +81,7 @@ class ContextMenu extends StatelessWidget {
       if (item is Character) {
         final character = item as Character;
         await ClipboardService.copyCharacterToClipboard(
+          context: context,
           name: character.name,
           age: character.age,
           gender: character.gender,
@@ -95,6 +96,7 @@ class ContextMenu extends StatelessWidget {
       } else if (item is Race) {
         final race = item as Race;
         await ClipboardService.copyRaceToClipboard(
+          context: context,
           name: race.name,
           description: race.description,
           biology: race.biology,

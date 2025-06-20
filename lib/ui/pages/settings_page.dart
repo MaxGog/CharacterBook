@@ -353,7 +353,7 @@ class SettingsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                s.language.toUpperCase(),
+                s.appLanguage.toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),

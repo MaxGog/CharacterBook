@@ -98,15 +98,14 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   Future<void> _copyToClipboard() async {
     final charactersBox = Hive.box<Character>('characters');
-    final characterNames = _selectedCharacterIds.map((id) {
+    final _ = _selectedCharacterIds.map((id) {
       final character = charactersBox.get(id);
       return character?.name ?? S.of(context).no_data_found;
     }).toList();
 
     await ClipboardService.copyNoteToClipboard(
-      title: _titleController.text,
+      context: context,
       content: _contentController.text,
-      characterNames: characterNames.isNotEmpty ? characterNames : null,
     );
 
     if (mounted) {
@@ -214,7 +213,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
     return CustomTextField(
       key: _contentFieldKey,
       controller: _contentController,
-      label: '${S.of(context).description} (${S.of(context).no_content})',
+      label: S.of(context).description,
       maxLines: null,
       alignLabel: true,
       keyboardType: TextInputType.multiline,
