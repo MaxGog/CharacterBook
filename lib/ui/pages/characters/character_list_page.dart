@@ -32,27 +32,12 @@ class _CharacterListPageState extends State<CharacterListPage> {
 
   List<String> _generateTags(List<Character> characters) {
     final s = S.of(context);
-    final tags = <String>{};
-
-    tags.addAll([s.male, s.female, s.another]);
-
-    final ageTags = {
-      s.children: (age) => age < 18,
-      s.young: (age) => age < 30,
-      s.adults: (age) => age < 50,
-      s.elderly: (age) => age >= 50,
-    };
-
-    tags.add(s.short_name);
-
-    final sortTags = [
-      s.a_to_z,
-      s.z_to_a,
-      s.age_asc,
-      s.age_desc,
+    return [
+      s.male, s.female, s.another,
+      s.children, s.young, s.adults, s.elderly,
+      s.short_name,
+      s.a_to_z, s.z_to_a, s.age_asc, s.age_desc
     ];
-
-    return [...tags, ...sortTags];
   }
 
   void _filterCharacters(String query, List<Character> allCharacters) {
@@ -62,24 +47,28 @@ class _CharacterListPageState extends State<CharacterListPage> {
       List<Character> filtered = allCharacters.where((character) {
         final matchesSearch = query.isEmpty ||
             character.name.toLowerCase().contains(query.toLowerCase()) ||
-            character.age.toString().contains(query) ||
-            s.male.toLowerCase().contains(query.toLowerCase()) ||
-            s.female.toLowerCase().contains(query.toLowerCase()) ||
-            s.another.toLowerCase().contains(query.toLowerCase());
+            character.age.toString().contains(query);
 
-        final matchesTag = _selectedTag == null ||
-            _selectedTag == s.a_to_z ||
-            _selectedTag == s.z_to_a ||
-            _selectedTag == s.age_asc ||
-            _selectedTag == s.age_desc ||
-            _selectedTag == s.short_name && character.name.length <= 4 ||
-            (_selectedTag == s.male && character.gender == 'male') ||
-            (_selectedTag == s.female && character.gender == 'female') ||
-            (_selectedTag == s.another && character.gender == 'another') ||
-            (_selectedTag == s.children && character.age < 18) ||
-            (_selectedTag == s.young && character.age < 30) ||
-            (_selectedTag == s.adults && character.age < 50) ||
-            (_selectedTag == s.elderly && character.age >= 50);
+        bool matchesTag = true;
+        if (_selectedTag != null) {
+          if (_selectedTag == s.male) {
+            matchesTag = character.gender == 'male';
+          } else if (_selectedTag == s.female) {
+            matchesTag = character.gender == 'female';
+          } else if (_selectedTag == s.another) {
+            matchesTag = character.gender == 'another';
+          } else if (_selectedTag == s.short_name) {
+            matchesTag = character.name.length <= 4;
+          } else if (_selectedTag == s.children) {
+            matchesTag = character.age < 18;
+          } else if (_selectedTag == s.young) {
+            matchesTag = character.age < 30;
+          } else if (_selectedTag == s.adults) {
+            matchesTag = character.age < 50;
+          } else if (_selectedTag == s.elderly) {
+            matchesTag = character.age >= 50;
+          }
+        }
 
         return matchesSearch && matchesTag;
       }).toList();
