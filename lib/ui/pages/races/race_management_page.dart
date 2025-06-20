@@ -177,6 +177,7 @@ class _RaceManagementPageState extends State<RaceManagementPage> {
                 const SizedBox(height: 32),
                 SaveButton(
                   onPressed: _saveRace,
+                  text: S.of(context).save_race
                 ),
               ],
             ),
