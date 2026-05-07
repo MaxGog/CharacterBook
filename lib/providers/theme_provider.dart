@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -314,13 +315,34 @@ class ThemeProvider with ChangeNotifier {
     );
   }
 
-  ThemeData get lightTheme => ThemeData(
-        colorScheme: _colorScheme(Brightness.light),
-        useMaterial3: true,
-      );
+  ThemeData get lightTheme {
+    final colorScheme = _colorScheme(Brightness.light);
+    return ThemeData(
+      colorScheme: colorScheme,
+      useMaterial3: true,
+      appBarTheme: AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
+      ),
+    );
+  }
 
-  ThemeData get darkTheme => ThemeData(
-        colorScheme: _colorScheme(Brightness.dark),
-        useMaterial3: true,
-      );
+
+  ThemeData get darkTheme {
+    final colorScheme = _colorScheme(Brightness.dark);
+    return ThemeData(
+      colorScheme: colorScheme,
+      useMaterial3: true,
+      appBarTheme: AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
+      ),
+    );
+  }
 }
