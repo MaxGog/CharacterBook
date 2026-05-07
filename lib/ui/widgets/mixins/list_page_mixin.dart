@@ -12,6 +12,7 @@ mixin ListPageMixin<T extends StatefulWidget> on State<T> {
   bool isImporting = false;
   bool isFabVisible = true;
   bool isTagsVisible = true;
+  bool isGroupByTagMode = false;
   String? errorMessage;
 
   static const Duration animationDuration = Duration(milliseconds: 300);
@@ -45,6 +46,12 @@ mixin ListPageMixin<T extends StatefulWidget> on State<T> {
     } else if (direction == ScrollDirection.forward) {
       _showControls();
     }
+  }
+
+  void toggleGroupByTagMode() {
+    setState(() {
+      isGroupByTagMode = !isGroupByTagMode;
+    });
   }
 
   void _showControls() {

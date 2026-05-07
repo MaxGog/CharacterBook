@@ -1,6 +1,5 @@
 import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/services/folder_service.dart';
-import 'package:characterbook/ui/widgets/folders/folder_selector_widget.dart';
 import 'package:characterbook/ui/widgets/tags/tags_input_widget.dart';
 import 'package:flutter/material.dart';
 

@@ -15,6 +15,7 @@ import 'package:characterbook/ui/widgets/items/race_card_item.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
+import 'package:characterbook/ui/widgets/list/grouped_tag_list.dart';
 import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
 import 'package:characterbook/ui/widgets/mixins/list_page_mixin.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,6 @@ class RaceListScreen extends StatefulWidget {
 
 class _RaceListScreenState extends State<RaceListScreen>
     with ListPageMixin<RaceListScreen> {
-
   final Box<Character> _charactersBox = Hive.box<Character>('characters');
 
   List<String> _getTags(BuildContext context, RaceListController controller) {
@@ -63,6 +63,11 @@ class _RaceListScreenState extends State<RaceListScreen>
         controller.setSelectedTag(tag);
       }
     }
+  }
+
+  void _toggleGroupMode(RaceListController controller) {
+    toggleGroupByTagMode();
+    controller.setSelectedTag(null);
   }
 
   Future<bool> _isRaceUsed(Race race) async {
@@ -105,45 +110,45 @@ class _RaceListScreenState extends State<RaceListScreen>
   }
 
   void _showRaceContextMenu(Race race, BuildContext context,
-    RaceListController controller, RaceService service) {
-  final s = S.of(context);
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) => ContextMenu.race(
-      race: race,
-      onEdit: () => _editRace(context, race),
-      onDelete: () => _deleteRace(race, controller, service),
-      onShare: () {
-        ShareOptionsDialog.show(
-          context,
-          onCopy: () async {
-            try {
-              await controller.raceClipboardText(race, context);
-              if (context.mounted) showSnackBar(s.copied_to_clipboard);
-            } catch (e) {
-              if (context.mounted) showSnackBar('${s.copy_error}: $e');
-            }
-          },
-          onShareFile: () async {
-            try {
-              await controller.shareRaceAsFile(race);
-            } catch (e) {
-              if (context.mounted) showSnackBar('${s.error}: $e');
-            }
-          },
-          onExportPdf: () async {
-            try {
-              await controller.exportRaceToPdf(race, context);
-            } catch (e) {
-              if (context.mounted) showSnackBar('${s.export_error}: $e');
-            }
-          },
-        );
-      },
-    ),
-  );
-}
+      RaceListController controller, RaceService service) {
+    final s = S.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ContextMenu.race(
+        race: race,
+        onEdit: () => _editRace(context, race),
+        onDelete: () => _deleteRace(race, controller, service),
+        onShare: () {
+          ShareOptionsDialog.show(
+            context,
+            onCopy: () async {
+              try {
+                await controller.raceClipboardText(race, context);
+                if (context.mounted) showSnackBar(s.copied_to_clipboard);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.copy_error}: $e');
+              }
+            },
+            onShareFile: () async {
+              try {
+                await controller.shareRaceAsFile(race);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.error}: $e');
+              }
+            },
+            onExportPdf: () async {
+              try {
+                await controller.exportRaceToPdf(race, context);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.export_error}: $e');
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
 
   Future<void> _editRace(BuildContext context, Race race) async {
     await showModalBottomSheet(
@@ -209,76 +214,130 @@ class _RaceListScreenState extends State<RaceListScreen>
               onSearchChanged: (query) => controller.setSearchQuery(query),
             ),
             body: Column(
-                children: [
-                  ListStateIndicator(
-                    isLoading: isImporting || controller.isLoading,
-                    errorMessage: errorMessage ?? controller.error,
-                    onErrorClose: () {
-                      setState(() => errorMessage = null);
-                    },
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        if (controller.allTags.isNotEmpty)
-                          AnimatedCrossFade(
-                            duration: Duration(milliseconds: 300),
-                            reverseDuration: Duration(milliseconds: 300),
-                            firstCurve: Curves.easeInOutCubic,
-                            secondCurve: Curves.easeInOutCubic,
-                            firstChild: Container(
-                              height: 40,
-                              child: TagFilter(
-                                tags: _getTags(context, controller),
-                                selectedTag: controller.selectedTag,
-                                onTagSelected: (tag) =>
-                                    _onTagSelected(tag, context, controller),
-                                context: context,
-                              ),
-                            ),
-                            secondChild: const SizedBox.shrink(),
-                            crossFadeState: isTagsVisible
-                                ? CrossFadeState.showFirst
-                                : CrossFadeState.showSecond,
-                          ),
-                        Expanded(
-                          child: OptimizedListView<Race>(
-                            items: controller.filteredItems,
-                            itemBuilder: (ctx, race, index) => RaceCardItem(
-                              key: ValueKey(race.key),
-                              race: race,
-                              onTap: () => _editRace(context, race),
-                              onLongPress: () => _showRaceContextMenu(
-                                  race, context, controller, service),
-                              onShare: () => service.exportToPdf(context, race),
-                              onSettings: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const SwipeActionSettingsScreen(),
+              children: [
+                ListStateIndicator(
+                  isLoading: isImporting || controller.isLoading,
+                  errorMessage: errorMessage ?? controller.error,
+                  onErrorClose: () {
+                    setState(() => errorMessage = null);
+                  },
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      if (controller.allTags.isNotEmpty)
+                        AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 300),
+                          reverseDuration: const Duration(milliseconds: 300),
+                          firstCurve: Curves.easeInOutCubic,
+                          secondCurve: Curves.easeInOutCubic,
+                          firstChild: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: ActionChip(
+                                        avatar: Icon(
+                                          isGroupByTagMode
+                                              ? Icons.folder_open
+                                              : Icons.folder_outlined,
+                                          size: 18,
+                                        ),
+                                        label: Text(
+                                          isGroupByTagMode
+                                              ? s.list_mode
+                                              : s.folder_mode,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        onPressed: () =>
+                                            _toggleGroupMode(controller),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: TagFilter(
+                                        tags: _getTags(context, controller),
+                                        selectedTag: controller.selectedTag,
+                                        onTagSelected: (tag) => _onTagSelected(
+                                            tag, context, controller),
+                                        context: context,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            onReorder: (oldIndex, newIndex) =>
-                                controller.reorder(oldIndex, newIndex),
-                            scrollController: scrollController,
-                            enableReorder:
-                                !isSearching && controller.selectedTag == null,
+                            ],
                           ),
+                          secondChild: const SizedBox.shrink(),
+                          crossFadeState: isTagsVisible
+                              ? CrossFadeState.showFirst
+                              : CrossFadeState.showSecond,
                         ),
-                      ],
-                    ),
+                      Expanded(
+                        child: isGroupByTagMode
+                            ? GroupedTagList<Race>(
+                                items: controller.filteredItems,
+                                getItemTags: (race) => race.tags,
+                                itemBuilder: (ctx, race) => RaceCardItem(
+                                  key: ValueKey(race.key),
+                                  race: race,
+                                  onTap: () => _editRace(context, race),
+                                  onLongPress: () => _showRaceContextMenu(
+                                      race, context, controller, service),
+                                  onShare: () =>
+                                      service.exportToPdf(context, race),
+                                  onSettings: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const SwipeActionSettingsScreen(),
+                                    ),
+                                  ),
+                                ),
+                                scrollController: scrollController,
+                              )
+                            : OptimizedListView<Race>(
+                                items: controller.filteredItems,
+                                itemBuilder: (ctx, race, index) => RaceCardItem(
+                                  key: ValueKey(race.key),
+                                  race: race,
+                                  onTap: () => _editRace(context, race),
+                                  onLongPress: () => _showRaceContextMenu(
+                                      race, context, controller, service),
+                                  onShare: () =>
+                                      service.exportToPdf(context, race),
+                                  onSettings: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const SwipeActionSettingsScreen(),
+                                    ),
+                                  ),
+                                ),
+                                onReorder: (oldIndex, newIndex) =>
+                                    controller.reorder(oldIndex, newIndex),
+                                scrollController: scrollController,
+                                enableReorder: !isSearching &&
+                                    controller.selectedTag == null,
+                              ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
             floatingActionButton: animatedFAB(
               CommonListFloatingButtons(
                 onImport: () => _importRace(context, service),
                 onAdd: () => _handleCreateRace(context),
                 heroTag: "race_list",
-              ), 
-              key: const ValueKey('race_fab')
-            )
+              ),
+              key: const ValueKey('race_fab'),
+            ),
           );
         },
       ),

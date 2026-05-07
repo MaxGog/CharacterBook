@@ -107,7 +107,7 @@ class _HomeFloatingMenuState extends State<HomeFloatingMenu>
       ),
       _MenuItemData(
         icon: Icons.note_add_rounded,
-        label: s.create,
+        label: s.new_note,
         onTap: () => _handleAction(widget.onCreateNote),
       ),
     ];

@@ -13,6 +13,7 @@ import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
 import 'package:characterbook/ui/widgets/buttons/common_fab_menu.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
+import 'package:characterbook/ui/widgets/list/grouped_tag_list.dart';
 import 'package:characterbook/ui/widgets/items/character_card_item.dart';
 import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
@@ -32,7 +33,6 @@ class CharacterListScreen extends StatefulWidget {
 
 class _CharacterListScreenState extends State<CharacterListScreen>
     with ListPageMixin<CharacterListScreen> {
-
   List<String> _getTags(
       BuildContext context, CharacterListController controller) {
     final s = S.of(context);
@@ -68,6 +68,13 @@ class _CharacterListScreenState extends State<CharacterListScreen>
         controller.setSelectedTag(tag);
       }
     }
+  }
+
+  // Новый метод для переключения режима со сбросом выбранного тега
+  void _toggleGroupMode(CharacterListController controller) {
+    toggleGroupByTagMode();
+    // В режиме папок фильтр по одному тегу не нужен
+    controller.setSelectedTag(null);
   }
 
   Future<void> _importCharacter(
@@ -245,19 +252,50 @@ class _CharacterListScreenState extends State<CharacterListScreen>
                   child: Column(
                     children: [
                       AnimatedCrossFade(
-                        duration: Duration(milliseconds: 300),
-                        reverseDuration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
+                        reverseDuration: const Duration(milliseconds: 300),
                         firstCurve: Curves.easeInOutCubic,
                         secondCurve: Curves.easeInOutCubic,
-                        firstChild: SizedBox(
-                          height: 40,
-                          child: TagFilter(
-                            tags: _getTags(context, controller),
-                            selectedTag: controller.selectedTag,
-                            onTagSelected: (tag) =>
-                                _onTagSelected(tag, context, controller),
-                            context: context,
-                          ),
+                        firstChild: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              height: 40,
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    child: ActionChip(
+                                      avatar: Icon(
+                                        isGroupByTagMode
+                                            ? Icons.folder_open
+                                            : Icons.folder_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        isGroupByTagMode
+                                            ? s.list_mode
+                                            : s.folder_mode,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      onPressed: () =>
+                                          _toggleGroupMode(controller),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: TagFilter(
+                                      tags: _getTags(context, controller),
+                                      selectedTag: controller.selectedTag,
+                                      onTagSelected: (tag) => _onTagSelected(
+                                          tag, context, controller),
+                                      context: context,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         secondChild: const SizedBox.shrink(),
                         crossFadeState: (controller.allTags.isNotEmpty ||
@@ -274,36 +312,69 @@ class _CharacterListScreenState extends State<CharacterListScreen>
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               )
-                            : OptimizedListView<Character>(
-                                items: controller.filteredItems,
-                                itemBuilder: (ctx, character, index) =>
-                                    CharacterCardItem(
-                                  key: ValueKey(character.key),
-                                  character: character,
-                                  isSelected: false,
-                                  onTap: () => _navigateToDetail(character),
-                                  onLongPress: () => _showCharacterContextMenu(
-                                      character, context, controller, service),
-                                  onEdit: () =>
-                                      _navigateToEdit(context, character),
-                                  onDelete: () =>
-                                      _deleteCharacter(character, controller),
-                                  onDuplicate: () =>
-                                      service.duplicateCharacter(character),
-                                  onSettings: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const SwipeActionSettingsScreen(),
+                            : isGroupByTagMode
+                                ? GroupedTagList<Character>(
+                                    items: controller.filteredItems,
+                                    getItemTags: (character) => character
+                                        .tags, // или controller.getTags(character)
+                                    itemBuilder: (ctx, character) =>
+                                        CharacterCardItem(
+                                      key: ValueKey(character.key),
+                                      character: character,
+                                      isSelected: false,
+                                      onTap: () => _navigateToDetail(character),
+                                      onLongPress: () =>
+                                          _showCharacterContextMenu(character,
+                                              context, controller, service),
+                                      onEdit: () =>
+                                          _navigateToEdit(context, character),
+                                      onDelete: () => _deleteCharacter(
+                                          character, controller),
+                                      onDuplicate: () =>
+                                          service.duplicateCharacter(character),
+                                      onSettings: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const SwipeActionSettingsScreen(),
+                                        ),
+                                      ),
+                                      onShare: () => service.exportToPdf(
+                                          context, character),
                                     ),
+                                    scrollController: scrollController,
+                                  )
+                                : OptimizedListView<Character>(
+                                    items: controller.filteredItems,
+                                    itemBuilder: (ctx, character, index) =>
+                                        CharacterCardItem(
+                                      key: ValueKey(character.key),
+                                      character: character,
+                                      isSelected: false,
+                                      onTap: () => _navigateToDetail(character),
+                                      onLongPress: () =>
+                                          _showCharacterContextMenu(character,
+                                              context, controller, service),
+                                      onEdit: () =>
+                                          _navigateToEdit(context, character),
+                                      onDelete: () => _deleteCharacter(
+                                          character, controller),
+                                      onDuplicate: () =>
+                                          service.duplicateCharacter(character),
+                                      onSettings: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const SwipeActionSettingsScreen(),
+                                        ),
+                                      ),
+                                      onShare: () => service.exportToPdf(
+                                          context, character),
+                                    ),
+                                    onReorder: (oldIndex, newIndex) =>
+                                        controller.reorder(oldIndex, newIndex),
+                                    scrollController: scrollController,
                                   ),
-                                  onShare: () =>
-                                      service.exportToPdf(context, character),
-                                ),
-                                onReorder: (oldIndex, newIndex) =>
-                                    controller.reorder(oldIndex, newIndex),
-                                scrollController: scrollController,
-                              ),
                       ),
                     ],
                   ),
@@ -319,8 +390,8 @@ class _CharacterListScreenState extends State<CharacterListScreen>
                   onTemplate: () => _createFromTemplate(context),
                   heroTag: "character_list",
                 ),
-                key: const ValueKey('character_fab')
-              )
+                key: const ValueKey('character_fab'),
+              ),
             ),
           );
         },

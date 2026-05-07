@@ -9,6 +9,7 @@ import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
+import 'package:characterbook/ui/widgets/list/grouped_tag_list.dart';
 import 'package:characterbook/ui/widgets/states/empty_notes_state.dart';
 import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
 import 'package:characterbook/ui/widgets/mixins/list_page_mixin.dart';
@@ -28,7 +29,6 @@ class NotesListScreen extends StatefulWidget {
 
 class _NotesListScreenState extends State<NotesListScreen>
     with ListPageMixin<NotesListScreen> {
-
   List<String> _getTags(BuildContext context, NoteListController controller) {
     final s = S.of(context);
     return [
@@ -57,6 +57,11 @@ class _NotesListScreenState extends State<NotesListScreen>
         controller.setSelectedTag(tag);
       }
     }
+  }
+
+  void _toggleGroupMode(NoteListController controller) {
+    toggleGroupByTagMode();
+    controller.setSelectedTag(null);
   }
 
   Future<void> _deleteNote(Note note, NoteListController controller) async {
@@ -154,89 +159,144 @@ class _NotesListScreenState extends State<NotesListScreen>
               onSearchChanged: (query) => controller.setSearchQuery(query),
             ),
             body: Column(
-                children: [
-                  ListStateIndicator(
-                    isLoading: controller.isLoading,
-                    errorMessage: errorMessage ?? controller.error,
-                    onErrorClose: () {
-                      setState(() => errorMessage = null);
+              children: [
+                ListStateIndicator(
+                  isLoading: controller.isLoading,
+                  errorMessage: errorMessage ?? controller.error,
+                  onErrorClose: () {
+                    setState(() => errorMessage = null);
+                  },
+                ),
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      final tags = _getTags(context, controller);
+                      final notesToShow = controller.filteredItems;
+
+                      if (notesToShow.isEmpty &&
+                          !isSearching &&
+                          controller.selectedTag == null) {
+                        return NotesEmptyState(isSearching: false);
+                      }
+
+                      return Column(
+                        children: [
+                          if (tags.isNotEmpty)
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 300),
+                              reverseDuration:
+                                  const Duration(milliseconds: 300),
+                              firstCurve: Curves.easeInOutCubic,
+                              secondCurve: Curves.easeInOutCubic,
+                              firstChild: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 40,
+                                    child: Row(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8),
+                                          child: ActionChip(
+                                            avatar: Icon(
+                                              isGroupByTagMode
+                                                  ? Icons.folder_open
+                                                  : Icons.folder_outlined,
+                                              size: 18,
+                                            ),
+                                            label: Text(
+                                              isGroupByTagMode
+                                                  ? s.list_mode
+                                                  : s.folder_mode,
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                            onPressed: () =>
+                                                _toggleGroupMode(controller),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: TagFilter(
+                                            tags: tags,
+                                            selectedTag: controller.selectedTag,
+                                            onTagSelected: (tag) =>
+                                                _onTagSelected(
+                                                    tag, context, controller),
+                                            context: context,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              secondChild: const SizedBox.shrink(),
+                              crossFadeState: isTagsVisible
+                                  ? CrossFadeState.showFirst
+                                  : CrossFadeState.showSecond,
+                            ),
+                          Expanded(
+                            child: notesToShow.isEmpty
+                                ? NotesEmptyState(
+                                    isSearching: isSearching &&
+                                        searchController.text.isNotEmpty,
+                                  )
+                                : isGroupByTagMode
+                                    ? GroupedTagList<Note>(
+                                        items: notesToShow,
+                                        getItemTags: (note) => note.tags,
+                                        itemBuilder: (ctx, note) =>
+                                            NoteCardItem(
+                                          key: ValueKey(note.key),
+                                          note: note,
+                                          onTap: () => _handleNoteTap(note),
+                                          onEdit: () => _editNote(note),
+                                          onLongPress: () =>
+                                              _showNoteContextMenu(
+                                                  note, controller),
+                                          onDelete: () =>
+                                              _deleteNote(note, controller),
+                                        ),
+                                        scrollController: scrollController,
+                                      )
+                                    : OptimizedListView<Note>(
+                                        items: notesToShow,
+                                        itemBuilder: (ctx, note, index) =>
+                                            NoteCardItem(
+                                          key: ValueKey(note.key),
+                                          note: note,
+                                          onTap: () => _handleNoteTap(note),
+                                          onEdit: () => _editNote(note),
+                                          onLongPress: () =>
+                                              _showNoteContextMenu(
+                                                  note, controller),
+                                          onDelete: () =>
+                                              _deleteNote(note, controller),
+                                        ),
+                                        onReorder: (oldIndex, newIndex) =>
+                                            controller.reorder(
+                                                oldIndex, newIndex),
+                                        scrollController: scrollController,
+                                        enableReorder: !isSearching &&
+                                            controller.selectedTag == null,
+                                      ),
+                          ),
+                        ],
+                      );
                     },
                   ),
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final tags = _getTags(context, controller);
-                        final notesToShow = controller.filteredItems;
-
-                        if (notesToShow.isEmpty &&
-                            !isSearching &&
-                            controller.selectedTag == null) {
-                          return NotesEmptyState(isSearching: false);
-                        }
-
-                        return Column(
-                          children: [
-                            if (tags.isNotEmpty)
-                              AnimatedCrossFade(
-                                duration: Duration(milliseconds: 300),
-                                reverseDuration: Duration(milliseconds: 300),
-                                firstCurve: Curves.easeInOutCubic,
-                                secondCurve: Curves.easeInOutCubic,
-                                firstChild: SizedBox(
-                                  height: 40,
-                                  child: TagFilter(
-                                    tags: tags,
-                                    selectedTag: controller.selectedTag,
-                                    onTagSelected: (tag) => _onTagSelected(
-                                        tag, context, controller),
-                                    context: context,
-                                  ),
-                                ),
-                                secondChild: const SizedBox.shrink(),
-                                crossFadeState: isTagsVisible
-                                    ? CrossFadeState.showFirst
-                                    : CrossFadeState.showSecond,
-                              ),
-                            Expanded(
-                              child: notesToShow.isEmpty
-                                  ? NotesEmptyState(
-                                      isSearching: isSearching &&
-                                          searchController.text.isNotEmpty,
-                                    )
-                                  : OptimizedListView<Note>(
-                                      items: notesToShow,
-                                      itemBuilder: (ctx, note, index) =>
-                                          NoteCardItem(
-                                            key: ValueKey(note.key),
-                                            note: note,
-                                            onTap: () => _handleNoteTap(note),
-                                            onEdit: () => _editNote(note),
-                                            onLongPress: () => _showNoteContextMenu(note, controller),
-                                            onDelete: () =>_deleteNote(note, controller),
-                                          ),
-                                      onReorder: (oldIndex, newIndex) =>
-                                          controller.reorder(
-                                              oldIndex, newIndex),
-                                      scrollController: scrollController,
-                                      enableReorder: !isSearching &&
-                                          controller.selectedTag == null,
-                                    ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
             floatingActionButton: animatedFAB(
               CommonListFloatingButtons(
-                  showImportButton: false,
-                  onAdd: _openNoteCreation,
-                  heroTag: "note_list",
-              ), 
-              key: const ValueKey('note_fab')
-            )
+                showImportButton: false,
+                onAdd: _openNoteCreation,
+                heroTag: "note_list",
+              ),
+              key: const ValueKey('note_fab'),
+            ),
           );
         },
       ),
