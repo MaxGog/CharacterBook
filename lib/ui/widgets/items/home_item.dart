@@ -48,7 +48,7 @@ class ToolHomeItem extends HomeItem {
       case ToolType.calendar:
         return s.calendar;
       case ToolType.relationships:
-        return "s.relationships";
+        return s.relationships;
     }
   }
 

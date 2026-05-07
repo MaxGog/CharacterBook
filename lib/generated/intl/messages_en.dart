@@ -448,6 +448,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Auto-recovery attempted. Reinstall if error persists."),
         "reference_image": MessageLookupByLibrary.simpleMessage("Reference"),
         "related_notes": MessageLookupByLibrary.simpleMessage("Related"),
+        "relationships": MessageLookupByLibrary.simpleMessage("Relationships"),
         "replace": MessageLookupByLibrary.simpleMessage("Replace"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Required"),

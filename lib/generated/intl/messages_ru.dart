@@ -620,6 +620,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "reference_image": MessageLookupByLibrary.simpleMessage("Референс"),
         "related_notes":
             MessageLookupByLibrary.simpleMessage("Связанные заметки"),
+        "relationships":
+            MessageLookupByLibrary.simpleMessage("Cвязи между персонажами"),
         "replace": MessageLookupByLibrary.simpleMessage("Заменить"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Обязательное поле"),

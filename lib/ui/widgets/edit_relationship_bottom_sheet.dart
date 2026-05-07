@@ -59,23 +59,20 @@ class _EditRelationshipBottomSheetState
 
     final unique = characters.toSet().toList();
 
-    debugPrint('Загружено персонажей: ${unique.length}');
-    for (var c in unique) {
-      debugPrint(' - ${c.name} (${c.id})');
-    }
-
     setState(() {
       _characters = unique;
       _isLoading = false;
 
       final rel = widget.relationship;
       if (rel != null) {
-        _character1 = unique.firstWhere(
-          (c) => c.id == rel.character1Id,
-        ) as Character?;
-        _character2 = unique.firstWhere(
-          (c) => c.id == rel.character2Id,
-        ) as Character?;
+        _character1 = unique.cast<Character?>().firstWhere(
+              (c) => c!.id == rel.character1Id,
+              orElse: () => null,
+            );
+        _character2 = unique.cast<Character?>().firstWhere(
+              (c) => c!.id == rel.character2Id,
+              orElse: () => null,
+            );
       }
     });
   }
@@ -137,181 +134,251 @@ class _EditRelationshipBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
+      margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.relationship == null
-                ? 'Создание связи'
-                : 'Редактирование связи',
-            style: Theme.of(context).textTheme.headlineSmall,
-            textAlign: TextAlign.center,
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Column(
-                        children: [
-                          DropdownButtonFormField<Character>(
-                            value: _character1,
-                            isExpanded: true,
-                            items: _characters?.map((c) {
-                              return DropdownMenuItem<Character>(
-                                key: ValueKey(c.id),
-                                value: c,
-                                child: Row(
-                                  children: [
-                                    _buildCharacterAvatar(c),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(c.name)),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _character1 = value;
-                                // Если выбрали того же, что и во втором поле, сбросим второе?
-                                if (_character2 != null &&
-                                    value != null &&
-                                    _character2!.id == value.id) {
-                                  _character2 = null;
-                                }
-                              });
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Персонаж 1',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) =>
-                                value == null ? 'Выберите персонажа' : null,
-                          ),
-                          const SizedBox(height: 12),
-                          DropdownButtonFormField<Character>(
-                            value: _character2,
-                            isExpanded: true,
-                            items: _characters?.map((c) {
-                              return DropdownMenuItem<Character>(
-                                key: ValueKey(c.id),
-                                value: c,
-                                child: Row(
-                                  children: [
-                                    _buildCharacterAvatar(c),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(c.name)),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _character2 = value;
-                                if (_character1 != null &&
-                                    value != null &&
-                                    _character1!.id == value.id) {
-                                  _character1 = null;
-                                }
-                              });
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Персонаж 2',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) =>
-                                value == null ? 'Выберите персонажа' : null,
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: _initialName,
-                            decoration: const InputDecoration(
-                              labelText: 'Название связи',
-                              border: OutlineInputBorder(),
-                            ),
-                            onSaved: (val) => _name = val ?? '',
-                            validator: (val) => val?.trim().isEmpty == true
-                                ? 'Введите название'
-                                : null,
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: _initialDescription,
-                            decoration: const InputDecoration(
-                              labelText: 'Описание',
-                              border: OutlineInputBorder(),
-                            ),
-                            maxLines: 3,
-                            onSaved: (val) => _description = val ?? '',
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: _initialType,
-                            decoration: const InputDecoration(
-                              labelText: 'Тип (необязательно)',
-                              border: OutlineInputBorder(),
-                            ),
-                            onSaved: (val) => _type = val ?? '',
-                          ),
-                          const SizedBox(height: 8),
-                          CheckboxListTile(
-                            title: const Text('Направленная связь'),
-                            value: _directed,
-                            onChanged: (val) =>
-                                setState(() => _directed = val ?? false),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ],
-                      ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 32,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Отмена'),
+            // Заголовок
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Text(
+                widget.relationship == null
+                    ? 'Создание связи'
+                    : 'Редактирование связи',
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _save,
-                child: const Text('Сохранить'),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                child: Form(
+                  key: _formKey,
+                  child: _isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildCharacterDropdown(
+                              label: 'Персонаж 1',
+                              value: _character1,
+                              onChanged: (val) {
+                                setState(() {
+                                  _character1 = val;
+                                  if (_character2 != null &&
+                                      val != null &&
+                                      _character2!.id == val.id) {
+                                    _character2 = null;
+                                  }
+                                });
+                              },
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildCharacterDropdown(
+                              label: 'Персонаж 2',
+                              value: _character2,
+                              onChanged: (val) {
+                                setState(() {
+                                  _character2 = val;
+                                  if (_character1 != null &&
+                                      val != null &&
+                                      _character1!.id == val.id) {
+                                    _character1 = null;
+                                  }
+                                });
+                              },
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              initialValue: _initialName,
+                              decoration: InputDecoration(
+                                labelText: 'Название связи',
+                                border: const OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: colorScheme.primary, width: 2),
+                                ),
+                              ),
+                              style: textTheme.bodyLarge,
+                              onSaved: (val) => _name = val ?? '',
+                              validator: (val) => val?.trim().isEmpty == true
+                                  ? 'Введите название'
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              initialValue: _initialDescription,
+                              decoration: InputDecoration(
+                                labelText: 'Описание',
+                                border: const OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: colorScheme.primary, width: 2),
+                                ),
+                              ),
+                              maxLines: 3,
+                              style: textTheme.bodyLarge,
+                              onSaved: (val) => _description = val ?? '',
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              initialValue: _initialType,
+                              decoration: InputDecoration(
+                                labelText: 'Тип (необязательно)',
+                                border: const OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: colorScheme.primary, width: 2),
+                                ),
+                              ),
+                              style: textTheme.bodyLarge,
+                              onSaved: (val) => _type = val ?? '',
+                            ),
+                            const SizedBox(height: 4),
+                            CheckboxListTile(
+                              title: Text(
+                                'Направленная связь',
+                                style: textTheme.bodyLarge,
+                              ),
+                              value: _directed,
+                              onChanged: (val) =>
+                                  setState(() => _directed = val ?? false),
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: EdgeInsets.zero,
+                              activeColor: colorScheme.primary,
+                              checkColor: colorScheme.onPrimary,
+                            ),
+                          ],
+                        ),
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.onSurface,
+                      side: BorderSide(color: colorScheme.outline),
+                    ),
+                    child: const Text('Отмена'),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: _save,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                    ),
+                    child: const Text('Сохранить'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCharacterAvatar(Character character) {
+  Widget _buildCharacterDropdown({
+    required String label,
+    required Character? value,
+    required void Function(Character?) onChanged,
+    required ColorScheme colorScheme,
+    required TextTheme textTheme,
+  }) {
+    return DropdownButtonFormField<Character>(
+      value: value,
+      isExpanded: true,
+      items: _characters?.map((c) {
+            return DropdownMenuItem<Character>(
+              key: ValueKey(c.id),
+              value: c,
+              child: Row(
+                children: [
+                  _buildCharacterAvatar(c, colorScheme),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      c.name,
+                      style: textTheme.bodyLarge,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList() ??
+          [],
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+      ),
+      validator: (value) => value == null ? 'Выберите персонажа' : null,
+      dropdownColor: colorScheme.surfaceContainerHigh,
+      icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
+    );
+  }
+
+  Widget _buildCharacterAvatar(Character character, ColorScheme colorScheme) {
     final hasAvatar = character.imageBytes != null;
     return CircleAvatar(
       radius: 14,
-      backgroundColor: hasAvatar ? null : Theme.of(context).primaryColor,
+      backgroundColor: hasAvatar ? null : colorScheme.primaryContainer,
       backgroundImage: hasAvatar ? MemoryImage(character.imageBytes!) : null,
       child: !hasAvatar
           ? Text(
               character.name.isNotEmpty ? character.name[0].toUpperCase() : '?',
-              style: const TextStyle(fontSize: 12, color: Colors.white),
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.bold,
+              ),
             )
           : null,
     );

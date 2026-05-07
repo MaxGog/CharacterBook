@@ -11,13 +11,23 @@ class RelationshipsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final characterRepo = Provider.of<CharacterRepository>(context);
-    final relationshipService = Provider.of<RelationshipService>(context);
+    final characterRepo = context.watch<CharacterRepository>();
+    final relationshipService = context.watch<RelationshipService>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Связи персонажей'),
+        title: Text(
+          'Связи персонажей',
+          style: textTheme.headlineSmall?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
         centerTitle: true,
+        elevation: 0,
+        scrolledUnderElevation: 3,
+        backgroundColor: colorScheme.surface,
       ),
       body: StreamBuilder<List<Character>>(
         stream: characterRepo.watchAll(),
@@ -36,107 +46,15 @@ class RelationshipsScreen extends StatelessWidget {
               }
               final relationships = relSnapshot.data!;
 
-              if (relationships.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.people_outline,
-                        size: 64,
-                        color: Theme.of(context).disabledColor,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Пока нет ни одной связи',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Нажмите на кнопку +, чтобы добавить',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                itemCount: relationships.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final rel = relationships[index];
-                  final char1 = characterMap[rel.character1Id];
-                  final char2 = characterMap[rel.character2Id];
-                  final name1 = char1?.name ?? 'Неизвестный';
-                  final name2 = char2?.name ?? 'Неизвестный';
-
-                  return Dismissible(
-                    key: Key(rel.id),
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 20),
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    direction: DismissDirection.endToStart,
-                    confirmDismiss: (_) async {
-                      return await showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Удалить связь?'),
-                          content: Text(
-                              'Вы уверены, что хотите удалить «${rel.name}»?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Отмена'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red),
-                              child: const Text('Удалить'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    onDismissed: (_) =>
-                        relationshipService.deleteRelationship(rel),
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        leading: SizedBox(
-                          width: 56,
-                          child: _buildCharacterPairAvatar(char1, char2),
-                        ),
-                        title: Text(
-                          rel.name,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle:
-                            Text('$name1 ${rel.directed ? '→' : '↔'} $name2'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _editRelationship(context, rel),
-                          tooltip: 'Редактировать',
-                        ),
-                        onTap: () => _editRelationship(context, rel),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildBody(
+                  context,
+                  relationships,
+                  characterMap,
+                  colorScheme,
+                  textTheme,
+                ),
               );
             },
           );
@@ -144,28 +62,189 @@ class RelationshipsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addRelationship(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
         label: const Text('Добавить связь'),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
     );
   }
 
-  Widget _buildCharacterPairAvatar(Character? char1, Character? char2) {
+  Widget _buildBody(
+    BuildContext context,
+    List<Relationship> relationships,
+    Map<String, Character> characterMap,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    if (relationships.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.people_outline_rounded,
+                size: 88,
+                color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Пока нет ни одной связи',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Нажмите на кнопку +, чтобы добавить',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      itemCount: relationships.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final rel = relationships[index];
+        final char1 = characterMap[rel.character1Id];
+        final char2 = characterMap[rel.character2Id];
+        final name1 = char1?.name ?? 'Неизвестный';
+        final name2 = char2?.name ?? 'Неизвестный';
+
+        return Dismissible(
+          key: Key(rel.id),
+          background: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.errorContainer,
+                  colorScheme.error,
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            child: Icon(
+              Icons.delete_outline,
+              color: colorScheme.onError,
+              size: 28,
+            ),
+          ),
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (_) async {
+            return await showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Удалить связь?'),
+                content: Text('Вы уверены, что хотите удалить «${rel.name}»?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Отмена'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.error,
+                    ),
+                    child: const Text('Удалить'),
+                  ),
+                ],
+              ),
+            );
+          },
+          onDismissed: (_) =>
+              context.read<RelationshipService>().deleteRelationship(rel),
+          child: Card(
+            elevation: 1,
+            shadowColor: colorScheme.shadow.withOpacity(0.2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: colorScheme.surfaceContainerLow,
+            child: ListTile(
+              leading: SizedBox(
+                width: 56,
+                child: _buildCharacterPairAvatar(
+                  char1,
+                  char2,
+                  colorScheme,
+                ),
+              ),
+              title: Text(
+                rel.name,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              subtitle: Text(
+                '$name1 ${rel.directed ? '→' : '↔'} $name2',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              trailing: IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: colorScheme.primary,
+                ),
+                onPressed: () => _editRelationship(context, rel),
+                tooltip: 'Редактировать',
+              ),
+              onTap: () => _editRelationship(context, rel),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 4,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCharacterPairAvatar(
+    Character? char1,
+    Character? char2,
+    ColorScheme colorScheme,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildAvatar(char1, radius: 12),
-        const SizedBox(width: 4),
-        _buildAvatar(char2, radius: 12),
+        _buildAvatar(char1, colorScheme, radius: 12),
+        const SizedBox(width: 2),
+        _buildAvatar(char2, colorScheme, radius: 12),
       ],
     );
   }
 
-  Widget _buildAvatar(Character? character, {double radius = 20}) {
+  Widget _buildAvatar(
+    Character? character,
+    ColorScheme colorScheme, {
+    double radius = 20,
+  }) {
     final hasAvatar = character?.imageBytes != null;
     return CircleAvatar(
       radius: radius,
-      backgroundColor: Colors.grey.shade300,
+      backgroundColor: hasAvatar ? null : colorScheme.primaryContainer,
       backgroundImage: hasAvatar ? MemoryImage(character!.imageBytes!) : null,
       child: !hasAvatar && character != null
           ? Text(
@@ -173,12 +252,16 @@ class RelationshipsScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: radius * 0.8,
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onPrimaryContainer,
               ),
             )
           : (character == null
               ? Text(
                   '?',
-                  style: TextStyle(fontSize: radius * 0.8),
+                  style: TextStyle(
+                    fontSize: radius * 0.8,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
                 )
               : null),
     );

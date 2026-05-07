@@ -5176,6 +5176,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Cвязи между персонажами`
+  String get relationships {
+    return Intl.message(
+      'Cвязи между персонажами',
+      name: 'relationships',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -690,15 +690,6 @@ class _ToolMaterialCard extends StatelessWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    if (tool.getSubtitle(context).isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        tool.getSubtitle(context),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
