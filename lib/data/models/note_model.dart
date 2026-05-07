@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:hive/hive.dart';
 
 part 'note_model.g.dart';
@@ -5,7 +7,7 @@ part 'note_model.g.dart';
 @HiveType(typeId: 2)
 class Note extends HiveObject {
   @HiveField(0)
-  final String id;
+  String id;
 
   @HiveField(1)
   String title;
@@ -29,7 +31,7 @@ class Note extends HiveObject {
   String? folderId;
 
   Note({
-    required this.id,
+    String? id,
     required this.title,
     required this.content,
     DateTime? createdAt,
@@ -37,7 +39,8 @@ class Note extends HiveObject {
     this.tags = const [],
     this.characterIds = const [],
     required this.folderId,
-  })  : createdAt = createdAt ?? DateTime.now(),
+  })  : id = (id == null || id.isEmpty) ? _generateUniqueId() : id,
+        createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
   Map<String, dynamic> toJson() => {
@@ -59,6 +62,12 @@ class Note extends HiveObject {
     characterIds: List<String>.from(json['characterIds'] ?? []),
     folderId: json['folderId']
   );
+
+  static String _generateUniqueId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(1000000);
+    return '${timestamp}_$random';
+  }
 
   Note copyWith({
     String? id,

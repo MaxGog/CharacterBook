@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
@@ -46,7 +48,7 @@ class Race extends HiveObject {
     List<String>? tags,
     List<Uint8List>? additionalImages,
     DateTime? lastEdited,
-  })  : id = id ?? '',
+  })  : id = (id == null || id.isEmpty) ? _generateUniqueId() : id,
         name = name ?? '',
         description = description ?? '',
         biology = biology ?? '',
@@ -102,7 +104,9 @@ class Race extends HiveObject {
 
   factory Race.fromJson(Map<String, dynamic> json) {
     return Race(
-      id: json['id'] as String?,
+      id: (json['id'] as String?)?.isNotEmpty == true
+          ? json['id']
+          : _generateUniqueId(),
       name: json['name'] as String?,
       description: json['description'] as String?,
       biology: json['biology'] as String?,
@@ -149,6 +153,12 @@ class Race extends HiveObject {
   }
 
   Uint8List? get mainImage => logo;
+
+  static String _generateUniqueId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(1000000);
+    return '${timestamp}_$random';
+  }
 
   Map<String, dynamic> toExportMap() {
     return {

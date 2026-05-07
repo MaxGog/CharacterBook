@@ -76,7 +76,7 @@ class Character extends HiveObject {
     List<Uint8List>? additionalImages,
     DateTime? lastEdited,
     this.folderId,
-  })  : id = id ?? _generateUniqueId(),
+  })  : id = (id == null || id.isEmpty) ? _generateUniqueId() : id,
         customFields = customFields ?? [],
         additionalImages = additionalImages ?? [],
         lastEdited = lastEdited ?? DateTime.now(),
@@ -117,7 +117,9 @@ class Character extends HiveObject {
   /// Десериализация из JSON.
   factory Character.fromJson(Map<String, dynamic> json) {
     return Character(
-      id: json['id'] ?? '',
+      id: (json['id'] as String?)?.isNotEmpty == true
+          ? json['id']
+          : _generateUniqueId(),
       name: json['name'] ?? '',
       age: json['age'] ?? 0,
       gender: json['gender'] ?? '',
