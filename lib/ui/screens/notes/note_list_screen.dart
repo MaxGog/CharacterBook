@@ -2,17 +2,17 @@ import 'package:characterbook/data/enums/note_sort_enum.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
-import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/note_list_controller.dart';
-import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
 import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
 import 'package:characterbook/ui/widgets/buttons/common_fab_menu.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
 import 'package:characterbook/ui/widgets/states/empty_notes_state.dart';
 import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
 import 'package:characterbook/ui/widgets/mixins/list_page_mixin.dart';
+import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -94,6 +94,38 @@ class _NotesListScreenState extends State<NotesListScreen>
     );
   }
 
+  void _showNoteContextMenu(Note note, NoteListController controller) {
+    final s = S.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ContextMenu.note(
+        note: note,
+        onEdit: () => _editNote(note),
+        onDelete: () => _deleteNote(note, controller),
+        onShare: () {
+          ShareOptionsDialog.show(
+            context,
+            onCopy: () async {
+              try {
+                await controller.noteClipboardText(note, context);
+                if (context.mounted) showSnackBar(s.copied_to_clipboard);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.copy_error}: $e');
+              }
+            },
+            onShareFile: () async {
+              try {
+                await controller.shareNoteAsFile(note);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.error}: $e');
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +135,6 @@ class _NotesListScreenState extends State<NotesListScreen>
       ),
       child: Consumer<NoteListController>(
         builder: (context, controller, child) {
-          final service = context.read<NoteService>();
           final s = S.of(context);
           return Scaffold(
             appBar: CommonMainAppBar(
@@ -180,39 +211,8 @@ class _NotesListScreenState extends State<NotesListScreen>
                                             note: note,
                                             onTap: () => _handleNoteTap(note),
                                             onEdit: () => _editNote(note),
-                                            onDelete: () =>
-                                                _deleteNote(note, controller),
-                                            onCopy: () async {
-                                              try {
-                                                await controller.noteClipboardText(
-                                                    note, context);
-                                                if (context.mounted)
-                                                  showSnackBar(S
-                                                      .of(context)
-                                                      .copied_to_clipboard);
-                                              } catch (e) {
-                                                if (context.mounted)
-                                                  showSnackBar(
-                                                      '${S.of(context).copy_error}: $e');
-                                              }
-                                            },
-                                            onShare: () async {
-                                              try {
-                                                await controller
-                                                    .shareNoteAsFile(note);
-                                              } catch (e) {
-                                                if (context.mounted)
-                                                  showSnackBar(
-                                                      '${S.of(context).error}: $e');
-                                              }
-                                            },
-                                            onSettings: () => Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const SwipeActionSettingsScreen(),
-                                              ),
-                                            ),
+                                            onLongPress: () => _showNoteContextMenu(note, controller),
+                                            onDelete: () =>_deleteNote(note, controller),
                                           ),
                                       onReorder: (oldIndex, newIndex) =>
                                           controller.reorder(

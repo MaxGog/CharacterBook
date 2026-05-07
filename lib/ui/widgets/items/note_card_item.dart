@@ -1,6 +1,5 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/note_model.dart';
-import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:flutter/material.dart';
 
 import 'commod_card_item.dart';
@@ -8,13 +7,10 @@ class NoteCardItem extends StatelessWidget {
   final Note note;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final bool enableDrag;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback? onCopy;
-  final VoidCallback? onShare;
-  final VoidCallback? onDuplicate;
-  final VoidCallback? onSettings;
 
   const NoteCardItem({
     super.key,
@@ -22,26 +18,10 @@ class NoteCardItem extends StatelessWidget {
     this.isSelected = false,
     required this.onTap,
     this.enableDrag = false,
+    this.onLongPress,
     required this.onEdit,
     required this.onDelete,
-    this.onCopy,
-    this.onShare,
-    this.onSettings,
-    this.onDuplicate,
   });
-
-  void _showNoteContextMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.note(
-        note: note,
-        onEdit: onEdit,
-        onDelete: onDelete,
-        onShare: () => { },
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +33,7 @@ class NoteCardItem extends StatelessWidget {
       id: note.id,
       isSelected: isSelected,
       onTap: onTap,
-      onLongPress: () =>
-          _showNoteContextMenu(context),
+      onLongPress: onLongPress,
       onEdit: onEdit,
       onDelete: onDelete,
       deleteConfirmationMessage: s.delete,
