@@ -13,7 +13,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/data/repositories/relationship_repository.dart';
 import 'package:characterbook/services/backup_service.dart';
-import '../../../helpers/hive_test_utils.dart';
+import '../../helpers/hive_test_utils.dart';
 
 void main() {
   late BackupManager backupManager;
