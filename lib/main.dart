@@ -7,6 +7,7 @@ import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
+import 'package:characterbook/providers/auto_backup_provider.dart';
 import 'package:characterbook/providers/locale_provider.dart';
 import 'package:characterbook/providers/swipe_action_settings_provider.dart';
 import 'package:characterbook/providers/theme_provider.dart';
@@ -48,6 +49,8 @@ void main() async {
   Box<ExportPdfSettings>? settingsBox;
   Box<Relationship>? relationshipBox;
 
+  Box<bool>? appSettingsBox;
+
   try {
     await HiveService.initHive();
 
@@ -61,6 +64,8 @@ void main() async {
     templateBox = await _openBoxWithRetry<QuestionnaireTemplate>('templates');
     settingsBox = await _openBoxWithRetry<ExportPdfSettings>('pdf_settings');
     relationshipBox = await _openBoxWithRetry<Relationship>('relationships');
+
+    appSettingsBox = await _openBoxWithRetry<bool>('app_settings');
 
     hiveInitialized = true;
   } catch (error) {
@@ -78,6 +83,7 @@ void main() async {
     templateBox: templateBox,
     settingsBox: settingsBox,
     relationshipBox: relationshipBox,
+    appSettingsBox: appSettingsBox,
   ));
 }
 
@@ -99,6 +105,7 @@ class CharacterBookApp extends StatelessWidget {
   final Box<QuestionnaireTemplate>? templateBox;
   final Box<ExportPdfSettings>? settingsBox;
   final Box<Relationship>? relationshipBox;
+  final Box<bool>? appSettingsBox;
 
   const CharacterBookApp({
     super.key,
@@ -109,6 +116,7 @@ class CharacterBookApp extends StatelessWidget {
     this.templateBox,
     this.settingsBox,
     this.relationshipBox,
+    this.appSettingsBox
   });
 
   @override
@@ -140,6 +148,10 @@ class CharacterBookApp extends StatelessWidget {
         if (relationshipBox != null)
           Provider<RelationshipRepository>(
             create: (_) => RelationshipRepositoryHive(relationshipBox!),
+          ),
+        if (appSettingsBox != null)
+          ChangeNotifierProvider<AutoBackupProvider>(
+            create: (_) => AutoBackupProvider(appSettingsBox!),
           ),
 
         ProxyProvider<RelationshipRepository, RelationshipService>(
@@ -227,12 +239,12 @@ class _AppContentState extends State<_AppContent> {
   bool _showErrorDialog = false;
   final _navigatorKey = GlobalKey<NavigatorState>();
 
-  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupMethodChannel();
       _checkInitializationStatus();
+      _performAutoBackupIfEnabled();
     });
   }
 
@@ -255,6 +267,14 @@ class _AppContentState extends State<_AppContent> {
         }
       },
     );
+  }
+
+  void _performAutoBackupIfEnabled() {
+    final autoBackupProvider = context.read<AutoBackupProvider>();
+    if (autoBackupProvider.isEnabled) {
+      final cloudBackupService = context.read<CloudBackupService>();
+      cloudBackupService.autoExportIfSignedIn().catchError((_) {});
+    }
   }
 
   void _checkInitializationStatus() {

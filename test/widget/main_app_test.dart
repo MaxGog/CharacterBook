@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:characterbook/data/models/custom_field_model.dart';
 import 'package:characterbook/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
@@ -27,6 +25,7 @@ void main() {
   late Box<QuestionnaireTemplate> templateBox;
   late Box<ExportPdfSettings> settingsBox;
   late Box<Relationship> relBox;
+  late Box<bool> appSettingsBox;
 
   setUp(() async {
     final dir = await Directory.systemTemp.createTemp('hive_test_main');
@@ -48,6 +47,7 @@ void main() {
     templateBox = await Hive.openBox<QuestionnaireTemplate>('test_templates');
     settingsBox = await Hive.openBox<ExportPdfSettings>('test_pdf_settings');
     relBox = await Hive.openBox<Relationship>('test_relationships');
+    appSettingsBox = await Hive.openBox<bool>('test_app_settings');
   });
 
   tearDown(() async {
@@ -57,12 +57,18 @@ void main() {
     await templateBox.close();
     await settingsBox.close();
     await relBox.close();
-    Hive.deleteBoxFromDisk('test_chars');
-    Hive.deleteBoxFromDisk('test_races');
-    Hive.deleteBoxFromDisk('test_notes');
-    Hive.deleteBoxFromDisk('test_templates');
-    Hive.deleteBoxFromDisk('test_pdf_settings');
-    Hive.deleteBoxFromDisk('test_relationships');
+    await appSettingsBox.close();
+    for (final name in [
+      'test_chars',
+      'test_races',
+      'test_notes',
+      'test_templates',
+      'test_pdf_settings',
+      'test_relationships',
+      'test_app_settings'
+    ]) {
+      Hive.deleteBoxFromDisk(name);
+    }
   });
 
   testWidgets('CharacterBookApp создаёт BackupManager с RelationshipRepository',
@@ -76,16 +82,15 @@ void main() {
         templateBox: templateBox,
         settingsBox: settingsBox,
         relationshipBox: relBox,
+        appSettingsBox: appSettingsBox,
       ),
     );
-
     await tester.pumpAndSettle();
 
     final context = tester.element(find.byType(MaterialApp));
     final backupManager = Provider.of<BackupManager>(context, listen: false);
 
     expect(backupManager, isNotNull);
-
     expect(backupManager.characterRepo, isA<CharacterRepository>());
     expect(backupManager.noteRepo, isA<NoteRepository>());
     expect(backupManager.raceRepo, isA<RaceRepository>());
@@ -104,6 +109,7 @@ void main() {
         templateBox: templateBox,
         settingsBox: settingsBox,
         relationshipBox: relBox,
+        appSettingsBox: appSettingsBox,
       ),
     );
     await tester.pumpAndSettle();

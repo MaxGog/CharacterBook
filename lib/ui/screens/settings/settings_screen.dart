@@ -9,6 +9,7 @@ import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:characterbook/providers/locale_provider.dart';
 import 'package:characterbook/providers/theme_provider.dart';
+import 'package:characterbook/providers/auto_backup_provider.dart';
 import 'package:flutter/services.dart';
 
 import 'export_pdf_settings_screen.dart';
@@ -296,7 +297,31 @@ class _BackupSection extends StatelessWidget {
     final s = S.of(context);
     return SettingsSection(
       title: s.backup,
-      children: const [_BackupButtons()],
+      children: [
+        _AutoBackupToggle(),
+        const _BackupButtons(),
+      ],
+    );
+  }
+}
+
+class _AutoBackupToggle extends StatelessWidget {
+  const _AutoBackupToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AutoBackupProvider>();
+    final theme = Theme.of(context);
+    return SwitchListTile(
+      secondary: Icon(
+        Icons.cloud_sync,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      title: const Text('Автоматическое облачное резервное копирование'),
+      subtitle: const Text(
+          'Создавать резервную копию в Google Drive при запуске приложения'),
+      value: provider.isEnabled,
+      onChanged: (val) => provider.setEnabled(val),
     );
   }
 }

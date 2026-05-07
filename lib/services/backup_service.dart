@@ -277,6 +277,14 @@ class CloudBackupService implements BackupService {
     return utf8.decode(bytes);
   }
 
+  Future<void> autoExportIfSignedIn() async {
+    GoogleSignInAccount? account = _googleSignIn.currentUser;
+    account ??= await _googleSignIn.signInSilently();
+    if (account != null) {
+      await exportData();
+    }
+  }
+
   Future<Uint8List> _readStream(Stream<List<int>> stream) async {
     final bytesBuilder = BytesBuilder();
     await for (final chunk in stream) {
