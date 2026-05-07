@@ -60,13 +60,37 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   void _onNameChanged() {
     _nameDebounce?.cancel();
     _nameDebounce = Timer(const Duration(milliseconds: 500), () {
-      final controller = _controller; // использовать сохранённый контроллер
+      final controller = _controller;
       if (controller == null) return;
       final newName = _nameController.text.trim();
       if (newName.isNotEmpty && newName != controller.character.name) {
         controller.updateName(newName);
       }
     });
+  }
+
+  Future<void> _onSavePressed(BuildContext context) async {
+    final controller = _controller;
+    if (controller == null) return;
+
+    FocusScope.of(context).unfocus();
+
+    final success = await controller.save();
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(context).pop(true);
+    } else {
+      final errorMsg = controller.error ?? S.of(context).error;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+    }
   }
 
   @override
@@ -87,7 +111,7 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
           }
           return Scaffold(
             floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => _onSavePressed(context),
               icon: const Icon(Icons.save),
               label: Text(s.save),
             ),

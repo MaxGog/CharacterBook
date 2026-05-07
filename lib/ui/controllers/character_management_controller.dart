@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:characterbook/data/models/character_model.dart';
@@ -12,7 +13,7 @@ class CharacterManagementController extends ChangeNotifier {
   final CharacterRepository _characterRepo;
   final RaceRepository _raceRepo;
 
-  final Character? _originalCharacter;
+  Character? _originalCharacter;
   final QuestionnaireTemplate? _template;
 
   late Character _editable;
@@ -24,6 +25,8 @@ class CharacterManagementController extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _hasUnsavedChanges = false;
+  bool _isSaving = false;
+  Timer? _autoSaveTimer;
 
   CharacterManagementController({
     required CharacterRepository characterRepo,
@@ -89,9 +92,12 @@ class CharacterManagementController extends ChangeNotifier {
   }
 
   void _autoSave() {
-    save();
+    if (_originalCharacter == null) return;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(const Duration(milliseconds: 500), () {
+      save();
+    });
   }
-
 
   void updateName(String name) {
     if (name.trim().isEmpty) return;
@@ -113,7 +119,9 @@ class CharacterManagementController extends ChangeNotifier {
   }
 
   void updateRace(Race? race) {
-    _editable = _editable.copyWith(race: race);
+    _editable = _editable.copyWith(
+      race: race != null ? Race(id: race.id, name: race.name) : null,
+    );
     _autoSave();
     _markUnsaved();
   }
@@ -162,9 +170,8 @@ class CharacterManagementController extends ChangeNotifier {
   }
 
   void setCustomFields(List<CustomField> fields) {
-    _customFields = fields;
-    _editable = _editable.copyWith(customFields: fields);
-    _autoSave();
+    _customFields = fields.map((f) => f.copyWith()).toList();
+    _editable = _editable.copyWith(customFields: _customFields);
     _markUnsaved();
   }
 
@@ -199,14 +206,31 @@ class CharacterManagementController extends ChangeNotifier {
   }
 
   Future<bool> save({bool closeAfterSave = false}) async {
-    if (_editable.name.isEmpty) return false;
+    _autoSaveTimer?.cancel();
+    if (_isSaving) return false;
+    if (_editable.name.trim().isEmpty) {
+      _error = 'Имя не может быть пустым';
+      notifyListeners();
+      return false;
+    }
+    if (_editable.race == null) {
+      _error = 'Необходимо выбрать расу';
+      notifyListeners();
+      return false;
+    }
 
+    _isSaving = true;
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
       final key = _originalCharacter?.key;
-      await _characterRepo.save(_editable, key: key);
+      final savedKey = await _characterRepo.save(_editable, key: key);
+
+      if (_originalCharacter == null) {
+        _originalCharacter = _editable;
+      }
 
       _hasUnsavedChanges = false;
       return true;
@@ -215,6 +239,7 @@ class CharacterManagementController extends ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
+      _isSaving = false;
       notifyListeners();
     }
   }

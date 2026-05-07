@@ -207,9 +207,15 @@ class Character extends HiveObject {
       other: other ?? this.other,
       imageBytes: imageBytes ?? this.imageBytes,
       referenceImageBytes: referenceImageBytes ?? this.referenceImageBytes,
-      customFields: customFields ?? List.from(this.customFields),
+      customFields: customFields != null
+          ? customFields.map((f) => f.copyWith()).toList()
+          : this.customFields.map((f) => f.copyWith()).toList(),
       additionalImages: additionalImages ?? List.from(this.additionalImages),
-      race: race ?? this.race,
+      race: race != null
+          ? Race(id: race.id, name: race.name)
+          : (this.race != null
+              ? Race(id: this.race!.id, name: this.race!.name)
+              : null),
       folderId: folderId ?? this.folderId,
       tags: tags ?? List.from(this.tags),
       lastEdited: DateTime.now(),
