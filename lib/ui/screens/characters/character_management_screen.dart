@@ -17,7 +17,7 @@ import 'package:characterbook/ui/widgets/fields/gender_selector_field.dart';
 import 'package:characterbook/ui/widgets/fields/race_selector_field.dart';
 import 'package:characterbook/ui/widgets/reference_image_picker.dart';
 import 'package:characterbook/ui/widgets/sections/image_gallery_section.dart';
-import 'package:characterbook/ui/widgets/sections/tags_and_folder_section.dart';
+import 'package:characterbook/ui/widgets/sections/tags_section.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -185,7 +185,7 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     CharacterManagementController controller,
   ) {
     final folderService = context.read<FolderService>();
-    return TagsAndFolderSection(
+    return TagsSection(
       tags: controller.tags,
       onTagsChanged: controller.setTags,
       folderService: folderService,

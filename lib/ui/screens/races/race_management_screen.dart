@@ -9,7 +9,7 @@ import 'package:characterbook/ui/controllers/race_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
 import 'package:characterbook/ui/widgets/fields/fullscreen_field_preview.dart';
-import 'package:characterbook/ui/widgets/sections/tags_and_folder_section.dart';
+import 'package:characterbook/ui/widgets/sections/tags_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -170,7 +170,7 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
     RaceManagementController controller,
   ) {
     final folderService = context.read<FolderService>();
-    return TagsAndFolderSection(
+    return TagsSection(
       tags: controller.tags,
       onTagsChanged: controller.setTags,
       folderService: folderService,

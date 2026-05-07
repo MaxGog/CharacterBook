@@ -4,7 +4,7 @@ import 'package:characterbook/ui/widgets/folders/folder_selector_widget.dart';
 import 'package:characterbook/ui/widgets/tags/tags_input_widget.dart';
 import 'package:flutter/material.dart';
 
-class TagsAndFolderSection extends StatelessWidget {
+class TagsSection extends StatelessWidget {
   final List<String> tags;
   final ValueChanged<List<String>> onTagsChanged;
   final FolderService folderService;
@@ -13,7 +13,7 @@ class TagsAndFolderSection extends StatelessWidget {
   final ValueChanged<Folder?> onFolderSelected;
   final List<Folder> folders;
 
-  const TagsAndFolderSection({
+  const TagsSection({
     super.key,
     required this.tags,
     required this.onTagsChanged,
