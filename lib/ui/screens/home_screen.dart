@@ -469,11 +469,17 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: colorScheme.surface,
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.asset(
-              'assets/iconapp.png',
-              height: 24,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.book_rounded, size: 32),
+            child: ClipRRect(
+              borderRadius:
+                  BorderRadius.circular(12.0),
+              child: Image.asset(
+                'assets/iconapp.png',
+                height: 32,
+                width: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.book_rounded, size: 32),
+              ),
             ),
           ),
           actions: [
