@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
@@ -77,7 +76,6 @@ class NoteManagementController extends ChangeNotifier {
     _selectedCharacterIds = List.from(_editable.characterIds);
     _loadFolders();
   }
-  
 
   Future<void> _loadFolders() async {
     _isLoading = true;
@@ -89,9 +87,7 @@ class NoteManagementController extends ChangeNotifier {
           _selectedFolder = _availableFolders.firstWhere(
             (f) => f.id == _editable.folderId,
           );
-        } catch (_) {
-
-        }
+        } catch (_) {}
       }
     } catch (e) {
       _error = e.toString();
@@ -101,16 +97,22 @@ class NoteManagementController extends ChangeNotifier {
     }
   }
 
+  void _autoSave() {
+    save();
+  }
+
   void updateTitle(String title) {
     if (_editable.title == title) return;
     _editable.title = title;
     _markUnsaved();
+    _autoSave();
   }
 
   void updateContent(String content) {
     if (_editable.content == content) return;
     _editable.content = content;
     _markUnsaved();
+    _autoSave();
   }
 
   void addCharacterId(String id) {
@@ -118,6 +120,7 @@ class NoteManagementController extends ChangeNotifier {
       _selectedCharacterIds.add(id);
       _editable.characterIds = _selectedCharacterIds;
       _markUnsaved();
+      _autoSave();
     }
   }
 
@@ -126,6 +129,7 @@ class NoteManagementController extends ChangeNotifier {
       _selectedCharacterIds.remove(id);
       _editable.characterIds = _selectedCharacterIds;
       _markUnsaved();
+      _autoSave();
     }
   }
 
@@ -133,12 +137,14 @@ class NoteManagementController extends ChangeNotifier {
     _tags = tags;
     _editable.tags = tags;
     _markUnsaved();
+    _autoSave();
   }
 
   void setSelectedFolder(Folder? folder) {
     _selectedFolder = folder;
     _editable.folderId = folder?.id;
     _markUnsaved();
+    _autoSave();
   }
 
   void _markUnsaved() {

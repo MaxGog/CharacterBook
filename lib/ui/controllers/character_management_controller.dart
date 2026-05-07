@@ -107,71 +107,90 @@ class CharacterManagementController extends ChangeNotifier {
     }
   }
 
+  void _autoSave() {
+    save();
+  }
+
+
   void updateName(String name) {
+    if (name.trim().isEmpty) return;
     _editable = _editable.copyWith(name: name);
+    _autoSave();
     _markUnsaved();
   }
 
   void updateAge(int age) {
     _editable = _editable.copyWith(age: age);
+    _autoSave();
     _markUnsaved();
   }
 
   void updateGender(String gender) {
     _editable = _editable.copyWith(gender: gender);
+    _autoSave();
     _markUnsaved();
   }
 
   void updateRace(Race? race) {
     _editable = _editable.copyWith(race: race);
+    _autoSave();
     _markUnsaved();
   }
 
   void updateMainImage(Uint8List? bytes) {
     _editable = _editable.copyWith(imageBytes: bytes);
+    _autoSave();
     _markUnsaved();
   }
 
   void updateReferenceImage(Uint8List? bytes) {
     _editable = _editable.copyWith(referenceImageBytes: bytes);
+    _autoSave();
     _markUnsaved();
   }
 
   void addAdditionalImage(Uint8List bytes) {
     _additionalImages.add(bytes);
+    _autoSave();
     _updateAdditionalImages();
   }
 
   void removeAdditionalImage(int index) {
     _additionalImages.removeAt(index);
+    _autoSave();
     _updateAdditionalImages();
   }
 
   void insertAdditionalImage(int index, Uint8List bytes) {
     _additionalImages.insert(index, bytes);
+    _autoSave();
     _updateAdditionalImages();
   }
 
   void _updateAdditionalImages() {
     _editable = _editable.copyWith(additionalImages: _additionalImages);
+    _autoSave();
     _markUnsaved();
   }
 
   void setTags(List<String> tags) {
     _tags = tags;
     _editable = _editable.copyWith(tags: tags);
+    _autoSave();
     _markUnsaved();
   }
 
   void setSelectedFolder(Folder? folder) {
     _selectedFolder = folder;
     _editable = _editable.copyWith(folderId: folder?.id);
+    _autoSave();
     _markUnsaved();
   }
 
   void setCustomFields(List<CustomField> fields) {
     _customFields = fields;
     _editable = _editable.copyWith(customFields: fields);
+    _autoSave();
     _markUnsaved();
   }
 

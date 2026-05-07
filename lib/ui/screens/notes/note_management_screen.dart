@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/folder_model.dart';
@@ -7,7 +8,6 @@ import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/folder_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/note_management_controller.dart';
-import 'package:characterbook/ui/widgets/appbar/common_edit_app_bar.dart';
 import 'package:characterbook/ui/widgets/avatar_widget.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/markdown_context_menu.dart';
@@ -17,150 +17,84 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-class NoteManagementScreen extends StatelessWidget {
+class NoteManagementScreen extends StatefulWidget {
   final Note? note;
   final bool isCopyMode;
 
   const NoteManagementScreen({super.key, this.note, this.isCopyMode = false});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => NoteManagementController(
-        noteRepo: context.read<NoteRepository>(),
-        folderRepo: context.read<FolderRepository>(),
-        noteService: context.read<NoteService>(),
-        note: note,
-        isCopyMode: isCopyMode,
-      ),
-      child: _NoteManagementScreenContent(
-        note: note,
-        isCopyMode: isCopyMode,
-      ),
-    );
-  }
+  State<NoteManagementScreen> createState() => _NoteManagementScreenState();
 }
 
-class _NoteManagementScreenContent extends StatefulWidget {
-  final Note? note;
-  final bool isCopyMode;
+class _NoteManagementScreenState extends State<NoteManagementScreen> {
+  static const _fieldSpacing = 16.0;
+  static const _sectionSpacing = 24.0;
+  static const _maxFormWidth = 700.0;
 
-  const _NoteManagementScreenContent({this.note, this.isCopyMode = false});
-
-  @override
-  State<_NoteManagementScreenContent> createState() =>
-      _NoteManagementScreenContentState();
-}
-
-class _NoteManagementScreenContentState
-    extends State<_NoteManagementScreenContent> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
-
+  Timer? _titleDebounce;
+  Timer? _contentDebounce;
+  NoteManagementController? _controller;
   bool _isPreviewMode = false;
-  bool _listenersAdded = false;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _contentController = TextEditingController();
+    _titleController.addListener(_onTitleChanged);
+    _contentController.addListener(_onContentChanged);
     _contentController.addListener(_generateAutoTitle);
-  }
-
-  void _generateAutoTitle() {
-    final controller = context.read<NoteManagementController>();
-    if (controller.autoGenerateTitle && _titleController.text.trim().isEmpty) {
-      final text = _contentController.text.trim();
-      if (text.isNotEmpty) {
-        final words = text.split(' ');
-        final title = words.take(4).join(' ');
-        _titleController.text = title;
-        controller.updateTitle(title);
-      }
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final controller =
-        Provider.of<NoteManagementController>(context, listen: false);
-
-    if (_titleController.text != controller.title) {
-      _titleController.text = controller.title;
-    }
-    if (_contentController.text != controller.content) {
-      _contentController.text = controller.content;
-    }
-
-    if (!_listenersAdded) {
-      _titleController.addListener(_onTitleChanged);
-      _contentController.addListener(_onContentChanged);
-      _listenersAdded = true;
-    }
-  }
-
-  void _onTitleChanged() {
-    context.read<NoteManagementController>().updateTitle(_titleController.text);
-  }
-
-  void _onContentChanged() {
-    context
-        .read<NoteManagementController>()
-        .updateContent(_contentController.text);
   }
 
   @override
   void dispose() {
     _titleController.removeListener(_onTitleChanged);
     _contentController.removeListener(_onContentChanged);
+    _contentController.removeListener(_generateAutoTitle);
     _titleController.dispose();
     _contentController.dispose();
-    _contentController.removeListener(_generateAutoTitle);
+    _titleDebounce?.cancel();
+    _contentDebounce?.cancel();
     super.dispose();
   }
 
-  Future<void> _saveNote(NoteManagementController controller) async {
-    if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
-
-    final success = await controller.save();
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context).error),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _shareNote(
-      BuildContext context, NoteManagementController controller) async {
-    try {
-      await controller.share(context);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${S.of(context).error}: ${e.toString()}')),
-        );
+  void _onTitleChanged() {
+    _titleDebounce?.cancel();
+    _titleDebounce = Timer(const Duration(milliseconds: 500), () {
+      final controller = _controller;
+      if (controller == null) return;
+      final newTitle = _titleController.text.trim();
+      if (newTitle.isNotEmpty && newTitle != controller.title) {
+        controller.updateTitle(newTitle);
       }
-    }
+    });
   }
 
-  Future<void> _copyToClipboard(
-      BuildContext context, NoteManagementController controller) async {
-    await controller.copyToClipboard(context);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).operationCompleted)),
-      );
+  void _onContentChanged() {
+    _contentDebounce?.cancel();
+    _contentDebounce = Timer(const Duration(seconds: 1), () {
+      final controller = _controller;
+      if (controller == null) return;
+      final newContent = _contentController.text;
+      if (newContent != controller.content) {
+        controller.updateContent(newContent);
+      }
+    });
+  }
+
+  void _generateAutoTitle() {
+    final controller = _controller;
+    if (controller == null || !controller.autoGenerateTitle) return;
+    if (_titleController.text.trim().isNotEmpty) return;
+    final text = _contentController.text.trim();
+    if (text.isNotEmpty) {
+      final words = text.split(' ');
+      final title = words.take(4).join(' ');
+      _titleController.text = title;
     }
   }
 
@@ -168,8 +102,8 @@ class _NoteManagementScreenContentState
     setState(() => _isPreviewMode = !_isPreviewMode);
   }
 
-  void _showMetadataSheet(
-      BuildContext context, NoteManagementController controller) {
+  void _showMetadataSheet(BuildContext context) {
+    final controller = _controller!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -212,7 +146,7 @@ class _NoteManagementScreenContentState
                       label: S.of(ctx).name,
                       isRequired: true,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: _fieldSpacing),
                     TagsAndFolderSection(
                       tags: controller.tags,
                       onTagsChanged: controller.setTags,
@@ -222,7 +156,7 @@ class _NoteManagementScreenContentState
                       onFolderSelected: controller.setSelectedFolder,
                       folders: controller.availableFolders,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: _fieldSpacing),
                     _CharacterSelectorSection(
                       selectedCharacterIds: controller.selectedCharacterIds,
                       onAddCharacter: controller.addCharacterId,
@@ -246,49 +180,73 @@ class _NoteManagementScreenContentState
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NoteManagementController>(
-      builder: (context, controller, child) {
-        final s = S.of(context);
-        final title = widget.note == null
-            ? s.create
-            : widget.isCopyMode
-                ? '${s.copy} ${s.posts.toLowerCase()}'
-                : s.edit;
+    return ChangeNotifierProvider(
+      create: (_) => NoteManagementController(
+        noteRepo: context.read<NoteRepository>(),
+        folderRepo: context.read<FolderRepository>(),
+        noteService: context.read<NoteService>(),
+        note: widget.note,
+        isCopyMode: widget.isCopyMode,
+      ),
+      child: Consumer<NoteManagementController>(
+        builder: (context, controller, child) {
+          _controller = controller;
+          if (_titleController.text != controller.title) {
+            _titleController.text = controller.title;
+          }
+          if (_contentController.text != controller.content) {
+            _contentController.text = controller.content;
+          }
 
-        return PopScope(
-          canPop: !controller.hasUnsavedChanges,
-          onPopInvoked: (didPop) async {
-            if (didPop) return;
-            final shouldLeave = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text(s.unsaved_changes_title),
-                content: Text(s.unsaved_changes_content),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: Text(s.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: Text(s.close),
-                  ),
+          final s = S.of(context);
+          return Scaffold(
+            body: WillPopScope(
+              onWillPop: () async => true,
+              child: CustomScrollView(
+                slivers: [
+                  _buildSliverAppBar(context, controller, s),
+                  if (!_isPreviewMode)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextFormField(
+                          controller: _contentController,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: s.start_writing,
+                            hintStyle: const TextStyle(fontSize: 16),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontSize: 16,
+                                    height: 1.5,
+                                  ),
+                          contextMenuBuilder: (context, editableTextState) {
+                            return MarkdownContextMenu(
+                              controller: _contentController,
+                              editableTextState: editableTextState,
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  else
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: MarkdownBody(
+                          data: _contentController.text,
+                          styleSheet:
+                              MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                        ),
+                      ),
+                    ),
                 ],
               ),
-            );
-            if (shouldLeave == true && mounted) {
-              Navigator.pop(context);
-            }
-          },
-          child: Scaffold(
-            appBar: CommonEditAppBar(
-              title: title,
-              onSave: () => _saveNote(controller),
-              saveTooltip: s.save,
-            ),
-            body: Form(
-              key: _formKey,
-              child: _buildContentField(controller),
             ),
             bottomNavigationBar: BottomAppBar(
               shape: const CircularNotchedRectangle(),
@@ -303,92 +261,79 @@ class _NoteManagementScreenContentState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     )
-                  else
+                  else ...[
                     IconButton(
-                      onPressed: () => _saveNote(controller),
-                      icon: const Icon(Icons.save_rounded),
-                      tooltip: S.of(context).save,
-                      style: IconButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.primary,
-                      ),
+                      onPressed: () => controller.share(context),
+                      icon: const Icon(Icons.share_rounded),
+                      tooltip: s.share,
                     ),
-                  IconButton(
-                    onPressed: controller.isLoading
-                        ? null
-                        : () => _shareNote(context, controller),
-                    icon: const Icon(Icons.share_rounded),
-                    tooltip: S.of(context).share,
-                  ),
-                  IconButton(
-                    onPressed: controller.isLoading
-                        ? null
-                        : () => _copyToClipboard(context, controller),
-                    icon: const Icon(Icons.copy_rounded),
-                    tooltip: S.of(context).copy,
-                  ),
-                  IconButton(
-                    onPressed: controller.isLoading
-                        ? null
-                        : () => _showMetadataSheet(context, controller),
-                    icon: const Icon(Icons.edit_note_rounded),
-                    tooltip: S.of(context).settings,
-                  ),
-                  const Spacer(),
-                  FloatingActionButton(
-                    onPressed: controller.isLoading ? null : _togglePreviewMode,
-                    tooltip: _isPreviewMode
-                        ? S.of(context).edit
-                        : S.of(context).grid_view,
-                    child: Icon(_isPreviewMode
-                        ? Icons.edit_rounded
-                        : Icons.preview_rounded),
-                  ),
+                    IconButton(
+                      onPressed: () => controller.copyToClipboard(context),
+                      icon: const Icon(Icons.copy_rounded),
+                      tooltip: s.copy,
+                    ),
+                    IconButton(
+                      onPressed: () => _showMetadataSheet(context),
+                      icon: const Icon(Icons.edit_note_rounded),
+                      tooltip: s.settings,
+                    ),
+                    IconButton(
+                      onPressed: _togglePreviewMode,
+                      tooltip: _isPreviewMode ? s.edit : s.grid_view,
+                      icon: Icon(_isPreviewMode
+                          ? Icons.edit_rounded
+                          : Icons.preview_rounded),
+                    ),
+                    const Spacer(),
+                    FloatingActionButton.extended(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      icon: const Icon(Icons.save),
+                      label: Text(s.save),
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildContentField(NoteManagementController controller) {
-    if (_isPreviewMode) {
-      return SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: MarkdownBody(
-          data: _contentController.text,
-          styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
-        ),
-      );
-    }
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: TextFormField(
-        controller: _contentController,
-        maxLines: null,
-        keyboardType: TextInputType.multiline,
-        textInputAction: TextInputAction.newline,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: S.of(context).start_writing,
-          hintStyle: const TextStyle(fontSize: 16),
-          contentPadding: EdgeInsets.zero,
-        ),
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: 16,
-              height: 1.5,
-            ),
-        contextMenuBuilder: (context, editableTextState) {
-          return MarkdownContextMenu(
-            controller: _contentController,
-            editableTextState: editableTextState,
           );
         },
       ),
+    );
+  }
+
+  SliverAppBar _buildSliverAppBar(
+    BuildContext context,
+    NoteManagementController controller,
+    S s,
+  ) {
+    final theme = Theme.of(context);
+    return SliverAppBar.large(
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: () => Navigator.of(context).pop(true),
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      ),
+      title: TextField(
+        controller: _titleController,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        decoration: InputDecoration.collapsed(
+          hintText: widget.note == null
+              ? s.create
+              : (widget.isCopyMode
+                  ? '${s.copy} ${s.posts.toLowerCase()}'
+                  : s.edit),
+          hintStyle: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        cursorColor: theme.colorScheme.primary,
+        maxLines: 1,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      ),
+      pinned: true,
     );
   }
 }
@@ -434,7 +379,7 @@ class _CharacterSelectorSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               items: entries.map((entry) {
                 final character = entry.value!;
-                final characterKey = entry.key; // уже String
+                final characterKey = entry.key;
                 final isSelected = selectedCharacterIds.contains(characterKey);
                 return DropdownMenuItem<String>(
                   value: characterKey,

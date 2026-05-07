@@ -2,7 +2,7 @@ import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class RaceSelectorField extends StatefulWidget {
   final Race? initialRace;
@@ -21,27 +21,12 @@ class RaceSelectorField extends StatefulWidget {
 }
 
 class _RaceSelectorFieldState extends State<RaceSelectorField> {
-  late Race? _selectedRace;
-  late List<Race> _races;
+  Race? _selectedRace;
 
   @override
   void initState() {
     super.initState();
     _selectedRace = widget.initialRace;
-    _loadRaces();
-  }
-
-  Future<void> _loadRaces() async {
-    final raceBox = Hive.box<Race>('races');
-    setState(() {
-      _races = raceBox.values.toList();
-      if (_selectedRace != null) {
-        _selectedRace = _races.firstWhere(
-              (r) => r.name == _selectedRace?.name,
-          orElse: () => Race.empty(),
-        );
-      }
-    });
   }
 
   @override
@@ -49,52 +34,67 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
     final theme = Theme.of(context);
     final s = S.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<Race>('races').listenable(),
+      builder: (context, Box<Race> box, _) {
+        final races = box.values.toList();
+
+        if (_selectedRace != null) {
+          final found = races.cast<Race?>().firstWhere(
+                (r) => r!.id == _selectedRace!.id,
+                orElse: () => null,
+              );
+          if (found != _selectedRace) {
+            _selectedRace =
+                found;
+          }
+        }
+
+        return Row(
           children: [
             Expanded(
               child: DropdownButtonFormField<Race>(
                 value: _selectedRace,
                 decoration: InputDecoration(
                   labelText: s.race,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 items: [
                   if (!widget.isRequired)
                     DropdownMenuItem<Race>(
                       value: null,
-                      child: Text(s.not_selected, style: TextStyle(color: Colors.grey)),
+                      child: Text(s.not_selected,
+                          style: TextStyle(color: Colors.grey)),
                     ),
-                  ..._races.map((race) => DropdownMenuItem<Race>(
-                    value: race,
-                    child: Text(race.name),
-                  )),
+                  ...races.map((race) => DropdownMenuItem<Race>(
+                        value: race,
+                        child: Text(race.name),
+                      )),
                 ],
                 onChanged: (race) {
                   setState(() => _selectedRace = race);
                   widget.onChanged?.call(race);
                 },
-                validator: (value) => widget.isRequired && value == null
-                    ? s.select_race_error
+                validator: widget.isRequired && _selectedRace == null
+                    ? (value) => s.select_race_error
                     : null,
               ),
             ),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () async {
-                final result = await Navigator.push(
+                await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const RaceManagementScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const RaceManagementScreen()),
                 );
-                if (result == true) await _loadRaces();
               },
               tooltip: s.race_management,
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }

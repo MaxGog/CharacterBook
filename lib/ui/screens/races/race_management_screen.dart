@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
@@ -7,7 +8,6 @@ import 'package:characterbook/data/services/folder_service.dart';
 import 'package:characterbook/ui/controllers/race_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
-import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/fields/fullscreen_field_preview.dart';
 import 'package:characterbook/ui/widgets/sections/tags_and_folder_section.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +29,37 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
   static const _maxFormWidth = 600.0;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
+  late final TextEditingController _nameController;
+  Timer? _nameDebounce;
+  RaceManagementController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialName = widget.race?.name ?? '';
+    _nameController = TextEditingController(text: initialName);
+    _nameController.addListener(_onNameChanged);
+  }
+
+  @override
+  void dispose() {
+    _nameController.removeListener(_onNameChanged);
+    _nameController.dispose();
+    _nameDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _onNameChanged() {
+    _nameDebounce?.cancel();
+    _nameDebounce = Timer(const Duration(milliseconds: 500), () {
+      final controller = _controller;
+      if (controller == null) return;
+      final newName = _nameController.text.trim();
+      if (newName.isNotEmpty && newName != controller.race.name) {
+        controller.updateName(newName);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +71,26 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
       ),
       child: Consumer<RaceManagementController>(
         builder: (context, controller, child) {
+          _controller = controller;
           final s = S.of(context);
+          if (_nameController.text != (controller.race.name)) {
+            _nameController.text = controller.race.name;
+          }
           return Scaffold(
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => Navigator.of(context).pop(true),
+              icon: const Icon(Icons.save),
+              label: Text(s.save),
+            ),
             body: WillPopScope(
-              onWillPop: () => _onWillPop(context, controller),
+              onWillPop: () async => true,
               child: CustomScrollView(
                 slivers: [
                   _buildSliverAppBar(context, controller, s),
                   SliverToBoxAdapter(
-                    child: SafeArea(
-                      minimum: const EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16, right: 16, bottom: 16),
                       child: Center(
                         child: ConstrainedBox(
                           constraints:
@@ -69,8 +110,6 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
                                   child: _buildLogoSection(context, controller),
                                 ),
                                 const SizedBox(height: _sectionSpacing),
-                                _buildNameField(context, controller),
-                                const SizedBox(height: _fieldSpacing),
                                 _buildDescriptionField(context, controller),
                                 const SizedBox(height: _fieldSpacing),
                                 _buildBiologyField(context, controller),
@@ -93,84 +132,37 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
     );
   }
 
-  Widget _buildSliverAppBar(
+  SliverAppBar _buildSliverAppBar(
     BuildContext context,
     RaceManagementController controller,
     S s,
   ) {
-    final title = widget.race == null ? s.new_race : s.edit_race;
+    final theme = Theme.of(context);
     return SliverAppBar.large(
-      title: Text(title),
-      pinned: true,
-      floating: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.save),
-          tooltip: s.save,
-          onPressed: () => _saveRace(controller, s),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: () => Navigator.of(context).pop(true),
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      ),
+      title: TextField(
+        controller: _nameController,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
-      ],
-    );
-  }
-
-  Future<bool> _onWillPop(
-    BuildContext context,
-    RaceManagementController controller,
-  ) async {
-    if (controller.hasUnsavedChanges) {
-      final s = S.of(context);
-      final shouldLeave = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(s.unsaved_changes_title),
-          content: Text(s.unsaved_changes_content),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(s.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(s.close),
-            ),
-          ],
-        ),
-      );
-      return shouldLeave ?? false;
-    }
-    return true;
-  }
-
-  Future<void> _saveRace(
-    RaceManagementController controller,
-    S s,
-  ) async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      final success = await controller.save();
-      if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.save)),
-        );
-        Navigator.of(context).pop(true);
-      } else {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(s.error),
-            content: Text(controller.error ?? s.error),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(s.ok),
-              ),
-            ],
+        decoration: InputDecoration.collapsed(
+          hintText: widget.race == null ? s.new_race : s.edit_race,
+          hintStyle: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            fontWeight: FontWeight.w600,
           ),
-        );
-      }
-    }
+        ),
+        cursorColor: theme.colorScheme.primary,
+        maxLines: 1,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      ),
+      pinned: true,
+    );
   }
 
   Widget _buildFolderAndTagsSection(
@@ -197,23 +189,6 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
       currentAvatar: controller.race.logo,
       onAvatarChanged: (bytes) => controller.updateLogo(bytes),
       size: _logoSize / 2,
-    );
-  }
-
-  Widget _buildNameField(
-    BuildContext context,
-    RaceManagementController controller,
-  ) {
-    final s = S.of(context);
-    return CustomTextField(
-      label: s.enter_race_name,
-      initialValue: controller.race.name,
-      isRequired: true,
-      onSaved: (value) => controller.updateName(value ?? ''),
-      validator: (value) {
-        if (value?.isEmpty ?? true) return s.enter_race_name;
-        return null;
-      },
     );
   }
 

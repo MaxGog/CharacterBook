@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/folder_repository.dart';
@@ -65,8 +64,7 @@ class RaceManagementController extends ChangeNotifier {
           _selectedFolder = _availableFolders.firstWhere(
             (f) => f.id == _editable.folderId,
           );
-        } catch (_) {
-        }
+        } catch (_) {}
       }
     } catch (e) {
       _error = e.toString();
@@ -76,40 +74,52 @@ class RaceManagementController extends ChangeNotifier {
     }
   }
 
+  void _autoSave() {
+    save();
+  }
+
   void updateName(String name) {
+    if (name.trim().isEmpty) return;
     _editable.name = name;
+    _autoSave();
     _markUnsaved();
   }
 
   void updateDescription(String description) {
     _editable.description = description;
+    _autoSave();
     _markUnsaved();
   }
 
   void updateBiology(String biology) {
     _editable.biology = biology;
+    _autoSave();
     _markUnsaved();
   }
 
   void updateBackstory(String backstory) {
     _editable.backstory = backstory;
+    _autoSave();
     _markUnsaved();
   }
 
   void updateLogo(Uint8List? bytes) {
     _editable.logo = bytes;
+    _autoSave();
     _markUnsaved();
   }
 
   void setTags(List<String> tags) {
     _tags = tags;
     _editable.tags = tags;
+    _autoSave();
     _markUnsaved();
   }
 
   void setSelectedFolder(Folder? folder) {
     _selectedFolder = folder;
     _editable.folderId = folder?.id;
+    _autoSave();
     _markUnsaved();
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/folder_model.dart';
@@ -32,12 +34,43 @@ class CharacterManagementScreen extends StatefulWidget {
 }
 
 class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
-  static const _sectionSpacing = 32.0;
+  static const _sectionSpacing = 24.0;
   static const _fieldSpacing = 16.0;
   static const _maxFormWidth = 600.0;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
+  late final TextEditingController _nameController;
+  Timer? _nameDebounce;
+  CharacterManagementController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialName = widget.character?.name ?? '';
+    _nameController = TextEditingController(text: initialName);
+    _nameController.addListener(_onNameChanged);
+  }
+
+  @override
+  void dispose() {
+    _nameController.removeListener(_onNameChanged);
+    _nameController.dispose();
+    _nameDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _onNameChanged() {
+    _nameDebounce?.cancel();
+    _nameDebounce = Timer(const Duration(milliseconds: 500), () {
+      final controller = _controller; // использовать сохранённый контроллер
+      if (controller == null) return;
+      final newName = _nameController.text.trim();
+      if (newName.isNotEmpty && newName != controller.character.name) {
+        controller.updateName(newName);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,16 +84,25 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       ),
       child: Consumer<CharacterManagementController>(
         builder: (context, controller, child) {
+          _controller = controller;
           final s = S.of(context);
+          if (_nameController.text != (controller.character.name)) {
+            _nameController.text = controller.character.name;
+          }
           return Scaffold(
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => Navigator.of(context).pop(true),
+              icon: const Icon(Icons.save),
+              label: Text(s.save),
+            ),
             body: WillPopScope(
-              onWillPop: () => _onWillPop(context, controller),
+              onWillPop: () async => true, 
               child: CustomScrollView(
                 slivers: [
                   _buildSliverAppBar(context, controller, s),
                   SliverToBoxAdapter(
-                    child: SafeArea(
-                      minimum: EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                       child: Center(
                         child: ConstrainedBox(
                           constraints:
@@ -81,8 +123,6 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
                                   child: _buildAvatarSection(context, controller),
                                 ),
                                 const SizedBox(height: _sectionSpacing),
-                                _buildNameField(context, controller),
-                                const SizedBox(height: _fieldSpacing),
                                 _buildBasicInfoSection(context, controller),
                                 const SizedBox(height: _sectionSpacing),
                                 _buildDetailsSection(context, controller),
@@ -103,84 +143,85 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     );
   }
 
-  Widget _buildSliverAppBar(
+  SliverAppBar _buildSliverAppBar(
     BuildContext context,
     CharacterManagementController controller,
     S s,
   ) {
-    final title = _buildPageTitle(s);
+    final theme = Theme.of(context);
     return SliverAppBar.large(
-      title: Text(title),
-      pinned: true,
-      floating: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.save),
-          tooltip: s.save,
-          onPressed: () => _saveCharacter(controller, s),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: () => Navigator.of(context).pop(true),
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      ),
+      title: TextField(
+        controller: _nameController,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
-      ],
+        decoration: InputDecoration.collapsed(
+          hintText: widget.character == null
+              ? (widget.template == null
+                  ? s.new_character
+                  : '${s.new_character} (${s.from_template})')
+              : s.edit_character,
+          hintStyle: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        cursorColor: theme.colorScheme.primary,
+        maxLines: 1,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      ),
+      pinned: true,
     );
   }
 
-  Future<bool> _onWillPop(
+  Widget _buildFolderAndTagsSection(
     BuildContext context,
     CharacterManagementController controller,
-  ) async {
-    if (controller.hasUnsavedChanges) {
-      final s = S.of(context);
-      final shouldLeave = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(s.unsaved_changes_title),
-          content: Text(s.unsaved_changes_content),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(s.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(s.close),
-            ),
-          ],
-        ),
-      );
-      return shouldLeave ?? false;
-    }
-    return true;
+  ) {
+    final folderService = context.read<FolderService>();
+    return TagsAndFolderSection(
+      tags: controller.tags,
+      onTagsChanged: controller.setTags,
+      folderService: folderService,
+      folderType: FolderType.character,
+      selectedFolder: controller.selectedFolder,
+      onFolderSelected: controller.setSelectedFolder,
+      folders: controller.availableFolders,
+    );
   }
 
-  Future<void> _saveCharacter(
-    CharacterManagementController controller,
-    S s,
-  ) async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      final success = await controller.save();
-      if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.changes_saved)),
-        );
-        Navigator.of(context).pop(true);
-      } else {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(s.error),
-            content: Text(controller.error ?? s.error),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(s.ok),
+  Widget _buildTemplateChip(BuildContext context) {
+    final s = S.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: _fieldSpacing),
+      child: Chip(
+        label: Text(
+          '${s.template}: ${widget.template!.name}',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
-            ],
-          ),
-        );
-      }
-    }
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      ),
+    );
+  }
+
+  Widget _buildAvatarSection(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    return AvatarPicker(
+      currentAvatar: controller.character.imageBytes,
+      onAvatarChanged: (bytes) {
+        controller.updateMainImage(bytes);
+      },
+    );
   }
 
   Widget _buildBasicInfoSection(
@@ -207,6 +248,46 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
               imageBytes: controller.character.referenceImageBytes,
               onPickImage: () => _pickReferenceImage(context, controller),
               title: s.reference_image,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAgeAndGenderRow(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_shouldShowField('age'))
+          Expanded(
+            child: CustomTextField(
+              label: s.age,
+              initialValue: controller.character.age.toString(),
+              isRequired: _shouldShowField('age'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) =>
+                  controller.updateAge(int.tryParse(value) ?? 0),
+              validator: _shouldShowField('age')
+                  ? (value) {
+                      if (value == null || value.isEmpty) return s.enter_age;
+                      final age = int.tryParse(value);
+                      if (age == null || age <= 0) return s.invalid_age;
+                      return null;
+                    }
+                  : null,
+            ),
+          ),
+        if (_shouldShowField('age') && _shouldShowField('gender'))
+          const SizedBox(width: _fieldSpacing),
+        if (_shouldShowField('gender'))
+          Expanded(
+            child: GenderSelectorField(
+              initialValue: controller.character.gender,
+              onChanged: (value) => controller.updateGender(value ?? ''),
             ),
           ),
       ],
@@ -245,38 +326,6 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     );
   }
 
-  void _removeAdditionalImage(
-    BuildContext context,
-    CharacterManagementController controller,
-    int index,
-  ) {
-    final removedImage = controller.additionalImages[index];
-    controller.removeAdditionalImage(index);
-    final s = S.of(context);
-
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(s.image_removed),
-        action: SnackBarAction(
-          label: s.undo,
-          onPressed: () {
-            controller.insertAdditionalImage(index, removedImage);
-          },
-        ),
-      ),
-    );
-  }
-
-  String _buildPageTitle(S s) {
-    if (widget.character == null) {
-      return widget.template == null
-          ? s.new_character
-          : '${s.new_character} (${s.from_template})';
-    }
-    return s.edit_character;
-  }
-
   List<Widget> _buildFullscreenFields(
     BuildContext context,
     CharacterManagementController controller,
@@ -290,129 +339,19 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       ('other', s.other),
     ];
 
-    final List<Widget> widgets = [];
-    for (final entry in fields) {
-      final fieldName = entry.$1;
-      final label = entry.$2;
-      if (_shouldShowField(fieldName)) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: _fieldSpacing),
-            child: _FullscreenTextField(
-              label: label,
-              value: _getFieldValue(controller, fieldName) ?? '',
-              onChanged: (value) =>
-                  controller.updateTextField(fieldName, value),
-              onTap: () =>
-                  _openFullscreenEditor(context, controller, fieldName, label),
-              maxLines: 3,
-            ),
-          ),
-        );
-      }
-    }
-    return widgets;
-  }
-
-  Widget _buildFolderAndTagsSection(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    final folderService = context.read<FolderService>();
-    return TagsAndFolderSection(
-      tags: controller.tags,
-      onTagsChanged: controller.setTags,
-      folderService: folderService,
-      folderType: FolderType.character,
-      selectedFolder: controller.selectedFolder,
-      onFolderSelected: controller.setSelectedFolder,
-      folders: controller.availableFolders,
-    );
-  }
-
-  Widget _buildTemplateChip(BuildContext context) {
-    final s = S.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: _fieldSpacing),
-      child: Chip(
-        label: Text(
-          '${s.template}: ${widget.template!.name}',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+    return fields
+        .where((e) => _shouldShowField(e.$1))
+        .map((entry) => Padding(
+              padding: const EdgeInsets.only(top: _fieldSpacing),
+              child: _FullscreenTextField(
+                label: entry.$2,
+                value: _getFieldValue(controller, entry.$1) ?? '',
+                onTap: () => _openFullscreenEditor(
+                    context, controller, entry.$1, entry.$2),
+                maxLines: 3,
               ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      ),
-    );
-  }
-
-  Widget _buildAvatarSection(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    return AvatarPicker(
-      currentAvatar: controller.character.imageBytes,
-      onAvatarChanged: (bytes) {
-        controller.updateMainImage(bytes);
-      },
-    );
-  }
-
-  Widget _buildNameField(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    final s = S.of(context);
-    return CustomTextField(
-      label: s.name,
-      initialValue: controller.character.name,
-      isRequired: true,
-      onSaved: (value) => controller.updateName(value ?? ''),
-      validator: (value) {
-        if (value?.isEmpty ?? true) return s.name;
-        return null;
-      },
-    );
-  }
-
-  Widget _buildAgeAndGenderRow(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    final s = S.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_shouldShowField('age'))
-          Expanded(
-            child: CustomTextField(
-              label: s.age,
-              initialValue: controller.character.age.toString(),
-              isRequired: _shouldShowField('age'),
-              keyboardType: TextInputType.number,
-              onSaved: (value) =>
-                  controller.updateAge(int.tryParse(value ?? '0') ?? 0),
-              validator: _shouldShowField('age')
-                  ? (value) {
-                      if (value?.isEmpty ?? true) return s.enter_age;
-                      final age = int.tryParse(value!);
-                      if (age == null || age <= 0) return s.invalid_age;
-                      return null;
-                    }
-                  : null,
-            ),
-          ),
-        if (_shouldShowField('age') && _shouldShowField('gender'))
-          const SizedBox(width: _fieldSpacing),
-        if (_shouldShowField('gender'))
-          Expanded(
-            child: GenderSelectorField(
-              initialValue: controller.character.gender,
-              onChanged: (value) => controller.updateGender(value ?? ''),
-            ),
-          ),
-      ],
-    );
+            ))
+        .toList();
   }
 
   String? _getFieldValue(
@@ -459,6 +398,33 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     }
   }
 
+  void _removeAdditionalImage(
+    BuildContext context,
+    CharacterManagementController controller,
+    int index,
+  ) {
+    final removedImage = controller.additionalImages[index];
+    controller.removeAdditionalImage(index);
+    final s = S.of(context);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(s.image_removed),
+        action: SnackBarAction(
+          label: s.undo,
+          onPressed: () {
+            controller.insertAdditionalImage(index, removedImage);
+          },
+        ),
+      ),
+    );
+  }
+
+  bool _shouldShowField(String fieldName) {
+    return widget.template?.containsField(fieldName) ?? true;
+  }
+
   Future<void> _pickReferenceImage(
     BuildContext context,
     CharacterManagementController controller,
@@ -501,23 +467,17 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       ),
     );
   }
-
-  bool _shouldShowField(String fieldName) {
-    return widget.template?.containsField(fieldName) ?? true;
-  }
 }
 
 class _FullscreenTextField extends StatelessWidget {
   final String label;
   final String value;
-  final ValueChanged<String> onChanged;
   final VoidCallback onTap;
   final int? maxLines;
 
   const _FullscreenTextField({
     required this.label,
     required this.value,
-    required this.onChanged,
     required this.onTap,
     this.maxLines = 1,
   });
