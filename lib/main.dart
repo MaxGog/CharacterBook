@@ -164,15 +164,16 @@ class CharacterBookApp extends StatelessWidget {
           ),
         ),
         
-        ProxyProvider4<CharacterRepository, RaceRepository,
-            NoteRepository, TemplateRepository, BackupManager>(
+        ProxyProvider5<CharacterRepository, RaceRepository,
+            NoteRepository, TemplateRepository, RelationshipRepository, BackupManager>(
           update:
-              (_, charRepo, raceRepo, noteRepo, templateRepo, __) {
+              (_, charRepo, raceRepo, noteRepo, templateRepo, relationshipRepo, __) {
             return BackupManager(
               characterRepo: charRepo,
               noteRepo: noteRepo,
               raceRepo: raceRepo,
               templateRepo: templateRepo,
+              relationshipRepo: relationshipRepo,
             );
           },
         ),

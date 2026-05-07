@@ -7,10 +7,12 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
+import 'package:characterbook/data/models/relationship_model.dart'; // добавлено
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
+import 'package:characterbook/data/repositories/relationship_repository.dart'; // добавлено
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/notification_service.dart';
 import 'package:flutter/foundation.dart';
@@ -26,12 +28,14 @@ class BackupManager {
   final NoteRepository noteRepo;
   final RaceRepository raceRepo;
   final TemplateRepository templateRepo;
+  final RelationshipRepository relationshipRepo;
 
   BackupManager({
     required this.characterRepo,
     required this.noteRepo,
     required this.raceRepo,
     required this.templateRepo,
+    required this.relationshipRepo,
   });
 
   Future<Map<String, List<dynamic>>> getBackupData() async {
@@ -40,6 +44,7 @@ class BackupManager {
       'notes': await noteRepo.getAll(),
       'races': await raceRepo.getAll(),
       'templates': await templateRepo.getAll(),
+      'relationships': await relationshipRepo.getAll(),
     };
   }
 
@@ -49,6 +54,7 @@ class BackupManager {
       noteRepo.clear(),
       raceRepo.clear(),
       templateRepo.clear(),
+      relationshipRepo.clear(),
     ]);
 
     if (data.containsKey('characters')) {
@@ -63,6 +69,11 @@ class BackupManager {
     if (data.containsKey('templates')) {
       await _restoreItems<QuestionnaireTemplate>(
           templateRepo, data['templates']);
+    }
+    if (data.containsKey('relationships')) {
+      // добавлено
+      await _restoreItems<Relationship>(
+          relationshipRepo, data['relationships']);
     }
   }
 
@@ -86,6 +97,7 @@ class BackupManager {
     if (type == Race) return Race.fromJson(json);
     if (type == QuestionnaireTemplate)
       return QuestionnaireTemplate.fromJson(json);
+    if (type == Relationship) return Relationship.fromJson(json);
     return null;
   }
 }
