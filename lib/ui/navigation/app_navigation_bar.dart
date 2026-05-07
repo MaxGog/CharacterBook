@@ -184,20 +184,27 @@ class _NarrowScreenLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: onIndexChanged,
-        destinations: List.generate(
-          titles.length,
-          (index) => NavigationDestination(
-            icon: Icon(icons[index]),
-            selectedIcon: Icon(selectedIcons[index]),
-            label: titles[index],
+    return Column(
+      children: [
+        Expanded(
+          child: IndexedStack(
+            index: currentIndex,
+            children: pages,
           ),
         ),
-      ),
+        NavigationBar(
+          selectedIndex: currentIndex,
+          onDestinationSelected: onIndexChanged,
+          destinations: List.generate(
+            titles.length,
+            (index) => NavigationDestination(
+              icon: Icon(icons[index]),
+              selectedIcon: Icon(selectedIcons[index]),
+              label: titles[index],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
