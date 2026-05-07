@@ -386,5 +386,22 @@
   "list_mode": "List mode",
   "new_note": "New note",
   "file_app": "App file",
-  "relationships": "Relationships"
+  "relationships": "Relationships",
+  "deleteRelationshipTitle": "Delete the relationships?",
+  "deleteRelationshipMessage": "Are you sure you want to delete this particular relationships?",
+  "relationshipDeleted": "Relationship deleted",
+  "copiedToClipboard": "Copied to clipboard",
+  "add_relationships": "Add relationship",
+  "unknown": "Unknown",
+  "createRelationship": "Create Relationship",
+  "editRelationship": "Edit Relationship",
+  "character1": "Character 1",
+  "character2": "Character 2",
+  "relationshipName": "Relationship Name",
+  "typeOptional": "Type (optional)",
+  "directedRelationship": "Directed relationship",
+  "selectBothCharacters": "Select both characters",
+  "cannotRelateToItself": "Cannot create relationship with the same character",
+  "relationshipAlreadyExists": "This relationship already exists",
+  "enterName": "Enter a name"
 }

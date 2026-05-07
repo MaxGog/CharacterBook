@@ -79,6 +79,21 @@ class ContextMenu extends StatelessWidget {
         onShare: onShare,
       );
 
+  factory ContextMenu.relationship({
+    Key? key,
+    required dynamic relationship,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    required VoidCallback onShare,
+  }) =>
+      ContextMenu(
+        key: key,
+        item: relationship,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onShare: onShare,
+      );
+
   Widget _buildMenuItem({
     required BuildContext context,
     required IconData icon,

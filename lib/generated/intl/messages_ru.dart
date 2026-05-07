@@ -88,6 +88,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "activity_timeline": MessageLookupByLibrary.simpleMessage("Активность"),
         "add_field": MessageLookupByLibrary.simpleMessage("Добавить поле"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Добавить"),
+        "add_relationships":
+            MessageLookupByLibrary.simpleMessage("Добавить связь"),
         "add_tag": MessageLookupByLibrary.simpleMessage("Добавить тег"),
         "additional_images":
             MessageLookupByLibrary.simpleMessage("Доп. изображения"),
@@ -150,9 +152,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Статистика"),
         "calendar_view": MessageLookupByLibrary.simpleMessage("Вид"),
         "cancel": MessageLookupByLibrary.simpleMessage("Отмена"),
+        "cannotRelateToItself": MessageLookupByLibrary.simpleMessage(
+            "Нельзя создать связь персонажа с самим собой"),
         "changes_saved":
             MessageLookupByLibrary.simpleMessage("Изменения сохранены"),
         "character": MessageLookupByLibrary.simpleMessage("Персонаж"),
+        "character1": MessageLookupByLibrary.simpleMessage("Персонаж 1"),
+        "character2": MessageLookupByLibrary.simpleMessage("Персонаж 2"),
         "character_avatar": MessageLookupByLibrary.simpleMessage("Аватар"),
         "character_created_from_template": m2,
         "character_delete_confirm":
@@ -235,6 +241,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Настройка окружения…"),
         "continue_text": MessageLookupByLibrary.simpleMessage("Продолжить"),
         "contrast": MessageLookupByLibrary.simpleMessage("Контраст"),
+        "copiedToClipboard":
+            MessageLookupByLibrary.simpleMessage("Скопировано в буфер обмена"),
         "copied_to_clipboard":
             MessageLookupByLibrary.simpleMessage("Скопировано"),
         "copy": MessageLookupByLibrary.simpleMessage("Копировать"),
@@ -244,6 +252,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Ошибка копирования"),
         "create": MessageLookupByLibrary.simpleMessage("Создать"),
         "createBackup": MessageLookupByLibrary.simpleMessage("Создать копию"),
+        "createRelationship":
+            MessageLookupByLibrary.simpleMessage("Создание связи"),
         "create_character":
             MessageLookupByLibrary.simpleMessage("Создать персонажа"),
         "create_first_content":
@@ -284,6 +294,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "delete": MessageLookupByLibrary.simpleMessage("Удалить"),
         "deleteConfirmation":
             MessageLookupByLibrary.simpleMessage("Удалить выбранное?"),
+        "deleteRelationshipMessage": MessageLookupByLibrary.simpleMessage(
+            "Вы уверены, что хотите удалить конкретно эту связь?"),
+        "deleteRelationshipTitle":
+            MessageLookupByLibrary.simpleMessage("Удалить связь?"),
         "delete_character":
             MessageLookupByLibrary.simpleMessage("Удалить персонажа"),
         "delete_error": MessageLookupByLibrary.simpleMessage("Ошибка удаления"),
@@ -292,6 +306,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "detailed": MessageLookupByLibrary.simpleMessage("Подробно"),
         "details": MessageLookupByLibrary.simpleMessage("Подробнее"),
         "developer": MessageLookupByLibrary.simpleMessage("Разработчик"),
+        "directedRelationship":
+            MessageLookupByLibrary.simpleMessage("Направленная связь"),
         "discard_changes":
             MessageLookupByLibrary.simpleMessage("Отменить изменения"),
         "dnd_tools": MessageLookupByLibrary.simpleMessage("Инструменты D&D"),
@@ -302,6 +318,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "duplicate_error":
             MessageLookupByLibrary.simpleMessage("Ошибка дублирования"),
         "edit": MessageLookupByLibrary.simpleMessage("Править"),
+        "editRelationship":
+            MessageLookupByLibrary.simpleMessage("Редактирование связи"),
         "edit_character":
             MessageLookupByLibrary.simpleMessage("Изменить персонажа"),
         "edit_folder": MessageLookupByLibrary.simpleMessage("Править папку"),
@@ -312,6 +330,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "elderly": MessageLookupByLibrary.simpleMessage("Пожилые"),
         "empty_file_error": MessageLookupByLibrary.simpleMessage("Файл пуст"),
         "empty_list": MessageLookupByLibrary.simpleMessage("Пусто!"),
+        "enterName": MessageLookupByLibrary.simpleMessage("Введите название"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Возраст"),
         "enter_race_name":
             MessageLookupByLibrary.simpleMessage("Название расы"),
@@ -620,6 +639,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "reference_image": MessageLookupByLibrary.simpleMessage("Референс"),
         "related_notes":
             MessageLookupByLibrary.simpleMessage("Связанные заметки"),
+        "relationshipAlreadyExists":
+            MessageLookupByLibrary.simpleMessage("Такая связь уже существует"),
+        "relationshipDeleted":
+            MessageLookupByLibrary.simpleMessage("Связь удалена"),
+        "relationshipName":
+            MessageLookupByLibrary.simpleMessage("Название связи"),
         "relationships":
             MessageLookupByLibrary.simpleMessage("Cвязи между персонажами"),
         "replace": MessageLookupByLibrary.simpleMessage("Заменить"),
@@ -659,6 +684,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "security_options":
             MessageLookupByLibrary.simpleMessage("Безопасность"),
         "select": MessageLookupByLibrary.simpleMessage("Выбрано"),
+        "selectBothCharacters":
+            MessageLookupByLibrary.simpleMessage("Выберите обоих персонажей"),
         "selectRange":
             MessageLookupByLibrary.simpleMessage("ВЫБЕРИТЕ ДИАПАЗОН"),
         "select_character":
@@ -739,8 +766,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "tool_management": MessageLookupByLibrary.simpleMessage("Инструменты"),
         "total_count": m26,
         "total_events": MessageLookupByLibrary.simpleMessage("Всего"),
+        "typeOptional":
+            MessageLookupByLibrary.simpleMessage("Тип (необязательно)"),
         "understood": MessageLookupByLibrary.simpleMessage("Понятно"),
         "undo": MessageLookupByLibrary.simpleMessage("Отменить"),
+        "unknown": MessageLookupByLibrary.simpleMessage("Неизвестно"),
         "unpin": MessageLookupByLibrary.simpleMessage("Открепить"),
         "unsaved_changes_content": MessageLookupByLibrary.simpleMessage(
             "Сохранить изменения перед выходом?"),

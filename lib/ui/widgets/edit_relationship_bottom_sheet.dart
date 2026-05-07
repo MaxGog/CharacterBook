@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
@@ -81,17 +82,18 @@ class _EditRelationshipBottomSheetState
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
+    final s = S.of(context);
+
     if (_character1 == null || _character2 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Выберите обоих персонажей')),
+        SnackBar(content: Text(s.selectBothCharacters)),
       );
       return;
     }
 
     if (_character1!.id == _character2!.id) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Нельзя создать связь персонажа с самим собой')),
+        SnackBar(content: Text(s.cannotRelateToItself)),
       );
       return;
     }
@@ -107,7 +109,7 @@ class _EditRelationshipBottomSheetState
       if (exists) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Такая связь уже существует')),
+            SnackBar(content: Text(s.relationshipAlreadyExists)),
           );
         }
         return;
@@ -134,6 +136,7 @@ class _EditRelationshipBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -172,8 +175,8 @@ class _EditRelationshipBottomSheetState
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Text(
                 widget.relationship == null
-                    ? 'Создание связи'
-                    : 'Редактирование связи',
+                    ? s.createRelationship
+                    : s.editRelationship,
                 style: textTheme.headlineSmall?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -195,7 +198,7 @@ class _EditRelationshipBottomSheetState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildCharacterDropdown(
-                              label: 'Персонаж 1',
+                              label: s.character1,
                               value: _character1,
                               onChanged: (val) {
                                 setState(() {
@@ -212,7 +215,7 @@ class _EditRelationshipBottomSheetState
                             ),
                             const SizedBox(height: 12),
                             _buildCharacterDropdown(
-                              label: 'Персонаж 2',
+                              label: s.character2,
                               value: _character2,
                               onChanged: (val) {
                                 setState(() {
@@ -231,7 +234,7 @@ class _EditRelationshipBottomSheetState
                             TextFormField(
                               initialValue: _initialName,
                               decoration: InputDecoration(
-                                labelText: 'Название связи',
+                                labelText: s.relationshipName,
                                 border: const OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -241,14 +244,14 @@ class _EditRelationshipBottomSheetState
                               style: textTheme.bodyLarge,
                               onSaved: (val) => _name = val ?? '',
                               validator: (val) => val?.trim().isEmpty == true
-                                  ? 'Введите название'
+                                  ? s.enterName
                                   : null,
                             ),
                             const SizedBox(height: 12),
                             TextFormField(
                               initialValue: _initialDescription,
                               decoration: InputDecoration(
-                                labelText: 'Описание',
+                                labelText: s.description,
                                 border: const OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -263,7 +266,7 @@ class _EditRelationshipBottomSheetState
                             TextFormField(
                               initialValue: _initialType,
                               decoration: InputDecoration(
-                                labelText: 'Тип (необязательно)',
+                                labelText: s.typeOptional,
                                 border: const OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -276,7 +279,7 @@ class _EditRelationshipBottomSheetState
                             const SizedBox(height: 4),
                             CheckboxListTile(
                               title: Text(
-                                'Направленная связь',
+                                s.directedRelationship,
                                 style: textTheme.bodyLarge,
                               ),
                               value: _directed,
@@ -303,7 +306,7 @@ class _EditRelationshipBottomSheetState
                       foregroundColor: colorScheme.onSurface,
                       side: BorderSide(color: colorScheme.outline),
                     ),
-                    child: const Text('Отмена'),
+                    child: Text(s.cancel),
                   ),
                   const SizedBox(width: 12),
                   FilledButton(
@@ -311,7 +314,7 @@ class _EditRelationshipBottomSheetState
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                     ),
-                    child: const Text('Сохранить'),
+                    child: Text(s.save),
                   ),
                 ],
               ),
@@ -359,7 +362,9 @@ class _EditRelationshipBottomSheetState
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
-      validator: (value) => value == null ? 'Выберите персонажа' : null,
+      validator: (value) => value == null
+          ? S.of(context).select
+          : null,
       dropdownColor: colorScheme.surfaceContainerHigh,
       icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
     );

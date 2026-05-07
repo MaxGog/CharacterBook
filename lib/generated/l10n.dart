@@ -5186,6 +5186,176 @@ class S {
       args: [],
     );
   }
+
+  /// `Удалить связь?`
+  String get deleteRelationshipTitle {
+    return Intl.message(
+      'Удалить связь?',
+      name: 'deleteRelationshipTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Вы уверены, что хотите удалить конкретно эту связь?`
+  String get deleteRelationshipMessage {
+    return Intl.message(
+      'Вы уверены, что хотите удалить конкретно эту связь?',
+      name: 'deleteRelationshipMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Связь удалена`
+  String get relationshipDeleted {
+    return Intl.message(
+      'Связь удалена',
+      name: 'relationshipDeleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Скопировано в буфер обмена`
+  String get copiedToClipboard {
+    return Intl.message(
+      'Скопировано в буфер обмена',
+      name: 'copiedToClipboard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Добавить связь`
+  String get add_relationships {
+    return Intl.message(
+      'Добавить связь',
+      name: 'add_relationships',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Неизвестно`
+  String get unknown {
+    return Intl.message(
+      'Неизвестно',
+      name: 'unknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Создание связи`
+  String get createRelationship {
+    return Intl.message(
+      'Создание связи',
+      name: 'createRelationship',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Редактирование связи`
+  String get editRelationship {
+    return Intl.message(
+      'Редактирование связи',
+      name: 'editRelationship',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Персонаж 1`
+  String get character1 {
+    return Intl.message(
+      'Персонаж 1',
+      name: 'character1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Персонаж 2`
+  String get character2 {
+    return Intl.message(
+      'Персонаж 2',
+      name: 'character2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Название связи`
+  String get relationshipName {
+    return Intl.message(
+      'Название связи',
+      name: 'relationshipName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Тип (необязательно)`
+  String get typeOptional {
+    return Intl.message(
+      'Тип (необязательно)',
+      name: 'typeOptional',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Направленная связь`
+  String get directedRelationship {
+    return Intl.message(
+      'Направленная связь',
+      name: 'directedRelationship',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Выберите обоих персонажей`
+  String get selectBothCharacters {
+    return Intl.message(
+      'Выберите обоих персонажей',
+      name: 'selectBothCharacters',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Нельзя создать связь персонажа с самим собой`
+  String get cannotRelateToItself {
+    return Intl.message(
+      'Нельзя создать связь персонажа с самим собой',
+      name: 'cannotRelateToItself',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Такая связь уже существует`
+  String get relationshipAlreadyExists {
+    return Intl.message(
+      'Такая связь уже существует',
+      name: 'relationshipAlreadyExists',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите название`
+  String get enterName {
+    return Intl.message(
+      'Введите название',
+      name: 'enterName',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

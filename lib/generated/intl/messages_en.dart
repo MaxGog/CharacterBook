@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "acknowledgements": MessageLookupByLibrary.simpleMessage("Credits"),
         "add_field": MessageLookupByLibrary.simpleMessage("Add"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Add"),
+        "add_relationships":
+            MessageLookupByLibrary.simpleMessage("Add relationship"),
         "add_tag": MessageLookupByLibrary.simpleMessage("Add"),
         "additional_images": MessageLookupByLibrary.simpleMessage("Extra"),
         "adults": MessageLookupByLibrary.simpleMessage("Adults"),
@@ -114,8 +116,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Clearing cache..."),
         "calendar": MessageLookupByLibrary.simpleMessage("Calendar"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "cannotRelateToItself": MessageLookupByLibrary.simpleMessage(
+            "Cannot create relationship with the same character"),
         "changes_saved": MessageLookupByLibrary.simpleMessage("Changes saved"),
         "character": MessageLookupByLibrary.simpleMessage("Character"),
+        "character1": MessageLookupByLibrary.simpleMessage("Character 1"),
+        "character2": MessageLookupByLibrary.simpleMessage("Character 2"),
         "character_avatar": MessageLookupByLibrary.simpleMessage("Avatar"),
         "character_created_from_template": m2,
         "character_delete_confirm":
@@ -185,12 +191,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Configuring..."),
         "continue_text": MessageLookupByLibrary.simpleMessage("Continue"),
         "contrast": MessageLookupByLibrary.simpleMessage("Contrast"),
+        "copiedToClipboard":
+            MessageLookupByLibrary.simpleMessage("Copied to clipboard"),
         "copied_to_clipboard": MessageLookupByLibrary.simpleMessage("Copied"),
         "copy": MessageLookupByLibrary.simpleMessage("Copy"),
         "copy_character": MessageLookupByLibrary.simpleMessage("Copy"),
         "copy_error": MessageLookupByLibrary.simpleMessage("Copy error"),
         "create": MessageLookupByLibrary.simpleMessage("Create"),
         "createBackup": MessageLookupByLibrary.simpleMessage("Backup"),
+        "createRelationship":
+            MessageLookupByLibrary.simpleMessage("Create Relationship"),
         "create_character": MessageLookupByLibrary.simpleMessage("Create"),
         "create_first_content":
             MessageLookupByLibrary.simpleMessage("Create a character or race"),
@@ -220,12 +230,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "deleteConfirmation":
             MessageLookupByLibrary.simpleMessage("Delete selected?"),
+        "deleteRelationshipMessage": MessageLookupByLibrary.simpleMessage(
+            "Are you sure you want to delete this particular relationships?"),
+        "deleteRelationshipTitle":
+            MessageLookupByLibrary.simpleMessage("Delete the relationships?"),
         "delete_character": MessageLookupByLibrary.simpleMessage("Delete"),
         "delete_error": MessageLookupByLibrary.simpleMessage("Delete error"),
         "description": MessageLookupByLibrary.simpleMessage("Description"),
         "detailed": MessageLookupByLibrary.simpleMessage("Detailed"),
         "details": MessageLookupByLibrary.simpleMessage("Details"),
         "developer": MessageLookupByLibrary.simpleMessage("Developer"),
+        "directedRelationship":
+            MessageLookupByLibrary.simpleMessage("Directed relationship"),
         "discard_changes": MessageLookupByLibrary.simpleMessage("Discard"),
         "dnd_tools": MessageLookupByLibrary.simpleMessage("D&D Tools"),
         "done": MessageLookupByLibrary.simpleMessage("Done"),
@@ -234,6 +250,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Duplicate"),
         "duplicate_error": MessageLookupByLibrary.simpleMessage("Duplicate"),
         "edit": MessageLookupByLibrary.simpleMessage("Edit"),
+        "editRelationship":
+            MessageLookupByLibrary.simpleMessage("Edit Relationship"),
         "edit_character": MessageLookupByLibrary.simpleMessage("Edit"),
         "edit_folder": MessageLookupByLibrary.simpleMessage("Edit"),
         "edit_pins": MessageLookupByLibrary.simpleMessage("Edit pins"),
@@ -242,6 +260,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "elderly": MessageLookupByLibrary.simpleMessage("Elderly"),
         "empty_file_error": MessageLookupByLibrary.simpleMessage("File empty"),
         "empty_list": MessageLookupByLibrary.simpleMessage("Empty"),
+        "enterName": MessageLookupByLibrary.simpleMessage("Enter a name"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Age"),
         "enter_race_name": MessageLookupByLibrary.simpleMessage("Race name"),
         "error": MessageLookupByLibrary.simpleMessage("Error"),
@@ -448,6 +467,12 @@ class MessageLookup extends MessageLookupByLibrary {
             "Auto-recovery attempted. Reinstall if error persists."),
         "reference_image": MessageLookupByLibrary.simpleMessage("Reference"),
         "related_notes": MessageLookupByLibrary.simpleMessage("Related"),
+        "relationshipAlreadyExists": MessageLookupByLibrary.simpleMessage(
+            "This relationship already exists"),
+        "relationshipDeleted":
+            MessageLookupByLibrary.simpleMessage("Relationship deleted"),
+        "relationshipName":
+            MessageLookupByLibrary.simpleMessage("Relationship Name"),
         "relationships": MessageLookupByLibrary.simpleMessage("Relationships"),
         "replace": MessageLookupByLibrary.simpleMessage("Replace"),
         "required_field_error":
@@ -472,6 +497,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "search_home": MessageLookupByLibrary.simpleMessage("Search..."),
         "search_race_hint": MessageLookupByLibrary.simpleMessage("Search..."),
         "select": MessageLookupByLibrary.simpleMessage("Selected"),
+        "selectBothCharacters":
+            MessageLookupByLibrary.simpleMessage("Select both characters"),
         "selectRange": MessageLookupByLibrary.simpleMessage("Select range"),
         "select_character": MessageLookupByLibrary.simpleMessage("Select"),
         "select_folder": MessageLookupByLibrary.simpleMessage("Select"),
@@ -519,7 +546,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "theme": MessageLookupByLibrary.simpleMessage("Theme"),
         "timeout_error": MessageLookupByLibrary.simpleMessage("Timeout"),
         "to": MessageLookupByLibrary.simpleMessage("To"),
+        "typeOptional": MessageLookupByLibrary.simpleMessage("Type (optional)"),
         "undo": MessageLookupByLibrary.simpleMessage("Undo"),
+        "unknown": MessageLookupByLibrary.simpleMessage("Unknown"),
         "unpin": MessageLookupByLibrary.simpleMessage("Unpin"),
         "unsaved_changes_content":
             MessageLookupByLibrary.simpleMessage("Save changes before exit?"),

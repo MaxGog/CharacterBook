@@ -1,13 +1,64 @@
+import 'package:characterbook/generated/l10n.dart';
+import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/ui/widgets/edit_relationship_bottom_sheet.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class RelationshipsScreen extends StatelessWidget {
   const RelationshipsScreen({super.key});
+
+  void _showRelationshipContextMenu(BuildContext context, Relationship rel) {
+    final s = S.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ContextMenu.relationship(
+        relationship: rel,
+        onEdit: () => _editRelationship(context, rel),
+        onDelete: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(s.deleteRelationshipTitle),
+              content: Text(s.deleteRelationshipMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(s.cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: Text(s.delete),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true && context.mounted) {
+            context.read<RelationshipService>().deleteRelationship(rel);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(s.relationshipDeleted)),
+            );
+          }
+        },
+        onShare: () {
+          final text = '${rel.name}: $rel.name1 → $rel.name2';
+          Clipboard.setData(ClipboardData(text: text));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(s.copiedToClipboard)),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +66,12 @@ class RelationshipsScreen extends StatelessWidget {
     final relationshipService = context.watch<RelationshipService>();
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final s = S.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Связи персонажей',
+          s.relationships,
           style: textTheme.headlineSmall?.copyWith(
             color: colorScheme.onSurface,
           ),
@@ -63,7 +115,7 @@ class RelationshipsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addRelationship(context),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Добавить связь'),
+        label: Text(S.of(context).add_relationships),
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -93,7 +145,7 @@ class RelationshipsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Пока нет ни одной связи',
+                S.of(context).empty_list,
                 style: textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -102,7 +154,7 @@ class RelationshipsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Нажмите на кнопку +, чтобы добавить',
+                S.of(context).create,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                 ),
@@ -122,8 +174,8 @@ class RelationshipsScreen extends StatelessWidget {
         final rel = relationships[index];
         final char1 = characterMap[rel.character1Id];
         final char2 = characterMap[rel.character2Id];
-        final name1 = char1?.name ?? 'Неизвестный';
-        final name2 = char2?.name ?? 'Неизвестный';
+        final name1 = char1?.name ?? S.of(context).unknown;
+        final name2 = char2?.name ?? S.of(context).unknown;
 
         return Dismissible(
           key: Key(rel.id),
@@ -152,19 +204,19 @@ class RelationshipsScreen extends StatelessWidget {
             return await showDialog(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Text('Удалить связь?'),
-                content: Text('Вы уверены, что хотите удалить «${rel.name}»?'),
+                title: Text(S.of(context).deleteRelationshipTitle),
+                content: Text(S.of(context).deleteRelationshipMessage),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Отмена'),
+                    child: Text(S.of(context).cancel),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.pop(ctx, true),
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.error,
                     ),
-                    child: const Text('Удалить'),
+                    child: Text(S.of(context).delete),
                   ),
                 ],
               ),
@@ -201,15 +253,8 @@ class RelationshipsScreen extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              trailing: IconButton(
-                icon: Icon(
-                  Icons.edit_outlined,
-                  color: colorScheme.primary,
-                ),
-                onPressed: () => _editRelationship(context, rel),
-                tooltip: 'Редактировать',
-              ),
               onTap: () => _editRelationship(context, rel),
+              onLongPress: () => _showRelationshipContextMenu(context, rel),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 4,

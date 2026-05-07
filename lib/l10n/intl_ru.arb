@@ -530,5 +530,22 @@
   "list_mode": "Список",
   "new_note": "Новая заметка",
   "file_app": "Файл приложения",
-  "relationships": "Cвязи между персонажами"
+  "relationships": "Cвязи между персонажами",
+  "deleteRelationshipTitle": "Удалить связь?",
+  "deleteRelationshipMessage": "Вы уверены, что хотите удалить конкретно эту связь?",
+  "relationshipDeleted": "Связь удалена",
+  "copiedToClipboard": "Скопировано в буфер обмена",
+  "add_relationships": "Добавить связь",
+  "unknown": "Неизвестно",
+  "createRelationship": "Создание связи",
+  "editRelationship": "Редактирование связи",
+  "character1": "Персонаж 1",
+  "character2": "Персонаж 2",
+  "relationshipName": "Название связи",
+  "typeOptional": "Тип (необязательно)",
+  "directedRelationship": "Направленная связь",
+  "selectBothCharacters": "Выберите обоих персонажей",
+  "cannotRelateToItself": "Нельзя создать связь персонажа с самим собой",
+  "relationshipAlreadyExists": "Такая связь уже существует",
+  "enterName": "Введите название"
 }
