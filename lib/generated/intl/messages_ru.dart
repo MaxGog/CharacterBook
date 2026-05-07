@@ -88,7 +88,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "activity_timeline": MessageLookupByLibrary.simpleMessage("Активность"),
         "add_field": MessageLookupByLibrary.simpleMessage("Добавить поле"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Добавить"),
-        "add_tag": MessageLookupByLibrary.simpleMessage("Добавить"),
+        "add_tag": MessageLookupByLibrary.simpleMessage("Добавить тег"),
         "additional_images":
             MessageLookupByLibrary.simpleMessage("Доп. изображения"),
         "adults": MessageLookupByLibrary.simpleMessage("Взрослые"),
@@ -238,7 +238,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "copied_to_clipboard":
             MessageLookupByLibrary.simpleMessage("Скопировано"),
         "copy": MessageLookupByLibrary.simpleMessage("Копировать"),
-        "copy_character": MessageLookupByLibrary.simpleMessage("Копировать"),
+        "copy_character":
+            MessageLookupByLibrary.simpleMessage("Копировать персонажа"),
         "copy_error":
             MessageLookupByLibrary.simpleMessage("Ошибка копирования"),
         "create": MessageLookupByLibrary.simpleMessage("Создать"),
@@ -250,7 +251,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "create_from_template_tooltip":
             MessageLookupByLibrary.simpleMessage("Из шаблона"),
         "create_race": MessageLookupByLibrary.simpleMessage("Создать расу"),
-        "create_template": MessageLookupByLibrary.simpleMessage("Создать"),
+        "create_template":
+            MessageLookupByLibrary.simpleMessage("Создать шаблон"),
         "create_template_tooltip":
             MessageLookupByLibrary.simpleMessage("Создать шаблон"),
         "created": MessageLookupByLibrary.simpleMessage("Создано"),
@@ -282,7 +284,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "delete": MessageLookupByLibrary.simpleMessage("Удалить"),
         "deleteConfirmation":
             MessageLookupByLibrary.simpleMessage("Удалить выбранное?"),
-        "delete_character": MessageLookupByLibrary.simpleMessage("Удалить"),
+        "delete_character":
+            MessageLookupByLibrary.simpleMessage("Удалить персонажа"),
         "delete_error": MessageLookupByLibrary.simpleMessage("Ошибка удаления"),
         "delete_preset": MessageLookupByLibrary.simpleMessage("Удалить"),
         "description": MessageLookupByLibrary.simpleMessage("Описание"),
@@ -299,11 +302,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "duplicate_error":
             MessageLookupByLibrary.simpleMessage("Ошибка дублирования"),
         "edit": MessageLookupByLibrary.simpleMessage("Править"),
-        "edit_character": MessageLookupByLibrary.simpleMessage("Править"),
+        "edit_character":
+            MessageLookupByLibrary.simpleMessage("Изменить персонажа"),
         "edit_folder": MessageLookupByLibrary.simpleMessage("Править папку"),
         "edit_pins": MessageLookupByLibrary.simpleMessage("Закреплённые"),
-        "edit_race": MessageLookupByLibrary.simpleMessage("Править"),
-        "edit_template": MessageLookupByLibrary.simpleMessage("Править"),
+        "edit_race": MessageLookupByLibrary.simpleMessage("Изменить расы"),
+        "edit_template":
+            MessageLookupByLibrary.simpleMessage("Изменить шаблон"),
         "elderly": MessageLookupByLibrary.simpleMessage("Пожилые"),
         "empty_file_error": MessageLookupByLibrary.simpleMessage("Файл пуст"),
         "empty_list": MessageLookupByLibrary.simpleMessage("Пусто!"),
@@ -338,7 +343,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "favorites": MessageLookupByLibrary.simpleMessage("Избранное"),
         "feedback": MessageLookupByLibrary.simpleMessage("Отзыв"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
-        "field_name": MessageLookupByLibrary.simpleMessage("Название"),
+        "field_name": MessageLookupByLibrary.simpleMessage("Имя поля"),
         "field_name_hint":
             MessageLookupByLibrary.simpleMessage("Название поля"),
         "field_removed": MessageLookupByLibrary.simpleMessage("Поле удалено"),
@@ -363,7 +368,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "flutterLicense":
             MessageLookupByLibrary.simpleMessage("Лицензия Flutter"),
         "folder": MessageLookupByLibrary.simpleMessage("Папка"),
-        "folder_color": MessageLookupByLibrary.simpleMessage("Цвет"),
+        "folder_color": MessageLookupByLibrary.simpleMessage("Цвет папки"),
+        "folder_mode": MessageLookupByLibrary.simpleMessage("Папки"),
         "folder_name": MessageLookupByLibrary.simpleMessage("Название"),
         "folders": MessageLookupByLibrary.simpleMessage("Папки"),
         "folders_count": m22,
@@ -401,7 +407,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "import_character": MessageLookupByLibrary.simpleMessage("Импорт"),
         "import_data": MessageLookupByLibrary.simpleMessage("Импорт"),
         "import_error": m11,
-        "import_race": MessageLookupByLibrary.simpleMessage("Импорт"),
+        "import_race": MessageLookupByLibrary.simpleMessage("Импорт расы"),
         "import_template":
             MessageLookupByLibrary.simpleMessage("Импорт шаблона"),
         "import_template_tooltip":
@@ -440,6 +446,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Смахивание влево"),
         "licenses": MessageLookupByLibrary.simpleMessage("Лицензии"),
         "light": MessageLookupByLibrary.simpleMessage("Светлая"),
+        "list_mode": MessageLookupByLibrary.simpleMessage("Список"),
         "list_view": MessageLookupByLibrary.simpleMessage("Список"),
         "load_preset": MessageLookupByLibrary.simpleMessage("Загрузить"),
         "loading_data":
@@ -492,6 +499,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "new_character_from_template":
             MessageLookupByLibrary.simpleMessage("Новый персонаж (шаблон)"),
         "new_folder": MessageLookupByLibrary.simpleMessage("Новая папка"),
+        "new_note": MessageLookupByLibrary.simpleMessage("Новая заметка"),
         "new_race": MessageLookupByLibrary.simpleMessage("Новая раса"),
         "new_template": MessageLookupByLibrary.simpleMessage("Новый шаблон"),
         "no_additional_images":
@@ -650,13 +658,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "select": MessageLookupByLibrary.simpleMessage("Выбрано"),
         "selectRange":
             MessageLookupByLibrary.simpleMessage("ВЫБЕРИТЕ ДИАПАЗОН"),
-        "select_character": MessageLookupByLibrary.simpleMessage("Выбрать"),
-        "select_folder": MessageLookupByLibrary.simpleMessage("Выбрать"),
+        "select_character":
+            MessageLookupByLibrary.simpleMessage("Выбрать персонажа"),
+        "select_folder": MessageLookupByLibrary.simpleMessage("Выбрать папку"),
         "select_gender_error":
             MessageLookupByLibrary.simpleMessage("Выберите пол"),
         "select_race_error":
             MessageLookupByLibrary.simpleMessage("Выберите расу"),
-        "select_template": MessageLookupByLibrary.simpleMessage("Выбрать"),
+        "select_template":
+            MessageLookupByLibrary.simpleMessage("Выбрать шаблон"),
         "select_template_file":
             MessageLookupByLibrary.simpleMessage("Выберите файл шаблона"),
         "service_creation_error":
@@ -674,7 +684,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "share_app": MessageLookupByLibrary.simpleMessage("Поделиться"),
         "share_backup_file": MessageLookupByLibrary.simpleMessage(
             "Моя резервная копия CharacterBook"),
-        "share_character": MessageLookupByLibrary.simpleMessage("Поделиться"),
+        "share_character":
+            MessageLookupByLibrary.simpleMessage("Поделиться персонажем"),
         "short_name": MessageLookupByLibrary.simpleMessage("Краткое имя"),
         "skip_for_now": MessageLookupByLibrary.simpleMessage("Пропустить"),
         "sort_by": MessageLookupByLibrary.simpleMessage("Сортировка"),

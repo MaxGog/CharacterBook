@@ -360,50 +360,50 @@ class S {
     );
   }
 
-  /// `Править`
+  /// `Изменить персонажа`
   String get edit_character {
     return Intl.message(
-      'Править',
+      'Изменить персонажа',
       name: 'edit_character',
       desc: '',
       args: [],
     );
   }
 
-  /// `Удалить`
+  /// `Удалить персонажа`
   String get delete_character {
     return Intl.message(
-      'Удалить',
+      'Удалить персонажа',
       name: 'delete_character',
       desc: '',
       args: [],
     );
   }
 
-  /// `Копировать`
+  /// `Копировать персонажа`
   String get copy_character {
     return Intl.message(
-      'Копировать',
+      'Копировать персонажа',
       name: 'copy_character',
       desc: '',
       args: [],
     );
   }
 
-  /// `Поделиться`
+  /// `Поделиться персонажем`
   String get share_character {
     return Intl.message(
-      'Поделиться',
+      'Поделиться персонажем',
       name: 'share_character',
       desc: '',
       args: [],
     );
   }
 
-  /// `Выбрать`
+  /// `Выбрать персонажа`
   String get select_character {
     return Intl.message(
-      'Выбрать',
+      'Выбрать персонажа',
       name: 'select_character',
       desc: '',
       args: [],
@@ -450,20 +450,20 @@ class S {
     );
   }
 
-  /// `Править`
+  /// `Изменить расы`
   String get edit_race {
     return Intl.message(
-      'Править',
+      'Изменить расы',
       name: 'edit_race',
       desc: '',
       args: [],
     );
   }
 
-  /// `Импорт`
+  /// `Импорт расы`
   String get import_race {
     return Intl.message(
-      'Импорт',
+      'Импорт расы',
       name: 'import_race',
       desc: '',
       args: [],
@@ -500,30 +500,30 @@ class S {
     );
   }
 
-  /// `Править`
+  /// `Изменить шаблон`
   String get edit_template {
     return Intl.message(
-      'Править',
+      'Изменить шаблон',
       name: 'edit_template',
       desc: '',
       args: [],
     );
   }
 
-  /// `Создать`
+  /// `Создать шаблон`
   String get create_template {
     return Intl.message(
-      'Создать',
+      'Создать шаблон',
       name: 'create_template',
       desc: '',
       args: [],
     );
   }
 
-  /// `Выбрать`
+  /// `Выбрать шаблон`
   String get select_template {
     return Intl.message(
-      'Выбрать',
+      'Выбрать шаблон',
       name: 'select_template',
       desc: '',
       args: [],
@@ -580,20 +580,20 @@ class S {
     );
   }
 
-  /// `Цвет`
+  /// `Цвет папки`
   String get folder_color {
     return Intl.message(
-      'Цвет',
+      'Цвет папки',
       name: 'folder_color',
       desc: '',
       args: [],
     );
   }
 
-  /// `Выбрать`
+  /// `Выбрать папку`
   String get select_folder {
     return Intl.message(
-      'Выбрать',
+      'Выбрать папку',
       name: 'select_folder',
       desc: '',
       args: [],
@@ -810,10 +810,10 @@ class S {
     );
   }
 
-  /// `Добавить`
+  /// `Добавить тег`
   String get add_tag {
     return Intl.message(
-      'Добавить',
+      'Добавить тег',
       name: 'add_tag',
       desc: '',
       args: [],
@@ -1020,10 +1020,10 @@ class S {
     );
   }
 
-  /// `Название`
+  /// `Имя поля`
   String get field_name {
     return Intl.message(
-      'Название',
+      'Имя поля',
       name: 'field_name',
       desc: '',
       args: [],
@@ -5132,6 +5132,36 @@ class S {
     return Intl.message(
       'Открепить',
       name: 'unpin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Папки`
+  String get folder_mode {
+    return Intl.message(
+      'Папки',
+      name: 'folder_mode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Список`
+  String get list_mode {
+    return Intl.message(
+      'Список',
+      name: 'list_mode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Новая заметка`
+  String get new_note {
+    return Intl.message(
+      'Новая заметка',
+      name: 'new_note',
       desc: '',
       args: [],
     );

@@ -281,6 +281,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Flutter License"),
         "folder": MessageLookupByLibrary.simpleMessage("Folder"),
         "folder_color": MessageLookupByLibrary.simpleMessage("Color"),
+        "folder_mode": MessageLookupByLibrary.simpleMessage("Folders mode"),
         "folder_name": MessageLookupByLibrary.simpleMessage("Name"),
         "folders": MessageLookupByLibrary.simpleMessage("Folders"),
         "from": MessageLookupByLibrary.simpleMessage("From"),
@@ -334,6 +335,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "leftSwipeAction": MessageLookupByLibrary.simpleMessage("Left swipe"),
         "licenses": MessageLookupByLibrary.simpleMessage("Licenses"),
         "light": MessageLookupByLibrary.simpleMessage("Light"),
+        "list_mode": MessageLookupByLibrary.simpleMessage("List mode"),
         "list_view": MessageLookupByLibrary.simpleMessage("List"),
         "loading_data": MessageLookupByLibrary.simpleMessage("Loading..."),
         "loading_resources": MessageLookupByLibrary.simpleMessage("Loading..."),
@@ -377,6 +379,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "new_character_from_template":
             MessageLookupByLibrary.simpleMessage("New from template"),
         "new_folder": MessageLookupByLibrary.simpleMessage("New"),
+        "new_note": MessageLookupByLibrary.simpleMessage("New note"),
         "new_race": MessageLookupByLibrary.simpleMessage("New"),
         "new_template": MessageLookupByLibrary.simpleMessage("New"),
         "no_additional_images":

@@ -381,5 +381,8 @@
   "pinned": "Pinned",
   "no_pinned_items": "No pinned",
   "pin": "Pin",
-  "unpin": "Unpin"
+  "unpin": "Unpin",
+  "folder_mode": "Folders mode",
+  "list_mode": "List mode",
+  "new_note": "New note"
 }
