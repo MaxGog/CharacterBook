@@ -251,12 +251,16 @@ class _CompactNumberSelector extends StatefulWidget {
 }
 
 class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
-  late FixedExtentScrollController _controller;
   late List<int> _items;
+  late FixedExtentScrollController _controller;
 
   @override
   void initState() {
     super.initState();
+    _rebuildItems();
+  }
+
+  void _rebuildItems() {
     _items = List.generate(
       widget.max - widget.min + 1,
       (index) => widget.min + index,
@@ -269,7 +273,9 @@ class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
   @override
   void didUpdateWidget(_CompactNumberSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
+    if (oldWidget.min != widget.min || oldWidget.max != widget.max) {
+      _rebuildItems();
+    } else if (oldWidget.value != widget.value) {
       final index = _items.indexOf(widget.value);
       if (index >= 0 && index < _items.length) {
         _controller.animateToItem(
@@ -287,11 +293,53 @@ class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
     super.dispose();
   }
 
+  Future<void> _showNumberInputDialog() async {
+    final TextEditingController textController = TextEditingController(
+      text: widget.value.toString(),
+    );
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(widget.title),
+        content: TextField(
+          controller: textController,
+          keyboardType: TextInputType.numberWithOptions(signed: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*'))
+          ],
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: widget.value.toString(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(S.of(context).cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = int.tryParse(textController.text);
+              if (parsed != null &&
+                  parsed >= widget.min &&
+                  parsed <= widget.max) {
+                Navigator.pop(ctx, parsed);
+              }
+            },
+            child: Text(S.of(context).ok),
+          ),
+        ],
+      ),
+    );
+    if (result != null && mounted) {
+      widget.onChanged(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isSmallScreen = MediaQuery.of(context).size.width < 380;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,47 +351,27 @@ class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          height: isSmallScreen ? 80 : 100,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: colorScheme.outlineVariant,
-              width: 1,
+        InkWell(
+          onTap: _showNumberInputDialog,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: colorScheme.outlineVariant,
+                width: 1,
+              ),
             ),
-          ),
-          child: ListWheelScrollView.useDelegate(
-            controller: _controller,
-            itemExtent: 36,
-            diameterRatio: 1.5,
-            physics: const FixedExtentScrollPhysics(),
-            onSelectedItemChanged: (index) {
-              if (index >= 0 && index < _items.length) {
-                widget.onChanged(_items[index]);
-              }
-            },
-            childDelegate: ListWheelChildBuilderDelegate(
-              builder: (context, index) {
-                if (index < 0 || index >= _items.length) return null;
-                final number = _items[index];
-                final isSelected = number == widget.value;
-
-                return Center(
-                  child: Text(
-                    number.toString(),
-                    style: textTheme.titleMedium?.copyWith(
-                      color: isSelected
-                          ? colorScheme.onSurface
-                          : colorScheme.onSurface.withOpacity(0.6),
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: isSelected ? 20 : 18,
-                    ),
-                  ),
-                );
-              },
-              childCount: _items.length,
+            child: Center(
+              child: Text(
+                widget.value.toString(),
+                style: textTheme.titleLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ),
@@ -358,9 +386,8 @@ class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
                 size: 24,
               ),
               onPressed: () {
-                final currentIndex = _items.indexOf(widget.value);
-                if (currentIndex > 0) {
-                  widget.onChanged(_items[currentIndex - 1]);
+                if (widget.value > widget.min) {
+                  widget.onChanged(widget.value - 1);
                 }
               },
               padding: EdgeInsets.zero,
@@ -389,9 +416,8 @@ class _CompactNumberSelectorState extends State<_CompactNumberSelector> {
                 size: 24,
               ),
               onPressed: () {
-                final currentIndex = _items.indexOf(widget.value);
-                if (currentIndex < _items.length - 1) {
-                  widget.onChanged(_items[currentIndex + 1]);
+                if (widget.value < widget.max) {
+                  widget.onChanged(widget.value + 1);
                 }
               },
               padding: EdgeInsets.zero,
