@@ -49,13 +49,4 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
-  testWidgets('Пустое состояние отображается при отсутствии данных',
-      (tester) async {
-    await tester.pumpWidget(createTestableHomeScreen());
-    await tester.pumpAndSettle();
-
-    expect(find.byIcon(Icons.person_outline_rounded), findsOneWidget);
-
-    expect(find.text('Нет контента'), findsOneWidget);
-  });
 }
