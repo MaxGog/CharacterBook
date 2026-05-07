@@ -176,22 +176,44 @@ class _NotesListScreenState extends State<NotesListScreen>
                                       items: notesToShow,
                                       itemBuilder: (ctx, note, index) =>
                                           NoteCardItem(
-                                        key: ValueKey(note.key),
-                                        note: note,
-                                        onTap: () => _handleNoteTap(note),
-                                        onEdit: () => _editNote(note),
-                                        onDelete: () =>
-                                            _deleteNote(note, controller),
-                                        onShare: () =>
-                                            service.shareNote(context, note),
-                                        onSettings: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const SwipeActionSettingsScreen(),
+                                            key: ValueKey(note.key),
+                                            note: note,
+                                            onTap: () => _handleNoteTap(note),
+                                            onEdit: () => _editNote(note),
+                                            onDelete: () =>
+                                                _deleteNote(note, controller),
+                                            onCopy: () async {
+                                              try {
+                                                await controller.noteClipboardText(
+                                                    note, context);
+                                                if (context.mounted)
+                                                  showSnackBar(S
+                                                      .of(context)
+                                                      .copied_to_clipboard);
+                                              } catch (e) {
+                                                if (context.mounted)
+                                                  showSnackBar(
+                                                      '${S.of(context).copy_error}: $e');
+                                              }
+                                            },
+                                            onShare: () async {
+                                              try {
+                                                await controller
+                                                    .shareNoteAsFile(note);
+                                              } catch (e) {
+                                                if (context.mounted)
+                                                  showSnackBar(
+                                                      '${S.of(context).error}: $e');
+                                              }
+                                            },
+                                            onSettings: () => Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const SwipeActionSettingsScreen(),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
                                       onReorder: (oldIndex, newIndex) =>
                                           controller.reorder(
                                               oldIndex, newIndex),

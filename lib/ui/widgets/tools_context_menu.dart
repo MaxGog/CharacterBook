@@ -1,253 +1,117 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:characterbook/generated/l10n.dart';
-import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/note_model.dart';
-import 'package:characterbook/data/models/race_model.dart';
-import 'package:characterbook/data/models/template_model.dart';
-import 'package:characterbook/data/services/character_service.dart';
-import 'package:characterbook/services/clipboard_service.dart';
-import 'package:characterbook/services/pdf_export_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ContextMenu extends StatelessWidget {
   final dynamic item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final bool showExportPdf;
-  final bool showCopy;
-  final bool showShare;
   final VoidCallback? onDuplicate;
+  final VoidCallback onShare;
 
   const ContextMenu({
     super.key,
     required this.item,
     required this.onEdit,
     required this.onDelete,
-    this.showExportPdf = false,
-    this.showCopy = true,
-    this.showShare = true,
+    required this.onShare,
     this.onDuplicate,
   });
 
   factory ContextMenu.character({
-    required Character character,
+    Key? key,
+    required dynamic character,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
+    required VoidCallback onShare,
     VoidCallback? onDuplicate,
-    Key? key,
-  }) {
-    return ContextMenu(
-      key: key,
-      item: character,
-      onEdit: onEdit,
-      onDelete: onDelete,
-      onDuplicate: onDuplicate,
-      showExportPdf: true,
-    );
-  }
+  }) =>
+      ContextMenu(
+        key: key,
+        item: character,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onShare: onShare,
+        onDuplicate: onDuplicate,
+      );
 
   factory ContextMenu.race({
-    required Race race,
+    Key? key,
+    required dynamic race,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
-    Key? key,
-  }) {
-    return ContextMenu(
-      key: key,
-      item: race,
-      onEdit: onEdit,
-      onDelete: onDelete,
-      showExportPdf: true,
-    );
-  }
+    required VoidCallback onShare,
+  }) =>
+      ContextMenu(
+        key: key,
+        item: race,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onShare: onShare,
+      );
 
   factory ContextMenu.note({
-    required Note note,
+    Key? key,
+    required dynamic note,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
+    required VoidCallback onShare,
+  }) =>
+      ContextMenu(
+        key: key,
+        item: note,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onShare: onShare,
+      );
+
+  factory ContextMenu.template({
     Key? key,
+    required dynamic template,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    required VoidCallback onShare,
+  }) =>
+      ContextMenu(
+        key: key,
+        item: template,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onShare: onShare,
+      );
+
+  Widget _buildMenuItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
   }) {
-    return ContextMenu(
-      key: key,
-      item: note,
-      onEdit: onEdit,
-      onDelete: onDelete,
-    );
-  }
-
-  Future<void> _copyToClipboard(BuildContext context) async {
-    final s = S.of(context);
-    try {
-      if (item is Character) {
-        final character = item as Character;
-        await ClipboardService.copyCharacterToClipboard(
-          context: context,
-          name: character.name,
-          age: character.age,
-          gender: character.gender,
-          raceName: character.race?.name,
-          biography: character.biography,
-          appearance: character.appearance,
-          personality: character.personality,
-          abilities: character.abilities,
-          other: character.other,
-          customFields: character.customFields
-              .map((f) => {'key': f.key, 'value': f.value})
-              .toList(),
-        );
-      } else if (item is Race) {
-        final race = item as Race;
-        await ClipboardService.copyRaceToClipboard(
-          context: context,
-          name: race.name,
-          description: race.description,
-          biology: race.biology,
-          backstory: race.backstory,
-        );
-      } else if (item is Note) {
-        final note = item as Note;
-        await Clipboard.setData(ClipboardData(text: note.content));
-      }
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(s.copied_to_clipboard),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${s.copy_error}: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _duplicateCharacter(BuildContext context) async {
-    final s = S.of(context);
-    try {
-      if (item is Character) {
-        final character = item as Character;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-
-        final characterService = context.read<CharacterService>();
-        await characterService.duplicateCharacter(character);
-
-        if (context.mounted) {
-          Navigator.pop(context);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(s.character_duplicated),
-              behavior: SnackBarBehavior.floating,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: SizedBox(
+          height: 48,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Icon(icon, size: 24, color: color),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ],
             ),
-          );
-
-          onDuplicate?.call();
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${s.duplicate_error}: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
           ),
-        );
-      }
-    }
-  }
-
-  Future<void> _exportToPdf(BuildContext context) async {
-    try {
-      if (item is Character) {
-        await PdfExportManager.exportCharacterWithDialog(
-          context,
-          item as Character,
-        );
-      } else if (item is Race) {
-        await PdfExportManager.exportRaceWithDialog(
-          context,
-          item as Race,
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${S.of(context).export_error}: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _shareAsFile(BuildContext context) async {
-    final s = S.of(context);
-    try {
-      String fileName;
-      String content;
-      String shareText;
-
-      if (item is Character) {
-        final character = item as Character;
-        fileName = '${character.name}.character';
-        shareText = s.character_share_text(character.name);
-        content = jsonEncode(character.toJson());
-      } else if (item is Race) {
-        final race = item as Race;
-        fileName = '${race.name}.race';
-        shareText = s.race_share_text(race.name);
-        content = jsonEncode(race.toJson());
-      } else if (item is Note) {
-        final note = item as Note;
-        fileName = '${note.title}_note.json';
-        shareText = note.title;
-        content = jsonEncode(note.toJson());
-      } else if (item is QuestionnaireTemplate) {
-        final template = item as QuestionnaireTemplate;
-        fileName = '${template.name}.chax';
-        shareText = template.name;
-        content = jsonEncode(template.toJson());
-      } else {
-        return;
-      }
-
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsString(content);
-      await Share.shareXFiles([XFile(file.path)], text: shareText);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${s.error}: ${e.toString()}'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+        ),
+      ),
+    );
   }
 
   @override
@@ -256,122 +120,75 @@ class ContextMenu extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final s = S.of(context);
 
-    Widget buildMenuItem({
-      required IconData icon,
-      required String label,
-      required Color color,
-      required VoidCallback onTap,
-    }) {
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () {
-            Navigator.pop(context);
-            onTap();
-          },
-          child: SizedBox(
-            height: 48,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(icon, size: 24, color: color),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     final List<Widget> items = [];
 
-    items.add(buildMenuItem(
+    items.add(_buildMenuItem(
+      context: context,
       icon: Icons.edit_rounded,
       label: s.edit,
       color: colorScheme.onSurface,
-      onTap: onEdit,
+      onTap: () {
+        Navigator.pop(context);
+        onEdit();
+      },
     ));
 
-    if (item is Character) {
-      items.add(buildMenuItem(
+    if (onDuplicate != null) {
+      items.add(_buildMenuItem(
+        context: context,
         icon: Icons.copy_all_rounded,
         label: s.duplicate,
         color: colorScheme.onSurface,
-        onTap: () => _duplicateCharacter(context),
+        onTap: () {
+          Navigator.pop(context);
+          onDuplicate!();
+        },
       ));
     }
 
-    if (showCopy) {
-      items.add(buildMenuItem(
-        icon: Icons.copy_rounded,
-        label: s.copy,
-        color: colorScheme.onSurface,
-        onTap: () => _copyToClipboard(context),
-      ));
-    }
+    items.add(Divider(
+      height: 1,
+      thickness: 1,
+      color: colorScheme.outlineVariant,
+      indent: 16,
+      endIndent: 16,
+    ));
 
-    final bool hasExportShare = showShare || showExportPdf;
-    if (hasExportShare && items.isNotEmpty) {
-      items.add(Divider(
-        height: 1,
-        thickness: 1,
-        color: colorScheme.outlineVariant,
-        indent: 16,
-        endIndent: 16,
-      ));
-    }
+    items.add(_buildMenuItem(
+      context: context,
+      icon: Icons.share_rounded,
+      label: s.share,
+      color: colorScheme.onSurface,
+      onTap: () {
+        Navigator.pop(context); // закрываем меню
+        onShare(); // экран сам покажет диалог
+      },
+    ));
 
-    if (showShare) {
-      items.add(buildMenuItem(
-        icon: Icons.share_rounded,
-        label: s.share,
-        color: colorScheme.onSurface,
-        onTap: () => _shareAsFile(context),
-      ));
-    }
-
-    if (showExportPdf) {
-      items.add(buildMenuItem(
-        icon: Icons.picture_as_pdf_rounded,
-        label: s.file_pdf,
-        color: colorScheme.onSurface,
-        onTap: () => _exportToPdf(context),
-      ));
-    }
-
-    if (items.isNotEmpty) {
-      items.add(Divider(
-        height: 1,
-        thickness: 1,
-        color: colorScheme.outlineVariant,
-        indent: 16,
-        endIndent: 16,
-      ));
-    }
-
-    items.add(buildMenuItem(
+    items.add(Divider(
+      height: 1,
+      thickness: 1,
+      color: colorScheme.outlineVariant,
+      indent: 16,
+      endIndent: 16,
+    ));
+    items.add(_buildMenuItem(
+      context: context,
       icon: Icons.delete_rounded,
       label: s.delete,
       color: colorScheme.error,
-      onTap: onDelete,
+      onTap: () {
+        Navigator.pop(context);
+        onDelete();
+      },
     ));
 
-    return Material(
-      elevation: 3,
-      borderRadius: BorderRadius.circular(28),
-      color: colorScheme.surfaceContainerHigh,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 280),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Material(
+        elevation: 3,
+        borderRadius: BorderRadius.circular(28),
+        color: colorScheme.surfaceContainerHigh,
         child: Column(mainAxisSize: MainAxisSize.min, children: items),
       ),
     );

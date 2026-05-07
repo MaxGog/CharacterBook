@@ -4,6 +4,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/controllers/character_list_controller.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
@@ -76,12 +77,10 @@ class _CharacterListScreenState extends State<CharacterListScreen>
       errorMessage = null;
     });
     try {
-      final character =
-          await filePickerService.importCharacter();
-      if (character == null) return;
-
-      await service.saveCharacter(character);
-      if (mounted) {
+      final character = await context
+          .read<CharacterListController>()
+          .importCharacter(() => filePickerService.importCharacter(), service);
+      if (mounted && character != null) {
         showSnackBar(S.of(context).character_imported(character.name));
       }
     } catch (e) {
@@ -118,8 +117,13 @@ class _CharacterListScreenState extends State<CharacterListScreen>
     }
   }
 
-  void _showCharacterContextMenu(Character character, BuildContext context,
-      CharacterListController controller, CharacterService service) {
+  void _showCharacterContextMenu(
+    Character character,
+    BuildContext context,
+    CharacterListController controller,
+    CharacterService service,
+  ) {
+    final s = S.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -127,7 +131,45 @@ class _CharacterListScreenState extends State<CharacterListScreen>
         character: character,
         onEdit: () => _navigateToEdit(context, character),
         onDelete: () => _deleteCharacter(character, controller),
-        onDuplicate: () => service.duplicateCharacter(character),
+        onDuplicate: () async {
+          try {
+            await controller.duplicateCharacter(character, service);
+            if (context.mounted) {
+              showSnackBar(s.character_duplicated);
+            }
+          } catch (e) {
+            if (context.mounted) {
+              showSnackBar('${s.duplicate_error}: $e');
+            }
+          }
+        },
+        onShare: () {
+          ShareOptionsDialog.show(
+            context,
+            onCopy: () async {
+              try {
+                await controller.characterClipboardText(character, context);
+                if (context.mounted) showSnackBar(s.copied_to_clipboard);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.copy_error}: $e');
+              }
+            },
+            onShareFile: () async {
+              try {
+                await controller.shareCharacterAsFile(character);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.error}: $e');
+              }
+            },
+            onExportPdf: () async {
+              try {
+                await controller.exportCharacterToPdf(character, context);
+              } catch (e) {
+                if (context.mounted) showSnackBar('${s.export_error}: $e');
+              }
+            },
+          );
+        },
       ),
     );
   }

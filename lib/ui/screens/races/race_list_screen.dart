@@ -7,6 +7,7 @@ import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/ui/controllers/race_list_controller.dart';
 
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
 import 'package:characterbook/ui/widgets/buttons/common_fab_menu.dart';
@@ -104,17 +105,45 @@ class _RaceListScreenState extends State<RaceListScreen>
   }
 
   void _showRaceContextMenu(Race race, BuildContext context,
-      RaceListController controller, RaceService service) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.race(
-        race: race,
-        onEdit: () => _editRace(context, race),
-        onDelete: () => _deleteRace(race, controller, service),
-      ),
-    );
-  }
+    RaceListController controller, RaceService service) {
+  final s = S.of(context);
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => ContextMenu.race(
+      race: race,
+      onEdit: () => _editRace(context, race),
+      onDelete: () => _deleteRace(race, controller, service),
+      onShare: () {
+        ShareOptionsDialog.show(
+          context,
+          onCopy: () async {
+            try {
+              await controller.raceClipboardText(race, context);
+              if (context.mounted) showSnackBar(s.copied_to_clipboard);
+            } catch (e) {
+              if (context.mounted) showSnackBar('${s.copy_error}: $e');
+            }
+          },
+          onShareFile: () async {
+            try {
+              await controller.shareRaceAsFile(race);
+            } catch (e) {
+              if (context.mounted) showSnackBar('${s.error}: $e');
+            }
+          },
+          onExportPdf: () async {
+            try {
+              await controller.exportRaceToPdf(race, context);
+            } catch (e) {
+              if (context.mounted) showSnackBar('${s.export_error}: $e');
+            }
+          },
+        );
+      },
+    ),
+  );
+}
 
   Future<void> _editRace(BuildContext context, Race race) async {
     await showModalBottomSheet(
@@ -131,10 +160,11 @@ class _RaceListScreenState extends State<RaceListScreen>
       errorMessage = null;
     });
     try {
-      final race = await filePickerService.importRace();
-      if (race == null) return;
-      await service.saveRace(race);
-      if (mounted) {
+      final race = await context.read<RaceListController>().importRace(
+            () => filePickerService.importRace(),
+            service,
+          );
+      if (mounted && race != null) {
         showSnackBar(S.of(context).race_imported(race.name));
       }
     } catch (e) {

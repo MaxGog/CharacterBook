@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/enums/note_sort_enum.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class NoteListController extends ChangeNotifier {
   final NoteRepository _repository;
@@ -97,6 +102,22 @@ class NoteListController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> noteClipboardText(Note note, BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: note.content));
+  }
+
+  Future<void> shareNoteAsFile(Note note) async {
+    final fileName = '${note.title}_note.json';
+    final content = jsonEncode(note.toJson());
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/$fileName');
+    await file.writeAsString(content);
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: note.title,
+    );
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {

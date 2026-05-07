@@ -5,7 +5,6 @@ import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
 import 'package:characterbook/ui/widgets/states/empty_folders_state.dart';
 import 'package:characterbook/ui/widgets/items/character_card_item.dart';
-import 'package:characterbook/ui/widgets/items/folder_card_item.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 import 'package:characterbook/ui/widgets/items/race_card_item.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';

@@ -1,8 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:characterbook/data/enums/character_sort_enum.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
+import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/services/clipboard_service.dart';
+import 'package:characterbook/services/pdf_export_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CharacterListController extends ChangeNotifier {
   final CharacterRepository _repository;
@@ -107,6 +115,57 @@ class CharacterListController extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  Future<void> characterClipboardText(Character character, BuildContext context) async {
+    await ClipboardService.copyCharacterToClipboard(
+      context: context,
+      name: character.name,
+      age: character.age,
+      gender: character.gender,
+      raceName: character.race?.name,
+      biography: character.biography,
+      appearance: character.appearance,
+      personality: character.personality,
+      abilities: character.abilities,
+      other: character.other,
+      customFields: character.customFields
+          .map((f) => {'key': f.key, 'value': f.value})
+          .toList(),
+    );
+  }
+
+  Future<void> shareCharacterAsFile(Character character) async {
+    final fileName = '${character.name}.character';
+    final content = jsonEncode(character.toJson());
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/$fileName');
+    await file.writeAsString(content);
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: '${character.name}',
+    );
+  }
+
+  Future<void> duplicateCharacter(
+      Character character, CharacterService service) async {
+    await service.duplicateCharacter(character);
+  }
+
+  Future<Character?> importCharacter(
+    Future<Character?> Function() pickFile,
+    CharacterService service,
+  ) async {
+    final character = await pickFile();
+    if (character != null) {
+      await service.saveCharacter(character);
+    }
+    return character;
+  }
+
+  Future<void> exportCharacterToPdf(
+      Character character, BuildContext context) async {
+    await PdfExportManager.exportCharacterWithDialog(context, character);
   }
 
   @override

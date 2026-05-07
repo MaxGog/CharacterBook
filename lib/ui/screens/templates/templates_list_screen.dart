@@ -5,6 +5,7 @@ import 'package:characterbook/data/services/template_service.dart';
 import 'package:characterbook/ui/controllers/template_list_controller.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/items/template_card_item.dart';
@@ -84,18 +85,50 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
       }
     }
   }
+  
 
   void _showTemplateContextMenu(QuestionnaireTemplate template,
       BuildContext context, TemplateListController controller) {
+    final s = S.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu(
-        item: template,
+      builder: (ctx) => ContextMenu.template(
+        template: template,
         onEdit: () => _navigateToEdit(context, template),
         onDelete: () => _deleteTemplate(template, controller),
-        showExportPdf: false,
-        showCopy: false,
+        onShare: () {
+          ShareOptionsDialog.show(
+            context,
+            onCopy: () async {
+              try {
+                await controller.templateClipboardText(template, context);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(s.copied_to_clipboard)),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${s.copy_error}: $e')),
+                  );
+                }
+              }
+            },
+            onShareFile: () async {
+              try {
+                await controller.shareTemplateAsFile(template);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${s.error}: $e')),
+                  );
+                }
+              }
+            },
+          );
+        },
       ),
     );
   }

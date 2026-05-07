@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:characterbook/data/enums/template_sort_enum.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TemplateListController extends ChangeNotifier {
   final TemplateRepository _repository;
@@ -106,6 +111,28 @@ class TemplateListController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> templateClipboardText(QuestionnaireTemplate template, BuildContext context) async {
+    final buffer = StringBuffer();
+    buffer.writeln('Template: ${template.name}');
+    buffer.writeln('Standard fields: ${template.standardFields.join(", ")}');
+    buffer.writeln(
+        'Custom fields: ${template.customFields.map((f) => "${f.key}: ${f.value}").join(", ")}');
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+  }
+
+  Future<void> shareTemplateAsFile(QuestionnaireTemplate template) async {
+    final fileName = '${template.name}.chax';
+    final content = jsonEncode(template.toJson());
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/$fileName');
+    await file.writeAsString(content);
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: template.name,
+    );
+  }
+
 
   Future<void> reorder(int oldIndex, int newIndex) async {
 

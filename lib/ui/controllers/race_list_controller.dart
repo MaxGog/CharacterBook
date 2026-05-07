@@ -1,8 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:characterbook/data/enums/race_sort_enum.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/clipboard_service.dart';
+import 'package:characterbook/services/pdf_export_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RaceListController extends ChangeNotifier {
   final RaceRepository _repository;
@@ -92,6 +99,43 @@ class RaceListController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> raceClipboardText(Race race, BuildContext context) async {
+    await ClipboardService.copyRaceToClipboard(
+      context: context,
+      name: race.name,
+      description: race.description,
+      biology: race.biology,
+      backstory: race.backstory,
+    );
+  }
+
+  Future<void> shareRaceAsFile(Race race) async {
+    final fileName = '${race.name}.race';
+    final content = jsonEncode(race.toJson());
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/$fileName');
+    await file.writeAsString(content);
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: race.name,
+    );
+  }
+
+  Future<Race?> importRace(
+    Future<Race?> Function() pickFile,
+    RaceService service,
+  ) async {
+    final race = await pickFile();
+    if (race != null) {
+      await service.saveRace(race);
+    }
+    return race;
+  }
+
+  Future<void> exportRaceToPdf(Race race, BuildContext context) async {
+    await PdfExportManager.exportRaceWithDialog(context, race);
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {

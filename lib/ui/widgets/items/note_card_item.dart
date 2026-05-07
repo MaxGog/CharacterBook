@@ -11,6 +11,7 @@ class NoteCardItem extends StatelessWidget {
   final bool enableDrag;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onCopy;
   final VoidCallback? onShare;
   final VoidCallback? onDuplicate;
   final VoidCallback? onSettings;
@@ -23,19 +24,21 @@ class NoteCardItem extends StatelessWidget {
     this.enableDrag = false,
     required this.onEdit,
     required this.onDelete,
+    this.onCopy,
     this.onShare,
     this.onSettings,
-    this.onDuplicate
+    this.onDuplicate,
   });
 
   void _showNoteContextMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => ContextMenu.note(
+      builder: (ctx) => ContextMenu.note(
         note: note,
         onEdit: onEdit,
         onDelete: onDelete,
+        onShare: () => { },
       ),
     );
   }
