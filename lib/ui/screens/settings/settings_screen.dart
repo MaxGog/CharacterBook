@@ -1,3 +1,4 @@
+import 'package:characterbook/ui/widgets/easter_egg_helper.dart';
 import 'package:characterbook/ui/widgets/sections/about_section_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final SettingsController _controller;
+  bool _showEasterEgg = false;
 
   @override
   void initState() {
@@ -54,31 +56,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Scaffold(
         body: ChangeNotifierProvider.value(
           value: _controller,
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar.large(
-                title: Text(s.settings),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      _LanguageSection(),
-                      const SizedBox(height: 8),
-                      _ThemeSection(),
-                      const SizedBox(height: 8),
-                      _SwipeActionsSection(),
-                      const SizedBox(height: 8),
-                      _ExportPdfSettingsSection(),
-                      const SizedBox(height: 8),
-                      _BackupSection(),
-                      const SizedBox(height: 8),
-                      _buildAboutSection(context),
-                    ],
+          child: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  SliverAppBar.large(
+                    title: Text(s.settings),
                   ),
-                ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          _LanguageSection(),
+                          const SizedBox(height: 8),
+                          _ThemeSection(),
+                          const SizedBox(height: 8),
+                          _SwipeActionsSection(),
+                          const SizedBox(height: 8),
+                          _ExportPdfSettingsSection(),
+                          const SizedBox(height: 8),
+                          _BackupSection(),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showEasterEgg = true;
+                              });
+                            },
+                            child: _buildAboutSection(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              if (_showEasterEgg)
+                const Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: EasterEggHelper(),
+                ),
             ],
           ),
         ),

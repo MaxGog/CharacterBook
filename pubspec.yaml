@@ -20,6 +20,7 @@ flutter:
     - assets/fonts/GoogleSans.ttf
     - assets/github-mark.png
     - assets/avatardeveloper.png
+    - assets/maxupshur.png
 
 dependencies:
   flutter:
