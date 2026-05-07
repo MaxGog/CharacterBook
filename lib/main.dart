@@ -3,7 +3,6 @@ import 'package:characterbook/handlers/file_handler.dart';
 import 'package:characterbook/handlers/file_handler_wrapper.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/export_pdf_settings_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/relationship_model.dart';
@@ -12,7 +11,6 @@ import 'package:characterbook/providers/locale_provider.dart';
 import 'package:characterbook/providers/swipe_action_settings_provider.dart';
 import 'package:characterbook/providers/theme_provider.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/relationship_repository.dart';
@@ -22,7 +20,6 @@ import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/file_share_service.dart';
-import 'package:characterbook/data/services/folder_service.dart';
 import 'package:characterbook/data/services/hive_service.dart';
 import 'package:characterbook/services/menu_channel_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
@@ -46,7 +43,6 @@ void main() async {
   bool hiveInitialized = false;
   Box<Character>? characterBox;
   Box<Race>? raceBox;
-  Box<Folder>? folderBox;
   Box<Note>? noteBox;
   Box<QuestionnaireTemplate>? templateBox;
   Box<ExportPdfSettings>? settingsBox;
@@ -61,7 +57,6 @@ void main() async {
 
     characterBox = await _openBoxWithRetry<Character>('characters');
     raceBox = await _openBoxWithRetry<Race>('races');
-    folderBox = await Hive.openBox<Folder>('folders');
     noteBox = await _openBoxWithRetry<Note>('notes');
     templateBox = await _openBoxWithRetry<QuestionnaireTemplate>('templates');
     settingsBox = await _openBoxWithRetry<ExportPdfSettings>('pdf_settings');
@@ -79,7 +74,6 @@ void main() async {
     hiveInitialized: hiveInitialized,
     characterBox: characterBox,
     raceBox: raceBox,
-    folderBox: folderBox,
     noteBox: noteBox,
     templateBox: templateBox,
     settingsBox: settingsBox,
@@ -101,7 +95,6 @@ class CharacterBookApp extends StatelessWidget {
   final bool hiveInitialized;
   final Box<Character>? characterBox;
   final Box<Race>? raceBox;
-  final Box<Folder>? folderBox;
   final Box<Note>? noteBox;
   final Box<QuestionnaireTemplate>? templateBox;
   final Box<ExportPdfSettings>? settingsBox;
@@ -112,7 +105,6 @@ class CharacterBookApp extends StatelessWidget {
     required this.hiveInitialized,
     this.characterBox,
     this.raceBox,
-    this.folderBox,
     this.noteBox,
     this.templateBox,
     this.settingsBox,
@@ -137,10 +129,6 @@ class CharacterBookApp extends StatelessWidget {
           Provider<RaceRepository>(
             create: (_) => RaceRepositoryHive(raceBox!),
           ),
-        if (folderBox != null)
-          Provider<FolderRepository>(
-            create: (_) => FolderRepositoryHive(folderBox!),
-          ),
         if (noteBox != null)
           Provider<NoteRepository>(
             create: (_) => NoteRepositoryHive(noteBox!),
@@ -164,9 +152,6 @@ class CharacterBookApp extends StatelessWidget {
         ProxyProvider<RaceRepository, RaceService>(
           update: (_, repo, __) => RaceService(repo),
         ),
-        ProxyProvider<FolderRepository, FolderService>(
-          update: (_, repo, __) => FolderService(repo),
-        ),
         ProxyProvider<NoteRepository, NoteService>(
           update: (_, repo, __) => NoteService(repo),
         ),
@@ -179,16 +164,15 @@ class CharacterBookApp extends StatelessWidget {
           ),
         ),
         
-        ProxyProvider5<CharacterRepository, RaceRepository, FolderRepository,
+        ProxyProvider4<CharacterRepository, RaceRepository,
             NoteRepository, TemplateRepository, BackupManager>(
           update:
-              (_, charRepo, raceRepo, folderRepo, noteRepo, templateRepo, __) {
+              (_, charRepo, raceRepo, noteRepo, templateRepo, __) {
             return BackupManager(
               characterRepo: charRepo,
               noteRepo: noteRepo,
               raceRepo: raceRepo,
               templateRepo: templateRepo,
-              folderRepo: folderRepo,
             );
           },
         ),

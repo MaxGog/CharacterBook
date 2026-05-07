@@ -1,6 +1,4 @@
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
@@ -9,10 +7,8 @@ import 'package:flutter/material.dart';
 class RaceModalController extends ChangeNotifier {
   final Race race;
   final RaceRepository _raceRepo;
-  final FolderRepository _folderRepo;
   final RaceService _raceService;
 
-  Folder? _currentFolder;
   bool _isLoading = false;
   String? _error;
   final Map<String, bool> _expandedSections = {
@@ -25,16 +21,12 @@ class RaceModalController extends ChangeNotifier {
   RaceModalController({
     required this.race,
     required RaceRepository raceRepo,
-    required FolderRepository folderRepo,
     required RaceService raceService,
     ClipboardService? clipboardService,
   })  : _raceRepo = raceRepo,
-        _folderRepo = folderRepo,
         _raceService = raceService {
-    _loadFolder();
   }
 
-  Folder? get currentFolder => _currentFolder;
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, bool> get expandedSections => _expandedSections;
@@ -42,20 +34,6 @@ class RaceModalController extends ChangeNotifier {
   void toggleSection(String key) {
     _expandedSections[key] = !(_expandedSections[key] ?? true);
     notifyListeners();
-  }
-
-  Future<void> _loadFolder() async {
-    if (race.folderId == null) return;
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _currentFolder = await _folderRepo.getById(race.folderId!);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 
   Future<void> deleteRace() async {

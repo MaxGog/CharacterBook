@@ -2,26 +2,21 @@ import 'dart:typed_data';
 
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/custom_field_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:flutter/material.dart';
 
 class CharacterManagementController extends ChangeNotifier {
   final CharacterRepository _characterRepo;
   final RaceRepository _raceRepo;
-  final FolderRepository _folderRepo;
 
   final Character? _originalCharacter;
   final QuestionnaireTemplate? _template;
 
   late Character _editable;
   List<Race> _availableRaces = [];
-  List<Folder> _availableFolders = [];
-  Folder? _selectedFolder;
   List<CustomField> _customFields = [];
   List<String> _tags = [];
   List<Uint8List> _additionalImages = [];
@@ -33,12 +28,10 @@ class CharacterManagementController extends ChangeNotifier {
   CharacterManagementController({
     required CharacterRepository characterRepo,
     required RaceRepository raceRepo,
-    required FolderRepository folderRepo,
     Character? character,
     QuestionnaireTemplate? template,
   })  : _characterRepo = characterRepo,
         _raceRepo = raceRepo,
-        _folderRepo = folderRepo,
         _originalCharacter = character,
         _template = template {
     _initialize();
@@ -48,8 +41,6 @@ class CharacterManagementController extends ChangeNotifier {
   String? get error => _error;
   Character get character => _editable;
   List<Race> get availableRaces => _availableRaces;
-  List<Folder> get availableFolders => _availableFolders;
-  Folder? get selectedFolder => _selectedFolder;
   List<CustomField> get customFields => _customFields;
   List<String> get tags => _tags;
   List<Uint8List> get additionalImages => _additionalImages;
@@ -83,22 +74,12 @@ class CharacterManagementController extends ChangeNotifier {
     notifyListeners();
     try {
       _availableRaces = await _raceRepo.getAll();
-      _availableFolders = await _folderRepo.getByType(FolderType.character);
 
       if (_editable.race != null &&
           !_availableRaces.any((r) => r.id == _editable.race!.id)) {
         _availableRaces.add(_editable.race!);
       }
 
-      if (_editable.folderId != null) {
-        try {
-          _selectedFolder = _availableFolders.firstWhere(
-            (f) => f.id == _editable.folderId,
-          );
-        } catch (_) {
-
-        }
-      }
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -180,13 +161,6 @@ class CharacterManagementController extends ChangeNotifier {
     _markUnsaved();
   }
 
-  void setSelectedFolder(Folder? folder) {
-    _selectedFolder = folder;
-    _editable = _editable.copyWith(folderId: folder?.id);
-    _autoSave();
-    _markUnsaved();
-  }
-
   void setCustomFields(List<CustomField> fields) {
     _customFields = fields;
     _editable = _editable.copyWith(customFields: fields);
@@ -233,10 +207,6 @@ class CharacterManagementController extends ChangeNotifier {
     try {
       final key = _originalCharacter?.key;
       await _characterRepo.save(_editable, key: key);
-
-      if (_selectedFolder != null && key != null) {
-        await _folderRepo.addToFolder(_selectedFolder!.id, key.toString());
-      }
 
       _hasUnsavedChanges = false;
       return true;

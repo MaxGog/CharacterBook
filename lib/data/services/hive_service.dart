@@ -1,7 +1,6 @@
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/custom_field_model.dart';
-import 'package:characterbook/data/models/export_pdf_settings_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
+import 'package:characterbook/data/models/custom_field_model.dart';import 'package:characterbook/data/models/export_pdf_settings_model.dart';
+
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
@@ -33,12 +32,6 @@ class HiveService {
     }
     if (!Hive.isAdapterRegistered(CustomFieldAdapter().typeId)) {
       Hive.registerAdapter(CustomFieldAdapter());
-    }
-    if (!Hive.isAdapterRegistered(FolderAdapter().typeId)) {
-      Hive.registerAdapter(FolderAdapter());
-    }
-    if (!Hive.isAdapterRegistered(FolderTypeAdapter().typeId)) {
-      Hive.registerAdapter(FolderTypeAdapter());
     }
     if (!Hive.isAdapterRegistered(ExportPdfSettingsAdapter().typeId)) {
       Hive.registerAdapter(ExportPdfSettingsAdapter());

@@ -1,8 +1,6 @@
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
@@ -13,11 +11,9 @@ class CharacterModalController extends ChangeNotifier {
   final Character character;
   final CharacterRepository _characterRepo;
   final NoteRepository _noteRepo;
-  final FolderRepository _folderRepo;
   final CharacterService _characterService;
 
   List<Note> _relatedNotes = [];
-  Folder? _currentFolder;
   bool _isLoading = false;
   String? _error;
   final Map<String, bool> _expandedSections = {
@@ -35,19 +31,16 @@ class CharacterModalController extends ChangeNotifier {
     required this.character,
     required CharacterRepository characterRepo,
     required NoteRepository noteRepo,
-    required FolderRepository folderRepo,
     required CharacterService characterService,
     required NoteService noteService,
     required ClipboardService clipboardService,
   })  : _characterRepo = characterRepo,
         _noteRepo = noteRepo,
-        _folderRepo = folderRepo,
         _characterService = characterService {
     _loadData();
   }
 
   List<Note> get relatedNotes => _relatedNotes;
-  Folder? get currentFolder => _currentFolder;
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, bool> get expandedSections => _expandedSections;
@@ -63,9 +56,6 @@ class CharacterModalController extends ChangeNotifier {
     try {
       _relatedNotes =
           await _noteRepo.getNotesForCharacter(character.key.toString());
-      if (character.folderId != null) {
-        _currentFolder = await _folderRepo.getById(character.folderId!);
-      }
     } catch (e) {
       _error = e.toString();
     } finally {

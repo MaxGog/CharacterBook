@@ -4,12 +4,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
@@ -28,14 +26,12 @@ class BackupManager {
   final NoteRepository noteRepo;
   final RaceRepository raceRepo;
   final TemplateRepository templateRepo;
-  final FolderRepository folderRepo;
 
   BackupManager({
     required this.characterRepo,
     required this.noteRepo,
     required this.raceRepo,
     required this.templateRepo,
-    required this.folderRepo,
   });
 
   Future<Map<String, List<dynamic>>> getBackupData() async {
@@ -44,7 +40,6 @@ class BackupManager {
       'notes': await noteRepo.getAll(),
       'races': await raceRepo.getAll(),
       'templates': await templateRepo.getAll(),
-      'folders': await folderRepo.getAll(),
     };
   }
 
@@ -54,7 +49,6 @@ class BackupManager {
       noteRepo.clear(),
       raceRepo.clear(),
       templateRepo.clear(),
-      folderRepo.clear(),
     ]);
 
     if (data.containsKey('characters')) {
@@ -69,9 +63,6 @@ class BackupManager {
     if (data.containsKey('templates')) {
       await _restoreItems<QuestionnaireTemplate>(
           templateRepo, data['templates']);
-    }
-    if (data.containsKey('folders')) {
-      await _restoreItems<Folder>(folderRepo, data['folders']);
     }
   }
 
@@ -95,7 +86,6 @@ class BackupManager {
     if (type == Race) return Race.fromJson(json);
     if (type == QuestionnaireTemplate)
       return QuestionnaireTemplate.fromJson(json);
-    if (type == Folder) return Folder.fromJson(json);
     return null;
   }
 }

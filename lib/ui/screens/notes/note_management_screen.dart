@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
-import 'package:characterbook/data/services/folder_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/note_management_controller.dart';
 import 'package:characterbook/ui/widgets/avatar_widget.dart';
@@ -147,11 +144,6 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
                     TagsSection(
                       tags: controller.tags,
                       onTagsChanged: controller.setTags,
-                      folderService: context.read<FolderService>(),
-                      folderType: FolderType.note,
-                      selectedFolder: controller.selectedFolder,
-                      onFolderSelected: controller.setSelectedFolder,
-                      folders: controller.availableFolders,
                     ),
                     const SizedBox(height: _fieldSpacing),
                     _CharacterSelectorSection(
@@ -180,7 +172,6 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     return ChangeNotifierProvider(
       create: (_) => NoteManagementController(
         noteRepo: context.read<NoteRepository>(),
-        folderRepo: context.read<FolderRepository>(),
         noteService: context.read<NoteService>(),
         note: widget.note,
         isCopyMode: widget.isCopyMode,

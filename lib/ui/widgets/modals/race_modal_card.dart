@@ -1,6 +1,5 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
@@ -25,7 +24,6 @@ class RaceModalCard extends StatelessWidget {
       create: (_) => RaceModalController(
         race: race,
         raceRepo: context.read<RaceRepository>(),
-        folderRepo: context.read<FolderRepository>(),
         raceService: context.read<RaceService>(),
         clipboardService: context.read<ClipboardService>(),
       ),
@@ -213,21 +211,6 @@ class RaceModalCard extends StatelessWidget {
         label: DateFormat('dd.MM.yyyy').format(race.lastEdited),
         color: colorScheme.surfaceContainerHigh,
       ),
-      if (controller.currentFolder != null)
-        Chip(
-          avatar: Icon(Icons.folder_rounded,
-              size: 14, color: controller.currentFolder!.color),
-          label: SelectableText(controller.currentFolder!.name,
-              style: Theme.of(context).textTheme.labelSmall),
-          backgroundColor: controller.currentFolder!.color.withOpacity(0.2),
-          side: BorderSide(
-              color: controller.currentFolder!.color.withOpacity(0.4),
-              width: 1),
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
       ...race.tags.map((tag) => _buildChip(
             icon: Icons.label_outline_rounded,
             label: tag,

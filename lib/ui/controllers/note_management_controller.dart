@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
@@ -10,7 +8,6 @@ import 'package:flutter/material.dart';
 
 class NoteManagementController extends ChangeNotifier {
   final NoteRepository _noteRepo;
-  final FolderRepository _folderRepo;
   final NoteService? _noteService;
 
   final Note? _originalNote;
@@ -18,8 +15,6 @@ class NoteManagementController extends ChangeNotifier {
 
   late Note _editable;
   bool autoGenerateTitle = true;
-  List<Folder> _availableFolders = [];
-  Folder? _selectedFolder;
   List<String> _tags = [];
   List<String> _selectedCharacterIds = [];
 
@@ -34,18 +29,14 @@ class NoteManagementController extends ChangeNotifier {
   List<String> get selectedCharacterIds =>
       List.unmodifiable(_selectedCharacterIds);
   List<String> get tags => List.unmodifiable(_tags);
-  List<Folder> get availableFolders => List.unmodifiable(_availableFolders);
-  Folder? get selectedFolder => _selectedFolder;
   bool get hasUnsavedChanges => _hasUnsavedChanges;
 
   NoteManagementController({
     required NoteRepository noteRepo,
-    required FolderRepository folderRepo,
     NoteService? noteService,
     Note? note,
     this.isCopyMode = false,
   })  : _noteRepo = noteRepo,
-        _folderRepo = folderRepo,
         _noteService = noteService,
         _originalNote = note {
     _initialize();
@@ -74,27 +65,6 @@ class NoteManagementController extends ChangeNotifier {
     }
     _tags = List.from(_editable.tags);
     _selectedCharacterIds = List.from(_editable.characterIds);
-    _loadFolders();
-  }
-
-  Future<void> _loadFolders() async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _availableFolders = await _folderRepo.getByType(FolderType.note);
-      if (_editable.folderId != null) {
-        try {
-          _selectedFolder = _availableFolders.firstWhere(
-            (f) => f.id == _editable.folderId,
-          );
-        } catch (_) {}
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 
   void _autoSave() {
@@ -140,13 +110,6 @@ class NoteManagementController extends ChangeNotifier {
     _autoSave();
   }
 
-  void setSelectedFolder(Folder? folder) {
-    _selectedFolder = folder;
-    _editable.folderId = folder?.id;
-    _markUnsaved();
-    _autoSave();
-  }
-
   void _markUnsaved() {
     if (!_hasUnsavedChanges) {
       _hasUnsavedChanges = true;
@@ -165,10 +128,6 @@ class NoteManagementController extends ChangeNotifier {
     try {
       final key = _originalNote?.key;
       await _noteRepo.save(_editable, key: key);
-
-      if (_selectedFolder != null && key != null) {
-        await _folderRepo.addToFolder(_selectedFolder!.id, key.toString());
-      }
 
       _hasUnsavedChanges = false;
       _error = null;

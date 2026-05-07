@@ -2,12 +2,9 @@ import 'dart:async';
 
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/folder_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
-import 'package:characterbook/data/repositories/folder_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
-import 'package:characterbook/data/services/folder_service.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
@@ -78,7 +75,6 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       create: (_) => CharacterManagementController(
         characterRepo: context.read<CharacterRepository>(),
         raceRepo: context.read<RaceRepository>(),
-        folderRepo: context.read<FolderRepository>(),
         character: widget.character,
         template: widget.template,
       ),
@@ -184,15 +180,9 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     BuildContext context,
     CharacterManagementController controller,
   ) {
-    final folderService = context.read<FolderService>();
     return TagsSection(
       tags: controller.tags,
       onTagsChanged: controller.setTags,
-      folderService: folderService,
-      folderType: FolderType.character,
-      selectedFolder: controller.selectedFolder,
-      onFolderSelected: controller.setSelectedFolder,
-      folders: controller.availableFolders,
     );
   }
 
