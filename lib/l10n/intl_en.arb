@@ -384,5 +384,6 @@
   "unpin": "Unpin",
   "folder_mode": "Folders mode",
   "list_mode": "List mode",
-  "new_note": "New note"
+  "new_note": "New note",
+  "file_app": "App file"
 }

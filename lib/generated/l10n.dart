@@ -5166,6 +5166,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Файл приложения`
+  String get file_app {
+    return Intl.message(
+      'Файл приложения',
+      name: 'file_app',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

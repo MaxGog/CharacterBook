@@ -12,6 +12,7 @@ import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/character_modal_controller.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 
 import 'package:flutter/material.dart';
@@ -175,15 +176,6 @@ class CharacterModalCard extends StatelessWidget {
         ),
       ),
       PopupMenuItem(
-        value: 'copy',
-        child: ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading:
-              Icon(Icons.copy_rounded, color: colorScheme.onSurfaceVariant),
-          title: Text(s.copy_character),
-        ),
-      ),
-      PopupMenuItem(
         value: 'duplicate',
         child: ListTile(
           contentPadding: EdgeInsets.zero,
@@ -214,41 +206,37 @@ class CharacterModalCard extends StatelessWidget {
       case 'duplicate':
         await _handleDuplicate(context, controller);
         break;
-      case 'copy':
-        await _handleCopy(context, controller);
-        break;
       case 'delete':
         await _handleDelete(context, controller);
         break;
     }
   }
 
-  void _showShareMenu(
-      BuildContext context, CharacterModalController controller) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: Text(S.of(context).file_pdf),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await _handleExportPdf(context, controller);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.code),
-              title: Text(S.of(context).file_character),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await _handleExportJson(context, controller);
-              },
-            ),
-          ],
-        ),
-      ),
+  void _showShareMenu(BuildContext context, CharacterModalController controller) {
+    var s = S.of(context);
+    ShareOptionsDialog.show(context,
+      onCopy: () async {
+        try {
+          await _handleCopy(context, controller);
+          if (context.mounted) showSnackBar(context, s.copied_to_clipboard);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.copy_error}: $e');
+        }
+      },
+      onShareFile: () async {
+        try {
+          await _handleExportJson(context, controller);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.error}: $e');
+        }
+      },
+      onExportPdf: () async {
+        try {
+          await _handleExportPdf(context, controller);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.export_error}: $e');
+        }
+      },
     );
   }
 

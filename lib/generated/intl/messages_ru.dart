@@ -353,6 +353,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "fields_asc": MessageLookupByLibrary.simpleMessage("Полей ↑"),
         "fields_count": m8,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Полей ↓"),
+        "file_app": MessageLookupByLibrary.simpleMessage("Файл приложения"),
         "file_character":
             MessageLookupByLibrary.simpleMessage("Файл (.character)"),
         "file_pdf": MessageLookupByLibrary.simpleMessage("PDF (.pdf)"),

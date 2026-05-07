@@ -47,8 +47,8 @@ class ShareOptionsDialog extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.share_rounded),
-            title: Text(s.share),
+            leading: const Icon(Icons.note),
+            title: Text(s.file_app),
             onTap: () {
               Navigator.pop(context);
               onShareFile();

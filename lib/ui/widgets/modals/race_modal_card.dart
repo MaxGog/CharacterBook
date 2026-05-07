@@ -6,6 +6,7 @@ import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/ui/controllers/race_modal_card_controller.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -104,30 +105,31 @@ class RaceModalCard extends StatelessWidget {
   }
 
   void _showShareMenu(BuildContext context, RaceModalController controller) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: Text(S.of(context).file_pdf),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await _handleExportPdf(context, controller);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.code),
-              title: Text(S.of(context).file_race),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await _handleExportJson(context, controller);
-              },
-            ),
-          ],
-        ),
-      ),
+    var s = S.of(context);
+    ShareOptionsDialog.show(
+      context,
+      onCopy: () async {
+        try {
+          await _handleCopy(context, controller);
+          if (context.mounted) showSnackBar(context, s.copied_to_clipboard);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.copy_error}: $e');
+        }
+      },
+      onShareFile: () async {
+        try {
+          await _handleExportJson(context, controller);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.error}: $e');
+        }
+      },
+      onExportPdf: () async {
+        try {
+          await _handleExportPdf(context, controller);
+        } catch (e) {
+          if (context.mounted) showSnackBar(context, '${s.export_error}: $e');
+        }
+      },
     );
   }
 
