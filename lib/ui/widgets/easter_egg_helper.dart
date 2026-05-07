@@ -73,7 +73,7 @@ class _EasterEggHelperState extends State<EasterEggHelper> {
         children: [
           if (_currentMessage.isNotEmpty)
             Positioned(
-              bottom: 130,
+              bottom: 160,
               child: Material(
                 elevation: 4,
                 borderRadius: BorderRadius.circular(12),
