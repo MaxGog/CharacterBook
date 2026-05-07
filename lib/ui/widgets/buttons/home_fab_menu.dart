@@ -64,7 +64,10 @@ class _HomeFloatingMenuState extends State<HomeFloatingMenu>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _buildMenuItems(),
+        IgnorePointer(
+          ignoring: !_isExpanded,
+          child: _buildMenuItems(),
+        ),
         const SizedBox(height: 8),
         FloatingActionButton(
           heroTag: 'home_fab_menu',

@@ -159,7 +159,10 @@ class _CommonListFloatingButtonsState extends State<CommonListFloatingButtons>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _buildMenuItems(),
+        IgnorePointer(
+          ignoring: !_isExpanded,
+          child: _buildMenuItems(),
+        ),
         const SizedBox(height: 8),
         _buildMainFab(),
       ],
