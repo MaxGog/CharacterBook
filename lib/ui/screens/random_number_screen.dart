@@ -205,7 +205,6 @@ class _RandomNumberScreenState extends State<RandomNumberScreen> {
                             _isGenerating
                                 ? l10n.generating
                                 : l10n.generateNumber,
-                            style: textTheme.labelLarge,
                           ),
                         ],
                       ),

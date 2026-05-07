@@ -742,10 +742,6 @@ class _PinnedSectionState extends State<_PinnedSection> {
     });
   }
 
-  void _unpinItem(HomeItem item) {
-    widget.controller.unpinItem(item);
-  }
-
   void _addPin(HomeItem item) {
     widget.controller.togglePin(item);
   }

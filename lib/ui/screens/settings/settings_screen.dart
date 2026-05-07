@@ -72,8 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 8),
                       _ExportPdfSettingsSection(),
                       const SizedBox(height: 8),
-                      _ImportSection(),
-                      const SizedBox(height: 8),
                       _BackupSection(),
                       const SizedBox(height: 8),
                       _buildAboutSection(context),
@@ -266,78 +264,6 @@ class _SwipeActionsSection extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
         ),
       ],
-    );
-  }
-}
-
-class _ImportSection extends StatelessWidget {
-  const _ImportSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    return SettingsSection(
-      title: s.import,
-      children: [
-        _ImportButton(
-          icon: Icons.person,
-          label: s.import_character,
-          onPressed: () =>
-              context.read<SettingsController>().importCharacter(context),
-        ),
-        _ImportButton(
-          icon: Icons.people,
-          label: s.import_race,
-          onPressed: () =>
-              context.read<SettingsController>().importRace(context),
-        ),
-        _ImportButton(
-          icon: Icons.list_alt,
-          label: s.import_template,
-          onPressed: () =>
-              context.read<SettingsController>().importTemplate(context),
-        ),
-      ],
-    );
-  }
-}
-
-class _ImportButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _ImportButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(icon, color: colorScheme.onPrimaryContainer),
-        ),
-        title: Text(label),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: colorScheme.onSurfaceVariant,
-        ),
-        onTap: onPressed,
-        contentPadding: EdgeInsets.zero,
-      ),
     );
   }
 }

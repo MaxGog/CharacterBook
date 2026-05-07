@@ -29,10 +29,7 @@ class NoteManagementScreen extends StatefulWidget {
 
 class _NoteManagementScreenState extends State<NoteManagementScreen> {
   static const _fieldSpacing = 16.0;
-  static const _sectionSpacing = 24.0;
-  static const _maxFormWidth = 700.0;
-
-  final GlobalKey<FormState> _formKey = GlobalKey();
+  
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
   Timer? _titleDebounce;

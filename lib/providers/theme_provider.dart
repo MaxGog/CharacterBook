@@ -56,10 +56,10 @@ class ThemeProvider with ChangeNotifier {
     _seedColor = Color(colorValue);
     _useDynamicColor = useDynamicColor;
     final clampedPaletteStyleIndex = paletteStyleIndex
-        .clamp(0, ThemePaletteStyle.values.length - 1) as int;
+        .clamp(0, ThemePaletteStyle.values.length - 1);
     _paletteStyle = ThemePaletteStyle.values[clampedPaletteStyleIndex];
     final clampedColorSpecIndex = colorSpecIndex
-        .clamp(0, ThemeColorSpec.values.length - 1) as int;
+        .clamp(0, ThemeColorSpec.values.length - 1);
     _colorSpec = ThemeColorSpec.values[clampedColorSpecIndex];
     _useAmoledBlack = useAmoledBlack;
     notifyListeners();

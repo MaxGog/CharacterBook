@@ -1,3 +1,4 @@
+import 'package:characterbook/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class GroupedTagList<T> extends StatefulWidget {
@@ -19,7 +20,6 @@ class GroupedTagList<T> extends StatefulWidget {
 }
 
 class _GroupedTagListState<T> extends State<GroupedTagList<T>> {
-  final Map<String, bool> _expanded = {};
 
   List<String> _getAllTags() {
     final tags = <String>{};
@@ -39,17 +39,17 @@ class _GroupedTagListState<T> extends State<GroupedTagList<T>> {
   Widget build(BuildContext context) {
     final allTags = _getAllTags();
     final untaggedItems = _itemsWithoutTags();
-    final theme = Theme.of(context);
+    final s = S.of(context);
 
     return ListView.builder(
       controller: widget.scrollController,
-      itemCount: allTags.length + 1, // +1 для секции "без тегов"
+      itemCount: allTags.length + 1,
       itemBuilder: (context, index) {
         if (index == allTags.length) {
           // Секция "без тегов"
           if (untaggedItems.isEmpty) return const SizedBox.shrink();
           return _TagSection<T>(
-            title: 'Без тегов', // локализуй
+            title: s.empty_list,
             items: untaggedItems,
             initiallyExpanded: true,
             itemBuilder: widget.itemBuilder,
