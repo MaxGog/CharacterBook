@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/date_formatter.dart';
+import 'package:characterbook/services/pdf_export_manager.dart';
 import 'package:characterbook/ui/controllers/home_controller.dart';
+import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
 import 'package:characterbook/ui/navigation/menu_content.dart';
@@ -18,8 +23,12 @@ import 'package:characterbook/ui/widgets/items/character_keep_card_item.dart';
 import 'package:characterbook/ui/widgets/items/home_item.dart';
 import 'package:characterbook/ui/widgets/items/race_keep_card_item.dart';
 import 'package:characterbook/ui/widgets/items/tool_keep_card_item.dart';
+import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -148,105 +157,218 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showCharacterContextMenu(CharacterHomeItem item) {
-    final s = S.of(context);
-    final isPinned = _controller.isPinned(item);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text(s.edit),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _editCharacter(item.character);
-                },
-              ),
-              ListTile(
-                leading:
-                    Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined),
-                title: Text(isPinned ? s.unpin : s.pin),
-                onTap: () {
-                  _controller.togglePin(item);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete,
-                    color: Theme.of(context).colorScheme.error),
-                title: Text(s.delete,
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showDeleteDialog(item);
-                },
-              ),
-            ],
-          ),
-        ),
+      builder: (ctx) => ContextMenu.character(
+        character: item.character,
+        onEdit: () {
+          _editCharacter(item.character);
+        },
+        onDelete: () {
+          _showDeleteDialog(item);
+        },
+        onDuplicate: () {
+          _duplicateCharacter(item);
+        },
+        onShare: () {
+          _showCharacterShareOptions(item);
+        },
       ),
-    );
-  }
-
-  void _showRaceDetail(RaceHomeItem item) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => RaceModalCard(race: item.race),
     );
   }
 
   void _showRaceContextMenu(RaceHomeItem item) {
-    final s = S.of(context);
-    final isPinned = _controller.isPinned(item);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
+      builder: (ctx) => ContextMenu.race(
+        race: item.race,
+        onEdit: () {
+          _editRace(item.race);
+        },
+        onDelete: () {
+          _showDeleteDialog(item);
+        },
+        onShare: () {
+          _showRaceShareOptions(item);
+        },
+      ),
+    );
+  }
+
+  Future<void> _duplicateCharacter(CharacterHomeItem item) async {
+    try {
+      final newChar = item.character.copyWith(
+        id: null,
+        name: '${item.character.name} (копия)',
+      );
+      final characterService = context.read<CharacterService>();
+      await characterService.saveCharacter(newChar);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).character_duplicated)),
+        );
+        await _loadData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${S.of(context).duplicate_error}: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showCharacterShareOptions(CharacterHomeItem item) async {
+    final s = S.of(context);
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(s.share),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text(s.edit),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _editRace(item.race);
+                leading: const Icon(Icons.copy),
+                title: Text(s.copy_character),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  try {
+                    await ClipboardService.copyCharacterToClipboard(
+                      context: context,
+                      name: item.character.name,
+                      age: item.character.age,
+                      gender: item.character.gender,
+                      raceName: item.character.race?.name,
+                      biography: item.character.biography,
+                      appearance: item.character.appearance,
+                      personality: item.character.personality,
+                      abilities: item.character.abilities,
+                      other: item.character.other,
+                      customFields: item.character.customFields
+                          .map((f) => {'key': f.key, 'value': f.value})
+                          .toList(),
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(s.copied_to_clipboard)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${s.copy_error}: $e')),
+                      );
+                    }
+                  }
                 },
               ),
               ListTile(
-                leading:
-                    Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined),
-                title: Text(isPinned ? s.unpin : s.pin),
-                onTap: () {
-                  _controller.togglePin(item);
-                  Navigator.pop(ctx);
+                leading: const Icon(Icons.file_upload),
+                title: Text(s.file_character),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  try {
+                    final content = jsonEncode(item.character.toJson());
+                    final tempDir = await getTemporaryDirectory();
+                    final file = File(
+                        '${tempDir.path}/${item.character.name}.character');
+                    await file.writeAsString(content);
+                    await Share.shareXFiles(
+                      [XFile(file.path)],
+                      text: '${item.character.name}',
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${s.error}: $e')),
+                      );
+                    }
+                  }
                 },
               ),
               ListTile(
-                leading: Icon(Icons.delete,
-                    color: Theme.of(context).colorScheme.error),
-                title: Text(s.delete,
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showDeleteDialog(item);
+                leading: const Icon(Icons.picture_as_pdf),
+                title: Text(s.file_pdf),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  try {
+                    await PdfExportManager.exportCharacterWithDialog(
+                        context, item.character);
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${s.export_error}: $e')),
+                      );
+                    }
+                  }
                 },
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
+    );
+  }
+
+  void _showRaceShareOptions(RaceHomeItem item) {
+    final s = S.of(context);
+    ShareOptionsDialog.show(
+      context,
+      onCopy: () async {
+        try {
+          final buffer = StringBuffer();
+          buffer.writeln(item.race.name);
+          if (item.race.description.isNotEmpty) {
+            buffer.writeln(item.race.description);
+          }
+          await Clipboard.setData(ClipboardData(text: buffer.toString()));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(s.copied_to_clipboard)),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${s.copy_error}: $e')),
+            );
+          }
+        }
+      },
+      onShareFile: () async {
+        try {
+          final content = jsonEncode(item.race.toJson());
+          final tempDir = await getTemporaryDirectory();
+          final file = File('${tempDir.path}/${item.race.name}.race');
+          await file.writeAsString(content);
+          await Share.shareXFiles(
+            [XFile(file.path)],
+            text: '${item.race.name}',
+          );
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${s.error}: $e')),
+            );
+          }
+        }
+      },
+      onExportPdf: () async {
+        try {
+          if (context.mounted) {
+            await PdfExportManager.exportRaceWithDialog(context, item.race);
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${s.export_error}: $e')),
+            );
+          }
+        }
+      },
     );
   }
 
@@ -321,6 +443,15 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     }
+  }
+
+  void _showRaceDetail(RaceHomeItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RaceModalCard(race: item.race),
+    );
   }
 
   @override
