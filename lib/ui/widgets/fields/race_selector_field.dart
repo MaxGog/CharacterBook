@@ -31,7 +31,6 @@ class _RaceSelectorFieldState extends State<RaceSelectorField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final s = S.of(context);
 
     return ValueListenableBuilder(
