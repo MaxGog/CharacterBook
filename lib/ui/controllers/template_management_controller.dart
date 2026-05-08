@@ -35,6 +35,7 @@ class TemplateManagementController extends ChangeNotifier {
   bool get hasUnsavedChanges => _hasUnsavedChanges;
   bool get isSaving => _isSaving;
   String? get error => _error;
+  bool get isNameValid => _name.trim().isNotEmpty;
 
   TemplateManagementController({
     required TemplateRepository repository,

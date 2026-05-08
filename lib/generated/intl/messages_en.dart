@@ -158,6 +158,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "children": MessageLookupByLibrary.simpleMessage("Children"),
         "choose_character": MessageLookupByLibrary.simpleMessage("Select"),
         "choose_color": MessageLookupByLibrary.simpleMessage("Choose"),
+        "choose_race_character":
+            MessageLookupByLibrary.simpleMessage("Enter name race"),
         "close": MessageLookupByLibrary.simpleMessage("Close"),
         "close_app": MessageLookupByLibrary.simpleMessage("Close app"),
         "cloud_backup":
@@ -274,7 +276,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "empty_list": MessageLookupByLibrary.simpleMessage("Empty"),
         "enterName": MessageLookupByLibrary.simpleMessage("Enter a name"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Age"),
+        "enter_name_character":
+            MessageLookupByLibrary.simpleMessage("Enter name character"),
         "enter_race_name": MessageLookupByLibrary.simpleMessage("Race name"),
+        "enter_title_note":
+            MessageLookupByLibrary.simpleMessage("Enter title note"),
+        "enter_title_template":
+            MessageLookupByLibrary.simpleMessage("Enter title template"),
         "error": MessageLookupByLibrary.simpleMessage("Error"),
         "error_details": MessageLookupByLibrary.simpleMessage("Details"),
         "error_details_description": MessageLookupByLibrary.simpleMessage(
@@ -536,6 +544,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "select_folder": MessageLookupByLibrary.simpleMessage("Select"),
         "select_gender_error":
             MessageLookupByLibrary.simpleMessage("Select gender"),
+        "select_race": MessageLookupByLibrary.simpleMessage("Select race"),
         "select_race_error":
             MessageLookupByLibrary.simpleMessage("Select race"),
         "select_template": MessageLookupByLibrary.simpleMessage("Select"),

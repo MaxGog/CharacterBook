@@ -9,6 +9,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
+import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/edit_relationship_bottom_sheet.dart';
 import 'package:characterbook/ui/widgets/fields/custom_fields_editor.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
@@ -43,6 +44,8 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   Timer? _nameDebounce;
   CharacterManagementController? _controller;
 
+  bool _nameTouched = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,10 +67,7 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     _nameDebounce = Timer(const Duration(milliseconds: 500), () {
       final controller = _controller;
       if (controller == null) return;
-      final newName = _nameController.text.trim();
-      if (newName.isNotEmpty && newName != controller.character.name) {
-        controller.updateName(newName);
-      }
+      controller.updateName(_nameController.text.trim());
     });
   }
 
@@ -95,6 +95,33 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     }
   }
 
+  void _onSaveAttempt() {
+    final controller = _controller;
+    if (controller == null) return;
+
+    final s = S.of(context);
+    final nameValid = controller.character.name.trim().isNotEmpty;
+    final raceValid = controller.character.race != null;
+
+    if (!nameValid) {
+      showErrorDialog(
+        context: context,
+        title: s.enter_name_character,
+        message: s.save_error,
+      );
+      return;
+    }
+    if (!raceValid) {
+      showErrorDialog(
+        context: context,
+        title: s.choose_race_character,
+        message: s.save_error,
+      );
+      return;
+    }
+    _onSavePressed(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -109,12 +136,9 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
         builder: (context, controller, child) {
           _controller = controller;
           final s = S.of(context);
-          if (_nameController.text != (controller.character.name)) {
-            _nameController.text = controller.character.name;
-          }
           return Scaffold(
             floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _onSavePressed(context),
+              onPressed: _onSaveAttempt,
               icon: const Icon(Icons.save),
               label: Text(s.save),
             ),
@@ -174,34 +198,61 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     S s,
   ) {
     final theme = Theme.of(context);
+    final nameEmpty = _nameController.text.trim().isEmpty;
+    final showNameError = nameEmpty && _nameTouched;
     return SliverAppBar.large(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
         onPressed: () => Navigator.of(context).pop(true),
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
-      title: TextField(
-        controller: _nameController,
-        style: theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        decoration: InputDecoration.collapsed(
-          hintText: widget.character == null
-              ? (widget.template == null
-                  ? s.new_character
-                  : '${s.new_character} (${s.from_template})')
-              : s.edit_character,
-          hintStyle: theme.textTheme.headlineSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
+      title: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _nameController,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
+          decoration: InputDecoration.collapsed(
+            hintText: widget.character == null
+                ? (widget.template == null
+                    ? s.new_character
+                    : '${s.new_character} (${s.from_template})')
+                : s.edit_character,
+            hintStyle: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          cursorColor: theme.colorScheme.primary,
+          maxLines: 1,
+          textInputAction: TextInputAction.done,
+          onChanged: (_) {
+            setState(() {
+              _nameTouched = true;
+            });
+          },
+          onSubmitted: (_) {
+            FocusScope.of(context).unfocus();
+            setState(() {
+              _nameTouched = true;
+            });
+          },
         ),
-        cursorColor: theme.colorScheme.primary,
-        maxLines: 1,
-        textInputAction: TextInputAction.done,
-        onSubmitted: (_) => FocusScope.of(context).unfocus(),
-      ),
-      pinned: true,
+        if (showNameError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              s.enterName,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    ),
+    pinned: true,
     );
   }
 
@@ -255,9 +306,24 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
         if (_shouldShowField('race'))
           Padding(
             padding: const EdgeInsets.only(top: _fieldSpacing),
-            child: RaceSelectorField(
-              initialRace: controller.character.race,
-              onChanged: (race) => controller.updateRace(race),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RaceSelectorField(
+                  initialRace: controller.character.race,
+                  onChanged: (race) => controller.updateRace(race),
+                ),
+                if (controller.character.race == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      s.select_race,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
+                  ),
+              ],
             ),
           ),
         if (_shouldShowField('referenceImage'))

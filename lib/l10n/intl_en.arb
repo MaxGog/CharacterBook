@@ -420,5 +420,10 @@
   "export_to_file": "Export to file",
   "import_from_file": "Import from file",
   "export_to_cloud": "Export to cloud",
-  "import_from_cloud": "Import from cloud"
+  "import_from_cloud": "Import from cloud",
+  "select_race": "Select race",
+  "enter_name_character": "Enter name character",
+  "choose_race_character": "Enter name race",
+  "enter_title_note": "Enter title note",
+  "enter_title_template": "Enter title template"
 }

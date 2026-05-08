@@ -61,6 +61,8 @@ class CharacterManagementController extends ChangeNotifier {
   bool get hasUnsavedChanges => _hasUnsavedChanges;
   List<Relationship> get relationships => _relationships;
   Character? getCharacter(String id) => _characterMap[id];
+  bool get isNameValid => _editable.name.trim().isNotEmpty;
+  bool get isRaceValid => _editable.race != null;
 
   void _initialize() {
     if (_originalCharacter != null) {
@@ -127,6 +129,16 @@ class CharacterManagementController extends ChangeNotifier {
     }
   }
 
+  String? get nameErrorKey {
+    if (_editable.name.trim().isEmpty) return 'enter_name';
+    return null;
+  }
+
+  String? get raceErrorKey {
+    if (_editable.race == null) return 'select_race';
+    return null;
+  }
+
   void _autoSave() {
     if (_originalCharacter == null) return;
     _autoSaveTimer?.cancel();
@@ -136,7 +148,6 @@ class CharacterManagementController extends ChangeNotifier {
   }
 
   void updateName(String name) {
-    if (name.trim().isEmpty) return;
     _editable = _editable.copyWith(name: name);
     _autoSave();
     _markUnsaved();

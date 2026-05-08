@@ -6,6 +6,7 @@ import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/note_management_controller.dart';
 import 'package:characterbook/ui/widgets/avatar_widget.dart';
+import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/markdown_context_menu.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
@@ -34,6 +35,9 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
   NoteManagementController? _controller;
   bool _isPreviewMode = false;
 
+  bool _titleTouched = false;
+  bool _initialized = false;
+
   @override
   void initState() {
     super.initState();
@@ -61,10 +65,7 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     _titleDebounce = Timer(const Duration(milliseconds: 500), () {
       final controller = _controller;
       if (controller == null) return;
-      final newTitle = _titleController.text.trim();
-      if (newTitle.isNotEmpty && newTitle != controller.title) {
-        controller.updateTitle(newTitle);
-      }
+      controller.updateTitle(_titleController.text.trim());
     });
   }
 
@@ -167,6 +168,18 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     );
   }
 
+  void _onNoteSaveAttempt() {
+    if (_titleController.text.trim().isEmpty) {
+      showErrorDialog(
+        context: context,
+        title: S.of(context).enter_title_note,
+        message: S.of(context).save_error,
+      );
+      return;
+    }
+    Navigator.of(context).pop(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -179,14 +192,12 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
       child: Consumer<NoteManagementController>(
         builder: (context, controller, child) {
           _controller = controller;
-          if (_titleController.text != controller.title) {
-            _titleController.text = controller.title;
-          }
-          if (_contentController.text != controller.content) {
-            _contentController.text = controller.content;
-          }
-
           final s = S.of(context);
+          if (!_initialized) {
+            _titleController.text = controller.title;
+            _contentController.text = controller.content;
+            _initialized = true;
+          }
           return Scaffold(
             body: WillPopScope(
               onWillPop: () async => true,
@@ -274,10 +285,10 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
                     ),
                     const Spacer(),
                     FloatingActionButton.extended(
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: _onNoteSaveAttempt,
                       icon: const Icon(Icons.save),
                       label: Text(s.save),
-                    ),
+                    )
                   ],
                 ],
               ),
@@ -294,32 +305,58 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     S s,
   ) {
     final theme = Theme.of(context);
+    final titleEmpty = _titleController.text.trim().isEmpty;
+    final showTitleError = titleEmpty && _titleTouched;
     return SliverAppBar.large(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
         onPressed: () => Navigator.of(context).pop(true),
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
-      title: TextField(
-        controller: _titleController,
-        style: theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        decoration: InputDecoration.collapsed(
-          hintText: widget.note == null
-              ? s.create
-              : (widget.isCopyMode
-                  ? '${s.copy} ${s.posts.toLowerCase()}'
-                  : s.edit),
-          hintStyle: theme.textTheme.headlineSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-            fontWeight: FontWeight.w600,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _titleController,
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w600),
+            decoration: InputDecoration.collapsed(
+              hintText: widget.note == null
+                  ? s.create
+                  : (widget.isCopyMode
+                      ? '${s.copy} ${s.posts.toLowerCase()}'
+                      : s.edit),
+              hintStyle: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            cursorColor: theme.colorScheme.primary,
+            maxLines: 1,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              setState(() {
+                _titleTouched = true;
+              });
+            },
+            onSubmitted: (_) {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                _titleTouched = true;
+              });
+            },
           ),
-        ),
-        cursorColor: theme.colorScheme.primary,
-        maxLines: 1,
-        textInputAction: TextInputAction.done,
-        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          if (showTitleError)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                s.enterName,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
       ),
       pinned: true,
     );

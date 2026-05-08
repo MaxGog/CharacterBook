@@ -5526,6 +5526,56 @@ class S {
       args: [],
     );
   }
+
+  /// `Выберите расу`
+  String get select_race {
+    return Intl.message(
+      'Выберите расу',
+      name: 'select_race',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите имя персонажа`
+  String get enter_name_character {
+    return Intl.message(
+      'Введите имя персонажа',
+      name: 'enter_name_character',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Выберите расу персонажа`
+  String get choose_race_character {
+    return Intl.message(
+      'Выберите расу персонажа',
+      name: 'choose_race_character',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите название заметки`
+  String get enter_title_note {
+    return Intl.message(
+      'Введите название заметки',
+      name: 'enter_title_note',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите название шаблона`
+  String get enter_title_template {
+    return Intl.message(
+      'Введите название шаблона',
+      name: 'enter_title_template',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

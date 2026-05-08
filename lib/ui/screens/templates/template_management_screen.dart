@@ -2,6 +2,7 @@ import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/ui/controllers/template_management_controller.dart';
+import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/custom_fields_editor.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,18 @@ class TemplateManagementScreen extends StatefulWidget {
 
 class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+
+  void _onTemplateSaveAttempt(TemplateManagementController controller) {
+    if (!controller.isNameValid) {
+      showErrorDialog(
+        context: context,
+        title: S.of(context).enter_title_template,
+        message: S.of(context).save_error,
+      );
+      return;
+    }
+    _saveTemplate(controller)();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +74,7 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
                   else
                     IconButton(
                       icon: Icon(Icons.save, color: colorScheme.primary),
-                      onPressed: _saveTemplate(controller),
+                      onPressed: () => _onTemplateSaveAttempt(controller),
                     ),
                 ],
               ),

@@ -203,6 +203,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "choose_character":
             MessageLookupByLibrary.simpleMessage("Выбранные персонажи"),
         "choose_color": MessageLookupByLibrary.simpleMessage("Выберите цвет"),
+        "choose_race_character":
+            MessageLookupByLibrary.simpleMessage("Выберите расу персонажа"),
         "close": MessageLookupByLibrary.simpleMessage("Закрыть"),
         "close_app": MessageLookupByLibrary.simpleMessage("Закрыть приложение"),
         "cloud_backup": MessageLookupByLibrary.simpleMessage(
@@ -344,8 +346,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "empty_list": MessageLookupByLibrary.simpleMessage("Пусто!"),
         "enterName": MessageLookupByLibrary.simpleMessage("Введите название"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Возраст"),
+        "enter_name_character":
+            MessageLookupByLibrary.simpleMessage("Введите имя персонажа"),
         "enter_race_name":
             MessageLookupByLibrary.simpleMessage("Название расы"),
+        "enter_title_note":
+            MessageLookupByLibrary.simpleMessage("Введите название заметки"),
+        "enter_title_template":
+            MessageLookupByLibrary.simpleMessage("Введите название шаблона"),
         "error": MessageLookupByLibrary.simpleMessage("Ошибка"),
         "error_details": MessageLookupByLibrary.simpleMessage("Детали ошибки"),
         "error_details_description": MessageLookupByLibrary.simpleMessage(
@@ -726,6 +734,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "select_folder": MessageLookupByLibrary.simpleMessage("Выбрать папку"),
         "select_gender_error":
             MessageLookupByLibrary.simpleMessage("Выберите пол"),
+        "select_race": MessageLookupByLibrary.simpleMessage("Выберите расу"),
         "select_race_error":
             MessageLookupByLibrary.simpleMessage("Выберите расу"),
         "select_template":

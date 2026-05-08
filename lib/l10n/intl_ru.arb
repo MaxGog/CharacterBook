@@ -564,5 +564,10 @@
   "export_to_file": "Экспорт в файл",
   "import_from_file": "Импорт из файла",
   "export_to_cloud": "Экспорт в облако",
-  "import_from_cloud": "Импорт из облака"
+  "import_from_cloud": "Импорт из облака",
+  "select_race": "Выберите расу",
+  "enter_name_character": "Введите имя персонажа",
+  "choose_race_character": "Выберите расу персонажа",
+  "enter_title_note": "Введите название заметки",
+  "enter_title_template": "Введите название шаблона"
 }

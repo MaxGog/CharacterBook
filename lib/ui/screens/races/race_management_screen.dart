@@ -5,6 +5,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/ui/controllers/race_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
+import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/fullscreen_field_preview.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,8 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
   Timer? _nameDebounce;
   RaceManagementController? _controller;
 
+  bool _nameTouched = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,11 +54,20 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
     _nameDebounce = Timer(const Duration(milliseconds: 500), () {
       final controller = _controller;
       if (controller == null) return;
-      final newName = _nameController.text.trim();
-      if (newName.isNotEmpty && newName != controller.race.name) {
-        controller.updateName(newName);
-      }
+      controller.updateName(_nameController.text.trim());
     });
+  }
+
+  void _onRaceSaveAttempt() {
+    if (_nameController.text.trim().isEmpty) {
+      showErrorDialog(
+        context: context,
+        title: S.of(context).enter_race_name,
+        message: S.of(context).save_error,
+      );
+      return;
+    }
+    Navigator.of(context).pop(true);
   }
 
   @override
@@ -69,12 +81,9 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
         builder: (context, controller, child) {
           _controller = controller;
           final s = S.of(context);
-          if (_nameController.text != (controller.race.name)) {
-            _nameController.text = controller.race.name;
-          }
           return Scaffold(
             floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: _onRaceSaveAttempt,
               icon: const Icon(Icons.save),
               label: Text(s.save),
             ),
@@ -134,28 +143,54 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
     S s,
   ) {
     final theme = Theme.of(context);
+    final nameEmpty = _nameController.text.trim().isEmpty;
+    final showNameError = nameEmpty && _nameTouched;
     return SliverAppBar.large(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
         onPressed: () => Navigator.of(context).pop(true),
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
-      title: TextField(
-        controller: _nameController,
-        style: theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        decoration: InputDecoration.collapsed(
-          hintText: widget.race == null ? s.new_race : s.edit_race,
-          hintStyle: theme.textTheme.headlineSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-            fontWeight: FontWeight.w600,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _nameController,
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w600),
+            decoration: InputDecoration.collapsed(
+              hintText: widget.race == null ? s.new_race : s.edit_race,
+              hintStyle: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            cursorColor: theme.colorScheme.primary,
+            maxLines: 1,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              setState(() {
+                _nameTouched = true;
+              });
+            },
+            onSubmitted: (_) {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                _nameTouched = true;
+              });
+            },
           ),
-        ),
-        cursorColor: theme.colorScheme.primary,
-        maxLines: 1,
-        textInputAction: TextInputAction.done,
-        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          if (showNameError)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                s.enter_race_name,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
       ),
       pinned: true,
     );
