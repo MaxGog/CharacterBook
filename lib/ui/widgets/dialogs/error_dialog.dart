@@ -1,3 +1,4 @@
+import 'package:characterbook/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,63 +19,123 @@ void showErrorDialog({
     barrierDismissible: barrierDismissible,
     barrierColor: barrierColor ?? Colors.black.withOpacity(0.5),
     builder: (BuildContext context) {
-      return PopScope(
-        canPop: barrierDismissible,
-        child: AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          contentPadding: const EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 20),
-              if (title != null) ...[
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                        fontWeight: FontWeight.bold,
+      final colorScheme = Theme.of(context).colorScheme;
+      final textTheme = Theme.of(context).textTheme;
+
+      return Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        clipBehavior: Clip.none,
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Material(
+              borderRadius: BorderRadius.circular(28),
+              color: colorScheme.surfaceContainerHigh,
+              surfaceTintColor: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 130),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (title != null) ...[
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: colorScheme.error,
                       ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-              ],
-              Text(
-                message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      const SizedBox(height: 16),
+                      Text(
+                        title,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                    ] else ...[
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    Text(
+                      message,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                textAlign: TextAlign.center,
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            _sendErrorReport(
+                              context: context,
+                              email: supportEmail,
+                              subject: emailSubject,
+                              errorMessage: message,
+                            );
+                          },
+                          child: Text(reportButtonText),
+                        ),
+                        const SizedBox(width: 12),
+                        FilledButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            onConfirmed?.call();
+                          },
+                          child: Text(buttonText),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _sendErrorReport(
-                  context: context,
-                  email: supportEmail,
-                  subject: emailSubject,
-                  errorMessage: message,
-                );
-              },
-              child: Text(reportButtonText),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                onConfirmed?.call();
-              },
-              child: Text(buttonText),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: Image.asset(
+                'assets/maxupshur.png',
+                height: 180,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.auto_awesome,
+                  size: 100,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 150,
+              left: 10,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                color: colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.5,
+                    ),
+                    child: Text(
+                      title!,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
-          actionsAlignment: MainAxisAlignment.center,
         ),
       );
     },
