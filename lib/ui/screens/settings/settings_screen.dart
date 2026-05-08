@@ -10,7 +10,6 @@ import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:characterbook/providers/locale_provider.dart';
 import 'package:characterbook/providers/theme_provider.dart';
-import 'package:characterbook/providers/auto_backup_provider.dart';
 import 'package:flutter/services.dart';
 
 import 'export_pdf_settings_screen.dart';
@@ -72,13 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           _LanguageSection(),
                           const SizedBox(height: 8),
-                          _ThemeSection(),
-                          const SizedBox(height: 8),
-                          _SwipeActionsSection(),
-                          const SizedBox(height: 8),
-                          _ExportPdfSettingsSection(),
-                          const SizedBox(height: 8),
-                          _BackupSection(),
+                          _PreferencesSection(),
                           const SizedBox(height: 8),
                           GestureDetector(
                             onTap: () {
@@ -200,184 +193,94 @@ String _displayName(Locale locale) {
   }
 }
 
-class _ThemeSection extends StatelessWidget {
-  const _ThemeSection();
+class _PreferencesSection extends StatelessWidget {
+  const _PreferencesSection();
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
 
     return SettingsSection(
-      title: s.theme,
+      title: s.settings,
       children: [
-        ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.palette_outlined,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-          title: Text(s.customize_theme),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
+        _PreferenceTile(
+          icon: Icons.palette_outlined,
+          title: s.customize_theme,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const ThemeSettingsScreen()),
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ],
-    );
-  }
-}
-
-class _SwipeActionsSection extends StatelessWidget {
-  const _SwipeActionsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return SettingsSection(
-      title: s.swipeActions,
-      children: [
-        ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.swipe,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-          title: Text(
-            s.configureSwipeActions,
-            style: textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
+        const SizedBox(height: 8),
+        _PreferenceTile(
+          icon: Icons.swipe,
+          title: s.configureSwipeActions,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const SwipeActionSettingsScreen(),
-            ),
+                builder: (_) => const SwipeActionSettingsScreen()),
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ],
-    );
-  }
-}
-
-class _BackupSection extends StatelessWidget {
-  const _BackupSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SettingsSection(
-      title: s.backup,
-      children: [
-        ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.backup,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-          title: Text(
-            s.backup,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const BackupSettingsScreen()),
-          ),
-          contentPadding: EdgeInsets.zero,
-        ),
-      ],
-    );
-  }
-}
-
-class _ExportPdfSettingsSection extends StatelessWidget {
-  const _ExportPdfSettingsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SettingsSection(
-      title: s.export_pdf_settings,
-      children: [
-        ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.picture_as_pdf,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-          title: Text(
-            s.export_pdf_settings,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
+        const SizedBox(height: 8),
+        _PreferenceTile(
+          icon: Icons.picture_as_pdf,
+          title: s.export_pdf_settings,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const ExportPdfSettingsScreen()),
           ),
-          contentPadding: EdgeInsets.zero,
+        ),
+        const SizedBox(height: 8),
+        _PreferenceTile(
+          icon: Icons.backup,
+          title: s.backup,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BackupSettingsScreen()),
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _PreferenceTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _PreferenceTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(icon, color: colorScheme.onPrimaryContainer),
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        size: 16,
+        color: colorScheme.onSurfaceVariant,
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
     );
   }
 }
