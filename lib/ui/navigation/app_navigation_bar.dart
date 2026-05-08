@@ -134,6 +134,7 @@ class _WideScreenLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Row(
         children: [
           NavigationRail(
@@ -184,27 +185,27 @@ class _NarrowScreenLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: IndexedStack(
-            index: currentIndex,
-            children: pages,
+    return Scaffold(
+      extendBody: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: pages[currentIndex],
           ),
-        ),
-        NavigationBar(
-          selectedIndex: currentIndex,
-          onDestinationSelected: onIndexChanged,
-          destinations: List.generate(
-            titles.length,
-            (index) => NavigationDestination(
-              icon: Icon(icons[index]),
-              selectedIcon: Icon(selectedIcons[index]),
-              label: titles[index],
+          NavigationBar(
+            selectedIndex: currentIndex,
+            onDestinationSelected: onIndexChanged,
+            destinations: List.generate(
+              titles.length,
+              (index) => NavigationDestination(
+                icon: Icon(icons[index]),
+                selectedIcon: Icon(selectedIcons[index]),
+                label: titles[index],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

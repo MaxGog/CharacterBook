@@ -34,6 +34,7 @@ import 'package:characterbook/ui/screens/characters/character_management_screen.
 import 'package:characterbook/ui/screens/settings/settings_screen.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -318,6 +319,21 @@ class _AppContentState extends State<_AppContent> {
             );
 
             return MaterialApp(
+              builder: (context, child) {
+                final brightness = Theme.of(context).brightness;
+                SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  systemNavigationBarColor: Colors.transparent,
+                  statusBarIconBrightness: brightness == Brightness.dark
+                      ? Brightness.light
+                      : Brightness.dark,
+                  systemNavigationBarIconBrightness:
+                      brightness == Brightness.dark
+                          ? Brightness.light
+                          : Brightness.dark,
+                ));
+                return child!;
+              },
               navigatorKey: _navigatorKey,
               debugShowCheckedModeBanner: false,
               scaffoldMessengerKey: widget.messengerKey,
