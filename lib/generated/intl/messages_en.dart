@@ -77,8 +77,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "add_relationships":
             MessageLookupByLibrary.simpleMessage("Add relationship"),
         "add_tag": MessageLookupByLibrary.simpleMessage("Add"),
-        "add_to_calendar": MessageLookupByLibrary.simpleMessage(
-            "Добавить в системный календарь"),
+        "add_to_calendar":
+            MessageLookupByLibrary.simpleMessage("Add to the system calendar"),
         "additional_images": MessageLookupByLibrary.simpleMessage("Extra"),
         "adults": MessageLookupByLibrary.simpleMessage("Adults"),
         "age": MessageLookupByLibrary.simpleMessage("Age"),
@@ -244,7 +244,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dark": MessageLookupByLibrary.simpleMessage("Dark"),
         "data_initialization_error":
             MessageLookupByLibrary.simpleMessage("Data init error"),
-        "date": MessageLookupByLibrary.simpleMessage("Дата"),
+        "date": MessageLookupByLibrary.simpleMessage("Date"),
         "days_ago": m7,
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "deleteConfirmation":
@@ -272,8 +272,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "editRelationship":
             MessageLookupByLibrary.simpleMessage("Edit Relationship"),
         "edit_character": MessageLookupByLibrary.simpleMessage("Edit"),
-        "edit_event":
-            MessageLookupByLibrary.simpleMessage("Редактировать событие"),
+        "edit_event": MessageLookupByLibrary.simpleMessage("Edit event"),
         "edit_folder": MessageLookupByLibrary.simpleMessage("Edit"),
         "edit_pins": MessageLookupByLibrary.simpleMessage("Edit pins"),
         "edit_race": MessageLookupByLibrary.simpleMessage("Edit"),
@@ -284,7 +283,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterName": MessageLookupByLibrary.simpleMessage("Enter a name"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Age"),
         "enter_event_title":
-            MessageLookupByLibrary.simpleMessage("Введите название события"),
+            MessageLookupByLibrary.simpleMessage("Enter the event name"),
         "enter_name_character":
             MessageLookupByLibrary.simpleMessage("Enter name character"),
         "enter_race_name": MessageLookupByLibrary.simpleMessage("Race name"),
@@ -299,8 +298,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "error_loading_notes":
             MessageLookupByLibrary.simpleMessage("Error loading posts"),
         "event_calendar": MessageLookupByLibrary.simpleMessage("Events"),
-        "event_description": MessageLookupByLibrary.simpleMessage("Описание"),
-        "event_title": MessageLookupByLibrary.simpleMessage("Название"),
+        "event_description":
+            MessageLookupByLibrary.simpleMessage("Description"),
+        "event_title": MessageLookupByLibrary.simpleMessage("Title event"),
         "export": MessageLookupByLibrary.simpleMessage("Export"),
         "export_error": MessageLookupByLibrary.simpleMessage("Export error"),
         "export_failed": MessageLookupByLibrary.simpleMessage("Export failed"),
@@ -432,8 +432,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("System colors"),
         "migration_in_progress":
             MessageLookupByLibrary.simpleMessage("Migrating..."),
-        "minutes": MessageLookupByLibrary.simpleMessage("мин"),
-        "minutes_before": MessageLookupByLibrary.simpleMessage("Напомнить за"),
+        "minutes": MessageLookupByLibrary.simpleMessage("min"),
+        "minutes_before": MessageLookupByLibrary.simpleMessage("Remind me for"),
         "months_ago": m12,
         "more_fields": m13,
         "more_options": MessageLookupByLibrary.simpleMessage("More"),
@@ -443,7 +443,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "new_character": MessageLookupByLibrary.simpleMessage("New"),
         "new_character_from_template":
             MessageLookupByLibrary.simpleMessage("New from template"),
-        "new_event": MessageLookupByLibrary.simpleMessage("Новое событие"),
+        "new_event": MessageLookupByLibrary.simpleMessage("New event"),
         "new_folder": MessageLookupByLibrary.simpleMessage("New"),
         "new_note": MessageLookupByLibrary.simpleMessage("New note"),
         "new_race": MessageLookupByLibrary.simpleMessage("New"),
@@ -522,7 +522,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "relationshipName":
             MessageLookupByLibrary.simpleMessage("Relationship Name"),
         "relationships": MessageLookupByLibrary.simpleMessage("Relationships"),
-        "reminder": MessageLookupByLibrary.simpleMessage("Напоминание"),
+        "reminder": MessageLookupByLibrary.simpleMessage("Reminder"),
         "replace": MessageLookupByLibrary.simpleMessage("Replace"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Required"),
@@ -600,7 +600,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "templates_not_found":
             MessageLookupByLibrary.simpleMessage("No templates"),
         "theme": MessageLookupByLibrary.simpleMessage("Theme"),
-        "time": MessageLookupByLibrary.simpleMessage("Время"),
+        "time": MessageLookupByLibrary.simpleMessage("Time"),
         "timeout_error": MessageLookupByLibrary.simpleMessage("Timeout"),
         "to": MessageLookupByLibrary.simpleMessage("To"),
         "typeOptional": MessageLookupByLibrary.simpleMessage("Type (optional)"),

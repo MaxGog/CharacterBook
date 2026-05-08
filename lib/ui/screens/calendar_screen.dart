@@ -87,6 +87,7 @@ class _CalendarView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<CalendarController>(context);
     final s = S.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: CommonEditAppBar(
@@ -102,7 +103,10 @@ class _CalendarView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateEventModal(context),
         icon: const Icon(Icons.add),
-        label: Text(S.of(context).add_event),
+        label: Text(s.add_event),
+        elevation: 2,
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
       ),
       body: SafeArea(
         child: controller.isLoading
@@ -114,13 +118,9 @@ class _CalendarView extends StatelessWidget {
                   )
                 : Column(
                     children: [
-                      _CalendarHeader(
-                        controller: controller,
-                      ),
+                      _CalendarHeader(controller: controller),
                       Expanded(
-                        child: _EventList(
-                          controller: controller,
-                        ),
+                        child: _EventList(controller: controller),
                       ),
                     ],
                   ),
@@ -131,65 +131,82 @@ class _CalendarView extends StatelessWidget {
 
 class _CalendarHeader extends StatelessWidget {
   final CalendarController controller;
-
   const _CalendarHeader({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.now().add(const Duration(days: 365)),
-        focusedDay: controller.focusedDay,
-        selectedDayPredicate: (day) =>
-            day.year == controller.selectedDay?.year &&
-            day.month == controller.selectedDay?.month &&
-            day.day == controller.selectedDay?.day,
-        onDaySelected: controller.selectDay,
-        onPageChanged: controller.changePage,
-        calendarFormat: controller.calendarFormat,
-        onFormatChanged: (format) => controller.changeFormat(format),
-        eventLoader: controller.getEventsForDay,
-        calendarStyle: CalendarStyle(
-          todayDecoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            shape: BoxShape.circle,
-          ),
-          selectedDecoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            shape: BoxShape.circle,
-          ),
-          markerDecoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary,
-            shape: BoxShape.circle,
-          ),
-          markerSize: 6,
-          outsideDaysVisible: false,
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colorScheme.outlineVariant),
         ),
-        headerStyle: HeaderStyle(
-          formatButtonVisible: true,
-          titleCentered: true,
-          formatButtonDecoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.outline),
-            borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        child: TableCalendar(
+          firstDay: DateTime.utc(2020, 1, 1),
+          lastDay: DateTime.now().add(const Duration(days: 365)),
+          focusedDay: controller.focusedDay,
+          selectedDayPredicate: (day) =>
+              day.year == controller.selectedDay?.year &&
+              day.month == controller.selectedDay?.month &&
+              day.day == controller.selectedDay?.day,
+          onDaySelected: controller.selectDay,
+          onPageChanged: controller.changePage,
+          calendarFormat: controller.calendarFormat,
+          onFormatChanged: controller.changeFormat,
+          eventLoader: controller.getEventsForDay,
+          availableGestures: AvailableGestures.horizontalSwipe,
+          calendarStyle: CalendarStyle(
+            todayDecoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            selectedDecoration: BoxDecoration(
+              color: colorScheme.primary,
+              shape: BoxShape.circle,
+            ),
+            markerDecoration: BoxDecoration(
+              color: colorScheme.tertiary,
+              shape: BoxShape.circle,
+            ),
+            markerSize: 6,
+            outsideDaysVisible: false,
+            todayTextStyle: TextStyle(color: colorScheme.onPrimaryContainer),
+            selectedTextStyle: TextStyle(color: colorScheme.onPrimary),
+            defaultTextStyle: textTheme.bodyLarge!,
+            weekendTextStyle: textTheme.bodyLarge!.copyWith(
+              color: colorScheme.error,
+            ),
           ),
-          formatButtonTextStyle: Theme.of(context).textTheme.bodyMedium!,
-          titleTextStyle: Theme.of(context).textTheme.titleLarge!,
-          leftChevronIcon: Icon(
-            Icons.chevron_left,
-            color: Theme.of(context).colorScheme.primary,
+          headerStyle: HeaderStyle(
+            formatButtonVisible: true,
+            titleCentered: true,
+            formatButtonDecoration: BoxDecoration(
+              border: Border.all(color: colorScheme.outline),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            formatButtonTextStyle: textTheme.labelLarge!.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            titleTextStyle: textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+            leftChevronIcon:
+                Icon(Icons.chevron_left, color: colorScheme.primary),
+            rightChevronIcon:
+                Icon(Icons.chevron_right, color: colorScheme.primary),
           ),
-          rightChevronIcon: Icon(
-            Icons.chevron_right,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          availableCalendarFormats: const {
+            CalendarFormat.week: '2',
+            CalendarFormat.twoWeeks: '1',
+          },
         ),
-        availableCalendarFormats: const {
-          CalendarFormat.month: 'Month',
-          CalendarFormat.week: 'Week',
-          CalendarFormat.twoWeeks: '2 Weeks',
-        },
       ),
     );
   }
@@ -197,7 +214,6 @@ class _CalendarHeader extends StatelessWidget {
 
 class _EventList extends StatelessWidget {
   final CalendarController controller;
-
   const _EventList({required this.controller});
 
   @override
@@ -207,8 +223,12 @@ class _EventList extends StatelessWidget {
 
     final events = controller.getEventsForDay(selectedDay);
     if (events.isEmpty) {
-      return _EmptyEvents();
+      return const _EmptyEvents();
     }
+
+    final s = S.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [
@@ -217,25 +237,23 @@ class _EventList extends StatelessWidget {
           child: Row(
             children: [
               Text(
-                S.of(context).events,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(fontWeight: FontWeight.bold),
+                s.events,
+                style: textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   events.length.toString(),
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -244,10 +262,8 @@ class _EventList extends StatelessWidget {
         Expanded(
           child: ListView.builder(
             itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
-              return _EventCard(event: event);
-            },
+            padding: const EdgeInsets.only(bottom: 80), // место для FAB
+            itemBuilder: (context, index) => _EventCard(event: events[index]),
           ),
         ),
       ],
@@ -257,49 +273,87 @@ class _EventList extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final CalendarEventModel event;
-
   const _EventCard({required this.event});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 1,
-      shadowColor: event.getColor(context).withOpacity(0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: event.getColor(context).withOpacity(0.15),
-          child: Icon(event.icon, color: event.getColor(context)),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final eventColor = event.getColor(context);
+    final s = S.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        elevation: 0,
+        surfaceTintColor: eventColor.withOpacity(0.05),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
         ),
-        title: Text(
-          event.getTitle(context),
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
+        child: InkWell(
+          onTap: () => _navigateToEvent(context, event),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: eventColor.withOpacity(0.15),
+                  radius: 22,
+                  child: Icon(event.icon, color: eventColor, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.getTitle(context),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        event.getSubtitle(context),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (event.type == CalendarEventType.custom)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined,
+                            color: colorScheme.primary),
+                        onPressed: () => _editCustomEvent(
+                          context,
+                          event.customEvent!,
+                        ),
+                        tooltip: s.edit,
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: Icon(Icons.delete_outlined,
+                            color: colorScheme.error),
+                        onPressed: () => _deleteCustomEvent(
+                          context,
+                          event.customEvent!,
+                        ),
+                        tooltip: s.delete,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         ),
-        subtitle: Text(
-          event.getSubtitle(context),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        trailing: event.type == CalendarEventType.custom
-            ? PopupMenuButton<String>(
-                onSelected: (action) {
-                  if (action == 'edit') {
-                    _editCustomEvent(context, event.customEvent!);
-                  } else if (action == 'delete') {
-                    _deleteCustomEvent(context, event.customEvent!);
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(value: 'edit', child: Text(S.of(context).edit)),
-                  PopupMenuItem(
-                      value: 'delete', child: Text(S.of(context).delete)),
-                ],
-              )
-            : null,
-        onTap: () => _navigateToEvent(context, event),
       ),
     );
   }
@@ -309,24 +363,20 @@ class _EventCard extends StatelessWidget {
   }
 
   void _editCustomEvent(BuildContext context, CustomEvent event) {
-    _editCustomEvent(context, event);
+    final view = context.findAncestorWidgetOfExactType<_CalendarView>();
+    view?._editCustomEvent(context, event);
   }
 
   void _navigateToEvent(BuildContext context, CalendarEventModel event) {
     switch (event.type) {
       case CalendarEventType.character:
         _showCharacterModal(context, event.character!);
-        break;
       case CalendarEventType.race:
         _showRaceModal(context, event.race!);
-        break;
       case CalendarEventType.note:
         _openNote(context, event.note!);
-        break;
       case CalendarEventType.custom:
         _editCustomEvent(context, event.customEvent!);
-        break;
-        
     }
   }
 
@@ -351,9 +401,7 @@ class _EventCard extends StatelessWidget {
   void _openNote(BuildContext context, Note note) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => NoteManagementScreen(note: note),
-      ),
+      MaterialPageRoute(builder: (_) => NoteManagementScreen(note: note)),
     ).then((_) {
       context.read<CalendarController>().loadEvents();
     });
@@ -361,23 +409,52 @@ class _EventCard extends StatelessWidget {
 }
 
 class _EmptyEvents extends StatelessWidget {
+  const _EmptyEvents();
+
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_busy,
-            size: 64,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            S.of(context).no_events,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.event_busy_rounded,
+              size: 72,
+              color: colorScheme.outlineVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.no_events,
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              s.add_event,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.outline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.tonalIcon(
+              onPressed: () {
+                final view =
+                    context.findAncestorWidgetOfExactType<_CalendarView>();
+                view?._showCreateEventModal(context);
+              },
+              icon: const Icon(Icons.add),
+              label: Text(s.add_event),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -386,26 +463,30 @@ class _EmptyEvents extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-
   const _ErrorView({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
+              Icons.error_outline_rounded,
+              size: 72,
+              color: colorScheme.error,
             ),
             const SizedBox(height: 16),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -424,7 +505,6 @@ class _ErrorView extends StatelessWidget {
 class _FilterButton extends StatelessWidget {
   final CalendarEventType? selectedFilter;
   final ValueChanged<CalendarEventType?> onFilterChanged;
-
   const _FilterButton({
     required this.selectedFilter,
     required this.onFilterChanged,
@@ -433,71 +513,71 @@ class _FilterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return PopupMenuButton<CalendarEventType?>(
       onSelected: onFilterChanged,
-      initialValue: selectedFilter,
+      icon: Icon(Icons.filter_list, color: colorScheme.onSurfaceVariant),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       itemBuilder: (context) => [
-        PopupMenuItem(
-          value: null,
-          child: Row(
-            children: [
-              const Icon(Icons.all_inclusive, size: 20),
-              const SizedBox(width: 8),
-              Text(s.all_events),
-              if (selectedFilter == null) const Icon(Icons.check, size: 16),
-            ],
-          ),
-        ),
-        PopupMenuItem(
+        _buildFilterItem(
+          context,
           value: CalendarEventType.character,
-          child: Row(
-            children: [
-              const Icon(Icons.person, size: 20),
-              const SizedBox(width: 8),
-              Text(s.character_events),
-              if (selectedFilter == CalendarEventType.character)
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
+          icon: Icons.person,
+          label: s.character_events,
+          isSelected: selectedFilter == CalendarEventType.character,
         ),
-        PopupMenuItem(
+        _buildFilterItem(
+          context,
           value: CalendarEventType.race,
-          child: Row(
-            children: [
-              const Icon(Icons.flag, size: 20),
-              const SizedBox(width: 8),
-              Text(s.race_events),
-              if (selectedFilter == CalendarEventType.race)
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
+          icon: Icons.flag,
+          label: s.race_events,
+          isSelected: selectedFilter == CalendarEventType.race,
         ),
-        PopupMenuItem(
+        _buildFilterItem(
+          context,
           value: CalendarEventType.note,
-          child: Row(
-            children: [
-              const Icon(Icons.note, size: 20),
-              const SizedBox(width: 8),
-              Text(s.note_events),
-              if (selectedFilter == CalendarEventType.note)
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
+          icon: Icons.note,
+          label: s.note_events,
+          isSelected: selectedFilter == CalendarEventType.note,
         ),
-        PopupMenuItem(
+        _buildFilterItem(
+          context,
           value: CalendarEventType.custom,
-          child: Row(
-            children: [
-              const Icon(Icons.event, size: 20),
-              const SizedBox(width: 8),
-              Text(s.custom_event),
-              if (selectedFilter == CalendarEventType.custom)
-                const Icon(Icons.check, size: 16),
-            ],
-          ),
+          icon: Icons.event,
+          label: s.custom_event,
+          isSelected: selectedFilter == CalendarEventType.custom,
         ),
       ],
-      icon: const Icon(Icons.filter_list),
+    );
+  }
+
+  PopupMenuItem<CalendarEventType?> _buildFilterItem(
+    BuildContext context, {
+    required CalendarEventType? value,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return PopupMenuItem<CalendarEventType?>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon,
+              size: 20,
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Text(label),
+          if (isSelected)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(Icons.check, size: 18, color: colorScheme.primary),
+            ),
+        ],
+      ),
     );
   }
 }
