@@ -5356,6 +5356,176 @@ class S {
       args: [],
     );
   }
+
+  /// `Нет данных для резервного копирования. Добавьте хотя бы один элемент (персонажа, заметку, расу и т.д.) перед экспортом.`
+  String get no_data_for_backup {
+    return Intl.message(
+      'Нет данных для резервного копирования. Добавьте хотя бы один элемент (персонажа, заметку, расу и т.д.) перед экспортом.',
+      name: 'no_data_for_backup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ошибка экспорта`
+  String get export_failed {
+    return Intl.message(
+      'Ошибка экспорта',
+      name: 'export_failed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ошибка импорта`
+  String get import_failed {
+    return Intl.message(
+      'Ошибка импорта',
+      name: 'import_failed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `⚠️ Заменить все данные?`
+  String get restore_warning_title {
+    return Intl.message(
+      '⚠️ Заменить все данные?',
+      name: 'restore_warning_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Все текущие данные будут безвозвратно удалены и заменены резервной копией. Это действие нельзя отменить. Продолжить?`
+  String get restore_warning_message {
+    return Intl.message(
+      'Все текущие данные будут безвозвратно удалены и заменены резервной копией. Это действие нельзя отменить. Продолжить?',
+      name: 'restore_warning_message',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Заменить все данные`
+  String get restore_confirm {
+    return Intl.message(
+      'Заменить все данные',
+      name: 'restore_confirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `О резервном копировании`
+  String get backup_info_title {
+    return Intl.message(
+      'О резервном копировании',
+      name: 'backup_info_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Резервные копии сохраняются в виде одного JSON-файла со всеми данными.\nОблачное хранилище — ваш личный Google Drive. Экспортированные файлы можно передавать и импортировать на других устройствах.`
+  String get backup_info_description {
+    return Intl.message(
+      'Резервные копии сохраняются в виде одного JSON-файла со всеми данными.\nОблачное хранилище — ваш личный Google Drive. Экспортированные файлы можно передавать и импортировать на других устройствах.',
+      name: 'backup_info_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `При восстановлении все существующие данные в приложении будут безвозвратно удалены.`
+  String get backup_info_restore_warning {
+    return Intl.message(
+      'При восстановлении все существующие данные в приложении будут безвозвратно удалены.',
+      name: 'backup_info_restore_warning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Автоматическое облачное копирование`
+  String get auto_cloud_backup_title {
+    return Intl.message(
+      'Автоматическое облачное копирование',
+      name: 'auto_cloud_backup_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Создавать резервную копию в Google Drive при запуске приложения`
+  String get auto_cloud_backup_subtitle {
+    return Intl.message(
+      'Создавать резервную копию в Google Drive при запуске приложения',
+      name: 'auto_cloud_backup_subtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Локальная копия (файл)`
+  String get local_backup {
+    return Intl.message(
+      'Локальная копия (файл)',
+      name: 'local_backup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Облачная копия (Google Drive)`
+  String get cloud_backup {
+    return Intl.message(
+      'Облачная копия (Google Drive)',
+      name: 'cloud_backup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Экспорт в файл`
+  String get export_to_file {
+    return Intl.message(
+      'Экспорт в файл',
+      name: 'export_to_file',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Импорт из файла`
+  String get import_from_file {
+    return Intl.message(
+      'Импорт из файла',
+      name: 'import_from_file',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Экспорт в облако`
+  String get export_to_cloud {
+    return Intl.message(
+      'Экспорт в облако',
+      name: 'export_to_cloud',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Импорт из облака`
+  String get import_from_cloud {
+    return Intl.message(
+      'Импорт из облака',
+      name: 'import_from_cloud',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

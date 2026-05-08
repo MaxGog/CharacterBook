@@ -118,6 +118,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "auth_client_error":
             MessageLookupByLibrary.simpleMessage("Ошибка клиента API"),
         "author": MessageLookupByLibrary.simpleMessage("Автор"),
+        "auto_cloud_backup_subtitle": MessageLookupByLibrary.simpleMessage(
+            "Создавать резервную копию в Google Drive при запуске приложения"),
+        "auto_cloud_backup_title": MessageLookupByLibrary.simpleMessage(
+            "Автоматическое облачное копирование"),
         "auto_layout": MessageLookupByLibrary.simpleMessage("Авто"),
         "avatar_crop_coordinates_error":
             MessageLookupByLibrary.simpleMessage("Ошибка координат обрезки"),
@@ -134,6 +138,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "backup_creation":
             MessageLookupByLibrary.simpleMessage("Резервное копирование…"),
         "backup_data": MessageLookupByLibrary.simpleMessage("Резервная копия"),
+        "backup_info_description": MessageLookupByLibrary.simpleMessage(
+            "Резервные копии сохраняются в виде одного JSON-файла со всеми данными.\nОблачное хранилище — ваш личный Google Drive. Экспортированные файлы можно передавать и импортировать на других устройствах."),
+        "backup_info_restore_warning": MessageLookupByLibrary.simpleMessage(
+            "При восстановлении все существующие данные в приложении будут безвозвратно удалены."),
+        "backup_info_title":
+            MessageLookupByLibrary.simpleMessage("О резервном копировании"),
         "backup_options":
             MessageLookupByLibrary.simpleMessage("Варианты копии"),
         "backup_to_cloud": MessageLookupByLibrary.simpleMessage("В облако"),
@@ -195,6 +205,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "choose_color": MessageLookupByLibrary.simpleMessage("Выберите цвет"),
         "close": MessageLookupByLibrary.simpleMessage("Закрыть"),
         "close_app": MessageLookupByLibrary.simpleMessage("Закрыть приложение"),
+        "cloud_backup": MessageLookupByLibrary.simpleMessage(
+            "Облачная копия (Google Drive)"),
         "cloud_backup_characters_error": MessageLookupByLibrary.simpleMessage(
             "Ошибка копирования персонажей"),
         "cloud_backup_characters_success":
@@ -352,6 +364,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "export": MessageLookupByLibrary.simpleMessage("Экспорт"),
         "export_data": MessageLookupByLibrary.simpleMessage("Экспорт"),
         "export_error": MessageLookupByLibrary.simpleMessage("Ошибка экспорта"),
+        "export_failed":
+            MessageLookupByLibrary.simpleMessage("Ошибка экспорта"),
         "export_options": MessageLookupByLibrary.simpleMessage("Экспорт"),
         "export_pdf_settings":
             MessageLookupByLibrary.simpleMessage("Настройки PDF"),
@@ -359,6 +373,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "export_success": MessageLookupByLibrary.simpleMessage("PDF готов"),
         "export_timeout": MessageLookupByLibrary.simpleMessage(
             "Экспорт занял слишком много времени. Попробуйте ещё раз."),
+        "export_to_cloud":
+            MessageLookupByLibrary.simpleMessage("Экспорт в облако"),
+        "export_to_file":
+            MessageLookupByLibrary.simpleMessage("Экспорт в файл"),
         "favorites": MessageLookupByLibrary.simpleMessage("Избранное"),
         "feedback": MessageLookupByLibrary.simpleMessage("Отзыв"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
@@ -427,6 +445,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "import_character": MessageLookupByLibrary.simpleMessage("Импорт"),
         "import_data": MessageLookupByLibrary.simpleMessage("Импорт"),
         "import_error": m11,
+        "import_failed": MessageLookupByLibrary.simpleMessage("Ошибка импорта"),
+        "import_from_cloud":
+            MessageLookupByLibrary.simpleMessage("Импорт из облака"),
+        "import_from_file":
+            MessageLookupByLibrary.simpleMessage("Импорт из файла"),
         "import_race": MessageLookupByLibrary.simpleMessage("Импорт расы"),
         "import_template":
             MessageLookupByLibrary.simpleMessage("Импорт шаблона"),
@@ -473,6 +496,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Загрузка данных…"),
         "loading_resources":
             MessageLookupByLibrary.simpleMessage("Загрузка ресурсов…"),
+        "local_backup":
+            MessageLookupByLibrary.simpleMessage("Локальная копия (файл)"),
         "local_backup_error":
             MessageLookupByLibrary.simpleMessage("Ошибка создания копии"),
         "local_backup_success":
@@ -529,6 +554,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_content_home": MessageLookupByLibrary.simpleMessage("Пока пусто"),
         "no_custom_fields":
             MessageLookupByLibrary.simpleMessage("Нет доп. полей"),
+        "no_data_for_backup": MessageLookupByLibrary.simpleMessage(
+            "Нет данных для резервного копирования. Добавьте хотя бы один элемент (персонажа, заметку, расу и т.д.) перед экспортом."),
         "no_data_found": MessageLookupByLibrary.simpleMessage("Нет данных"),
         "no_description": MessageLookupByLibrary.simpleMessage("Нет описания"),
         "no_events":
@@ -653,11 +680,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "reset_settings": MessageLookupByLibrary.simpleMessage("Сброс"),
         "restoreData":
             MessageLookupByLibrary.simpleMessage("Восстановить данные"),
+        "restore_confirm":
+            MessageLookupByLibrary.simpleMessage("Заменить все данные"),
         "restore_data": MessageLookupByLibrary.simpleMessage("Восстановить"),
         "restore_from_cloud": MessageLookupByLibrary.simpleMessage("Из облака"),
         "restore_from_file": MessageLookupByLibrary.simpleMessage("Из файла"),
         "restore_options":
             MessageLookupByLibrary.simpleMessage("Варианты восстановления"),
+        "restore_warning_message": MessageLookupByLibrary.simpleMessage(
+            "Все текущие данные будут безвозвратно удалены и заменены резервной копией. Это действие нельзя отменить. Продолжить?"),
+        "restore_warning_title":
+            MessageLookupByLibrary.simpleMessage("⚠️ Заменить все данные?"),
         "restoringBackup":
             MessageLookupByLibrary.simpleMessage("Восстановление…"),
         "retry_initialization":

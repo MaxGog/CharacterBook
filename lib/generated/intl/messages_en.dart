@@ -91,6 +91,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Auth cancelled"),
         "auth_client_error":
             MessageLookupByLibrary.simpleMessage("API client error"),
+        "auto_cloud_backup_subtitle": MessageLookupByLibrary.simpleMessage(
+            "Automatically create a backup to Google Drive when the app starts"),
+        "auto_cloud_backup_title":
+            MessageLookupByLibrary.simpleMessage("Automatic cloud backup"),
         "avatar_crop_coordinates_error":
             MessageLookupByLibrary.simpleMessage("Bad crop coords"),
         "avatar_crop_error": m0,
@@ -105,6 +109,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "backup": MessageLookupByLibrary.simpleMessage("Backup"),
         "backup_creation":
             MessageLookupByLibrary.simpleMessage("Backing up..."),
+        "backup_info_description": MessageLookupByLibrary.simpleMessage(
+            "Backups are saved as a single JSON file containing all your data.\nCloud storage uses your personal Google Drive. Exported files can be shared and imported on other devices."),
+        "backup_info_restore_warning": MessageLookupByLibrary.simpleMessage(
+            "Restoring will permanently erase all existing data in the app."),
+        "backup_info_title":
+            MessageLookupByLibrary.simpleMessage("About backups"),
         "backup_options":
             MessageLookupByLibrary.simpleMessage("Backup options"),
         "backup_to_cloud": MessageLookupByLibrary.simpleMessage("To cloud"),
@@ -150,6 +160,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "choose_color": MessageLookupByLibrary.simpleMessage("Choose"),
         "close": MessageLookupByLibrary.simpleMessage("Close"),
         "close_app": MessageLookupByLibrary.simpleMessage("Close app"),
+        "cloud_backup":
+            MessageLookupByLibrary.simpleMessage("Cloud backup (Google Drive)"),
         "cloud_backup_characters_error":
             MessageLookupByLibrary.simpleMessage("Character backup error"),
         "cloud_backup_characters_success":
@@ -272,11 +284,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "event_calendar": MessageLookupByLibrary.simpleMessage("Events"),
         "export": MessageLookupByLibrary.simpleMessage("Export"),
         "export_error": MessageLookupByLibrary.simpleMessage("Export error"),
+        "export_failed": MessageLookupByLibrary.simpleMessage("Export failed"),
         "export_pdf_settings":
             MessageLookupByLibrary.simpleMessage("PDF settings"),
         "export_success": MessageLookupByLibrary.simpleMessage("PDF ready"),
         "export_timeout": MessageLookupByLibrary.simpleMessage(
             "Export timed out. Try again."),
+        "export_to_cloud":
+            MessageLookupByLibrary.simpleMessage("Export to cloud"),
+        "export_to_file":
+            MessageLookupByLibrary.simpleMessage("Export to file"),
         "female": MessageLookupByLibrary.simpleMessage("Female"),
         "field_name": MessageLookupByLibrary.simpleMessage("Name"),
         "field_name_hint": MessageLookupByLibrary.simpleMessage("Field name"),
@@ -325,6 +342,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "import_cancelled": MessageLookupByLibrary.simpleMessage("Cancelled"),
         "import_character": MessageLookupByLibrary.simpleMessage("Import"),
         "import_error": m11,
+        "import_failed": MessageLookupByLibrary.simpleMessage("Import failed"),
+        "import_from_cloud":
+            MessageLookupByLibrary.simpleMessage("Import from cloud"),
+        "import_from_file":
+            MessageLookupByLibrary.simpleMessage("Import from file"),
         "import_race": MessageLookupByLibrary.simpleMessage("Import"),
         "import_template": MessageLookupByLibrary.simpleMessage("Import"),
         "import_template_tooltip":
@@ -359,6 +381,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "list_view": MessageLookupByLibrary.simpleMessage("List"),
         "loading_data": MessageLookupByLibrary.simpleMessage("Loading..."),
         "loading_resources": MessageLookupByLibrary.simpleMessage("Loading..."),
+        "local_backup":
+            MessageLookupByLibrary.simpleMessage("Local backup (file)"),
         "local_backup_error":
             MessageLookupByLibrary.simpleMessage("Backup error"),
         "local_backup_success":
@@ -409,6 +433,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_content_home": MessageLookupByLibrary.simpleMessage("Empty"),
         "no_custom_fields":
             MessageLookupByLibrary.simpleMessage("No custom fields"),
+        "no_data_for_backup": MessageLookupByLibrary.simpleMessage(
+            "No data to back up. Add at least one item (character, note, race, etc.) before exporting."),
         "no_data_found": MessageLookupByLibrary.simpleMessage("No data"),
         "no_description":
             MessageLookupByLibrary.simpleMessage("No description"),
@@ -478,11 +504,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Required"),
         "restoreData": MessageLookupByLibrary.simpleMessage("Restore"),
+        "restore_confirm":
+            MessageLookupByLibrary.simpleMessage("Replace all data"),
         "restore_from_cloud":
             MessageLookupByLibrary.simpleMessage("From cloud"),
         "restore_from_file": MessageLookupByLibrary.simpleMessage("From file"),
         "restore_options":
             MessageLookupByLibrary.simpleMessage("Restore options"),
+        "restore_warning_message": MessageLookupByLibrary.simpleMessage(
+            "All current data will be permanently deleted and replaced by the backup. This action cannot be undone. Continue?"),
+        "restore_warning_title":
+            MessageLookupByLibrary.simpleMessage("⚠️ Overwrite all data?"),
         "restoringBackup": MessageLookupByLibrary.simpleMessage("Restoring..."),
         "retry_initialization": MessageLookupByLibrary.simpleMessage("Retry"),
         "rightSwipeAction": MessageLookupByLibrary.simpleMessage("Right swipe"),

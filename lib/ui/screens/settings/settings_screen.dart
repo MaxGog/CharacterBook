@@ -1,3 +1,4 @@
+import 'package:characterbook/ui/screens/settings/backup_settings_screen.dart';
 import 'package:characterbook/ui/widgets/easter_egg_helper.dart';
 import 'package:characterbook/ui/widgets/about_section_widget.dart';
 import 'package:flutter/material.dart';
@@ -295,119 +296,40 @@ class _BackupSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SettingsSection(
       title: s.backup,
       children: [
-        _AutoBackupToggle(),
-        const _BackupButtons(),
-      ],
-    );
-  }
-}
-
-class _AutoBackupToggle extends StatelessWidget {
-  const _AutoBackupToggle();
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<AutoBackupProvider>();
-    final theme = Theme.of(context);
-    return SwitchListTile(
-      secondary: Icon(
-        Icons.cloud_sync,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      title: const Text('Автоматическое облачное резервное копирование'),
-      subtitle: const Text(
-          'Создавать резервную копию в Google Drive при запуске приложения'),
-      value: provider.isEnabled,
-      onChanged: (val) => provider.setEnabled(val),
-    );
-  }
-}
-
-class _BackupButtons extends StatelessWidget {
-  const _BackupButtons();
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = context.watch<SettingsController>();
-    final s = S.of(context);
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(s.backup_to_file, style: textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: controller.isLocalBackupExporting
-                    ? null
-                    : controller.exportLocalBackup,
-                icon: controller.isLocalBackupExporting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.backup),
-                label: Text(s.export),
-              ),
+        ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: controller.isLocalBackupImporting
-                    ? null
-                    : controller.importLocalBackup,
-                icon: controller.isLocalBackupImporting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.restore),
-                label: Text(s.import),
-              ),
+            child: Icon(
+              Icons.backup,
+              color: colorScheme.onPrimaryContainer,
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(s.backup_to_cloud, style: textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: controller.isCloudBackupExporting
-                    ? null
-                    : controller.exportCloudBackup,
-                icon: controller.isCloudBackupExporting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.cloud_upload),
-                label: Text(s.export),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: controller.isCloudBackupImporting
-                    ? null
-                    : controller.importCloudBackup,
-                icon: controller.isCloudBackupImporting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.cloud_download),
-                label: Text(s.import),
-              ),
-            ),
-          ],
+          ),
+          title: Text(
+            s.backup,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BackupSettingsScreen()),
+          ),
+          contentPadding: EdgeInsets.zero,
         ),
       ],
     );

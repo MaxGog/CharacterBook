@@ -403,5 +403,22 @@
   "selectBothCharacters": "Select both characters",
   "cannotRelateToItself": "Cannot create relationship with the same character",
   "relationshipAlreadyExists": "This relationship already exists",
-  "enterName": "Enter a name"
+  "enterName": "Enter a name",
+  "no_data_for_backup": "No data to back up. Add at least one item (character, note, race, etc.) before exporting.",
+  "export_failed": "Export failed",
+  "import_failed": "Import failed",
+  "restore_warning_title": "⚠️ Overwrite all data?",
+  "restore_warning_message": "All current data will be permanently deleted and replaced by the backup. This action cannot be undone. Continue?",
+  "restore_confirm": "Replace all data",
+  "backup_info_title": "About backups",
+  "backup_info_description": "Backups are saved as a single JSON file containing all your data.\nCloud storage uses your personal Google Drive. Exported files can be shared and imported on other devices.",
+  "backup_info_restore_warning": "Restoring will permanently erase all existing data in the app.",
+  "auto_cloud_backup_title": "Automatic cloud backup",
+  "auto_cloud_backup_subtitle": "Automatically create a backup to Google Drive when the app starts",
+  "local_backup": "Local backup (file)",
+  "cloud_backup": "Cloud backup (Google Drive)",
+  "export_to_file": "Export to file",
+  "import_from_file": "Import from file",
+  "export_to_cloud": "Export to cloud",
+  "import_from_cloud": "Import from cloud"
 }
