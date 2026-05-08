@@ -27,6 +27,8 @@ class CharacterManagementController extends ChangeNotifier {
   bool _hasUnsavedChanges = false;
   bool _isSaving = false;
   Timer? _autoSaveTimer;
+  
+  dynamic _currentKey;
 
   CharacterManagementController({
     required CharacterRepository characterRepo,
@@ -51,6 +53,7 @@ class CharacterManagementController extends ChangeNotifier {
 
   void _initialize() {
     if (_originalCharacter != null) {
+      _currentKey = _originalCharacter!.key;
       _editable = _originalCharacter!.copyWith();
       _customFields = _editable.customFields.map((f) => f.copyWith()).toList();
       _tags = List.from(_editable.tags);
@@ -63,6 +66,7 @@ class CharacterManagementController extends ChangeNotifier {
       _additionalImages = List.from(_editable.additionalImages);
       _hasUnsavedChanges = true;
     } else {
+      _currentKey = null;
       _editable = Character.empty();
       _customFields = [];
       _tags = [];
@@ -225,13 +229,10 @@ class CharacterManagementController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final key = _originalCharacter?.key;
+      final key = _currentKey;
       final savedKey = await _characterRepo.save(_editable, key: key);
-
-      if (_originalCharacter == null) {
-        _originalCharacter = _editable;
-      }
-
+      _currentKey ??= savedKey;
+      _originalCharacter ??= _editable;
       _hasUnsavedChanges = false;
       return true;
     } catch (e) {

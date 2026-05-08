@@ -19,11 +19,9 @@ class FakeCharacterRepository implements CharacterRepository {
   Future<dynamic> save(Character character, {dynamic key}) async {
     if (key != null) {
       _store[key] = character;
-      (character as dynamic).key = key;
     } else {
       final newKey = _store.length;
       _store[newKey] = character;
-      (character as dynamic).key = newKey;
       key = newKey;
     }
     return key;
@@ -40,20 +38,46 @@ class FakeCharacterRepository implements CharacterRepository {
 }
 
 class FakeRaceRepository implements RaceRepository {
-  @override
-  Future<List<Race>> getAll() async => [Race(id: 'test', name: 'TestRace')];
+  final Map<dynamic, Race> _store = {};
 
   @override
-  Future<Race?> getById(String id) async => Race(id: 'test', name: 'TestRace');
+  Stream<List<Race>> watchAll() => Stream.value(_store.values.toList());
 
   @override
+  Future<List<Race>> getAll() async => _store.values.toList();
 
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  Future<Race?> getById(String id) async {
+    return _store.values.cast<Race?>().firstWhere(
+          (r) => r?.id == id,
+          orElse: () => null,
+        );
+  }
+
+  @override
+  Future<Race?> getByKey(dynamic key) async => _store[key];
+
+  @override
+  Future<dynamic> save(Race race, {dynamic key}) async {
+    if (key != null) {
+      _store[key] = race;
+    } else {
+      final newKey = _store.length;
+      _store[newKey] = race;
+      key = newKey;
+    }
+    return key;
+  }
+
+  @override
+  Future<void> delete(dynamic key) async => _store.remove(key);
+
+  @override
+  Future<void> reorder(int oldIndex, int newIndex) async {}
+
+  @override
+  Future<void> clear() async => _store.clear();
 }
-
-// TODO: Тест временно закомментирован, т.к. в тестовой среде не
-// воспроизводится асинхронное взаимодействие таймеров автосохранения
-// и Hive. Баг дублирования исправлен в коде контроллера.
 
 void main() {
   late FakeCharacterRepository charRepo;
@@ -64,7 +88,10 @@ void main() {
     raceRepo = FakeRaceRepository();
   });
 
-  /*test('editing custom fields does not duplicate character', () async {
+  Future<void> settle() => Future.delayed(const Duration(milliseconds: 600));
+
+  test('Creating a new character: custom fields do not duplicate the record',
+      () async {
     final controller = CharacterManagementController(
       characterRepo: charRepo,
       raceRepo: raceRepo,
@@ -73,34 +100,95 @@ void main() {
     );
 
     controller.updateName('Test Hero');
-    controller.updateRace(Race(id: 'test', name: 'TestRace'));
+    controller.updateRace(Race(id: 'race1', name: 'Elf'));
     await controller.save();
+    await settle();
 
-    final afterFirstSave = await charRepo.getAll();
-    expect(afterFirstSave.length, 1);
+    expect((await charRepo.getAll()).length, 1,
+        reason:
+            'After first save there must be exactly 1 character in storage');
 
-    controller.setCustomFields([
-      CustomField('skill', 'fire'),
-    ]);
+    controller.setCustomFields([CustomField('skill', 'fire')]);
     controller.setCustomFields([
       CustomField('skill', 'ice'),
       CustomField('power', '50'),
     ]);
 
-    await Future.delayed(const Duration(milliseconds: 600));
-
     await controller.save();
+    await settle();
 
-    final afterSecondSave = await charRepo.getAll();
-    expect(afterSecondSave.length, 1);
+    final all = await charRepo.getAll();
+    expect(all.length, 1,
+        reason: 'After editing fields there should still be one character');
 
-    final character = afterSecondSave.first;
+    final character = all.first;
     expect(character.name, 'Test Hero');
+    expect(character.race?.name, 'Elf');
     expect(character.customFields.length, 2);
     expect(character.customFields[0].key, 'skill');
     expect(character.customFields[0].value, 'ice');
     expect(character.customFields[1].key, 'power');
     expect(character.customFields[1].value, '50');
   });
-}*/
+
+  test('Saving without a name returns false and does not create a record',
+      () async {
+    final controller = CharacterManagementController(
+      characterRepo: charRepo,
+      raceRepo: raceRepo,
+      character: null,
+      template: null,
+    );
+    controller.updateRace(Race(id: 'r2', name: 'Human'));
+    final result = await controller.save();
+    expect(result, isFalse);
+    expect(await charRepo.getAll(), isEmpty,
+        reason:
+            'Without a name the character must not appear in the repository');
+  });
+
+  test('Saving without a race returns false and does not create a record',
+      () async {
+    final controller = CharacterManagementController(
+      characterRepo: charRepo,
+      raceRepo: raceRepo,
+      character: null,
+      template: null,
+    );
+    controller.updateName('No race');
+    final result = await controller.save();
+    expect(result, isFalse);
+    expect(await charRepo.getAll(), isEmpty);
+  });
+
+  test('Multiple auto-saves do not produce duplicates', () async {
+    final controller = CharacterManagementController(
+      characterRepo: charRepo,
+      raceRepo: raceRepo,
+      character: null,
+      template: null,
+    );
+    controller.updateName('Hero');
+    controller.updateRace(Race(id: 'r3', name: 'Orc'));
+    await controller.save();
+    await settle();
+
+    controller.updateName('Hero2');
+    controller.updateAge(30);
+    controller.updateGender('female');
+    await settle();
+
+    controller.setCustomFields([CustomField('power', '999')]);
+    await controller.save();
+    await settle();
+
+    final all = await charRepo.getAll();
+    expect(all.length, 1);
+    expect(all.first.name, 'Hero2');
+    expect(all.first.age, 30);
+    expect(all.first.gender, 'female');
+    expect(all.first.customFields.length, 1);
+    expect(all.first.customFields.first.key, 'power');
+    expect(all.first.customFields.first.value, '999');
+  });
 }
