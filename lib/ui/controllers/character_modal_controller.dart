@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
+import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +16,7 @@ class CharacterModalController extends ChangeNotifier {
   final CharacterRepository _characterRepo;
   final NoteRepository _noteRepo;
   final CharacterService _characterService;
+  final RelationshipService _relationshipService;
 
   List<Note> _relatedNotes = [];
   bool _isLoading = false;
@@ -25,7 +30,12 @@ class CharacterModalController extends ChangeNotifier {
     'other': true,
     'customFields': true,
     'notes': true,
+    'relationships': true,
   };
+
+  Map<String, Character> _characterMap = {};
+  List<Relationship> _relationships = [];
+  StreamSubscription<List<Relationship>>? _relSub;
 
   CharacterModalController({
     required this.character,
@@ -34,9 +44,11 @@ class CharacterModalController extends ChangeNotifier {
     required CharacterService characterService,
     required NoteService noteService,
     required ClipboardService clipboardService,
+    required RelationshipService relationshipService,
   })  : _characterRepo = characterRepo,
         _noteRepo = noteRepo,
-        _characterService = characterService {
+        _characterService = characterService, 
+        _relationshipService = relationshipService {
     _loadData();
   }
 
@@ -44,6 +56,9 @@ class CharacterModalController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, bool> get expandedSections => _expandedSections;
+  List<Relationship> get relationships => _relationships;
+
+  Character? getCharacter(String id) => _characterMap[id];
 
   void toggleSection(String key) {
     _expandedSections[key] = !(_expandedSections[key] ?? true);
@@ -54,6 +69,18 @@ class CharacterModalController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      final allChars = await _characterRepo.getAll();
+      _characterMap = {for (var c in allChars) c.id: c};
+
+      _relSub = _relationshipService.watchAll().listen((allRelationships) {
+        _relationships = allRelationships
+            .where((rel) =>
+                rel.character1Id == character.id ||
+                rel.character2Id == character.id)
+            .toList();
+        notifyListeners();
+      });
+
       _relatedNotes =
           await _noteRepo.getNotesForCharacter(character.key.toString());
     } catch (e) {
@@ -148,5 +175,11 @@ class CharacterModalController extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void dispose() {
+    _relSub?.cancel();
+    super.dispose();
   }
 }

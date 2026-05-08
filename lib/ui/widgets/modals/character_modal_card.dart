@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
@@ -12,6 +13,7 @@ import 'package:characterbook/ui/controllers/character_modal_controller.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
+import 'package:characterbook/ui/widgets/edit_relationship_bottom_sheet.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 
 import 'package:flutter/material.dart';
@@ -35,6 +37,7 @@ class CharacterModalCard extends StatelessWidget {
         characterService: context.read<CharacterService>(),
         noteService: context.read<NoteService>(),
         clipboardService: context.read<ClipboardService>(),
+        relationshipService: context.read<RelationshipService>(),
       ),
       child: Consumer<CharacterModalController>(
         builder: (context, controller, child) {
@@ -397,6 +400,65 @@ class CharacterModalCard extends StatelessWidget {
             s.abilities, Icons.auto_awesome_rounded, character.abilities),
         _buildExpandableTextSection(context, controller, 'other', s.other,
             Icons.more_horiz_rounded, character.other),
+        if (controller.relationships.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          ExpandableSection(
+            title: s.relationships,
+            icon: Icons.people_rounded,
+            isExpanded: controller.expandedSections['relationships']!,
+            onToggle: (_) => controller.toggleSection('relationships'),
+            child: Column(
+              children: [
+                ...controller.relationships.map((rel) {
+                  final otherCharId = rel.character1Id == character.id
+                      ? rel.character2Id
+                      : rel.character1Id;
+                  final otherChar = controller.getCharacter(otherCharId);
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: otherChar?.imageBytes != null
+                            ? MemoryImage(otherChar!.imageBytes!)
+                            : null,
+                        child: otherChar?.imageBytes == null
+                            ? Text(otherChar?.name.isNotEmpty == true
+                                ? otherChar!.name[0].toUpperCase()
+                                : '?')
+                            : null,
+                      ),
+                      title: Text(rel.name),
+                      subtitle: Text(otherChar?.name ?? 'Unknown'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        await showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => EditRelationshipBottomSheet(relationship: rel),
+                        );
+                      },
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    // Добавление новой связи
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const EditRelationshipBottomSheet(),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text(s.add_relationships),
+                ),
+              ],
+            ),
+          ),
+        ],
         if (controller.relatedNotes.isNotEmpty) ...[
           ExpandableSection(
             title: s.related_notes,

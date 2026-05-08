@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
@@ -8,6 +9,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
+import 'package:characterbook/ui/widgets/edit_relationship_bottom_sheet.dart';
 import 'package:characterbook/ui/widgets/fields/custom_fields_editor.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/fields/gender_selector_field.dart';
@@ -99,6 +101,7 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       create: (_) => CharacterManagementController(
         characterRepo: context.read<CharacterRepository>(),
         raceRepo: context.read<RaceRepository>(),
+        relationshipService: context.read<RelationshipService>(),
         character: widget.character,
         template: widget.template,
       ),
@@ -147,6 +150,8 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
                                 const SizedBox(height: _sectionSpacing),
                                 _buildDetailsSection(context, controller),
                                 const SizedBox(height: _sectionSpacing),
+                                _buildRelationshipsSection(context, controller),
+                                const SizedBox(height: 76),
                               ],
                             ),
                           ),
@@ -336,6 +341,85 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
             ),
           ),
         ..._buildFullscreenFields(context, controller),
+      ],
+    );
+  }
+
+  Widget _buildRelationshipsSection(
+      BuildContext context, CharacterManagementController controller) {
+    final s = S.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: _sectionSpacing),
+        Text(
+          s.relationships,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (controller.relationships.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              s.empty_list,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          ...controller.relationships.map((rel) {
+            final otherCharId = rel.character1Id == controller.character.id
+                ? rel.character2Id
+                : rel.character1Id;
+            final otherChar = controller.getCharacter(otherCharId);
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: otherChar?.imageBytes != null
+                      ? MemoryImage(otherChar!.imageBytes!)
+                      : null,
+                  child: otherChar?.imageBytes == null
+                      ? Text(otherChar?.name.isNotEmpty == true
+                          ? otherChar!.name[0].toUpperCase()
+                          : '?')
+                      : null,
+                ),
+                title: Text(rel.name),
+                subtitle: Text(otherChar?.name ?? '${s.unknown}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  await showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => EditRelationshipBottomSheet(relationship: rel),
+                  );
+                },
+              ),
+            );
+          }),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () async {
+            await showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const EditRelationshipBottomSheet(),
+            );
+          },
+          icon: const Icon(Icons.add_rounded),
+          label: Text(s.add_relationships),
+        ),
       ],
     );
   }

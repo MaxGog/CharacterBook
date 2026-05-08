@@ -4,14 +4,17 @@ import 'dart:typed_data';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/custom_field_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
+import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:flutter/material.dart';
 
 class CharacterManagementController extends ChangeNotifier {
   final CharacterRepository _characterRepo;
   final RaceRepository _raceRepo;
+  final RelationshipService _relationshipService;
 
   Character? _originalCharacter;
   final QuestionnaireTemplate? _template;
@@ -30,13 +33,19 @@ class CharacterManagementController extends ChangeNotifier {
   
   dynamic _currentKey;
 
+  Map<String, Character> _characterMap = {};
+  List<Relationship> _relationships = [];
+  StreamSubscription<List<Relationship>>? _relSub;
+
   CharacterManagementController({
     required CharacterRepository characterRepo,
     required RaceRepository raceRepo,
+    required RelationshipService relationshipService,
     Character? character,
     QuestionnaireTemplate? template,
   })  : _characterRepo = characterRepo,
         _raceRepo = raceRepo,
+        _relationshipService = relationshipService,
         _originalCharacter = character,
         _template = template {
     _initialize();
@@ -50,6 +59,8 @@ class CharacterManagementController extends ChangeNotifier {
   List<String> get tags => _tags;
   List<Uint8List> get additionalImages => _additionalImages;
   bool get hasUnsavedChanges => _hasUnsavedChanges;
+  List<Relationship> get relationships => _relationships;
+  Character? getCharacter(String id) => _characterMap[id];
 
   void _initialize() {
     if (_originalCharacter != null) {
@@ -74,6 +85,7 @@ class CharacterManagementController extends ChangeNotifier {
       _hasUnsavedChanges = true;
     }
     _loadRacesAndFolders();
+    _loadRelationships();
   }
 
   Future<void> _loadRacesAndFolders() async {
@@ -92,6 +104,26 @@ class CharacterManagementController extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _loadRelationships() async {
+    if (_editable.id.isEmpty) return;
+
+    try {
+      final allChars = await _characterRepo.getAll();
+      _characterMap = {for (var c in allChars) c.id: c};
+ 
+      _relSub = _relationshipService.watchAll().listen((allRelationships) {
+        _relationships = allRelationships
+            .where((rel) =>
+                rel.character1Id == _editable.id ||
+                rel.character2Id == _editable.id)
+            .toList();
+        notifyListeners();
+      });
+    } catch (e) {
+      _error = e.toString();
     }
   }
 
@@ -243,5 +275,12 @@ class CharacterManagementController extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    _relSub?.cancel();
+    super.dispose();
   }
 }

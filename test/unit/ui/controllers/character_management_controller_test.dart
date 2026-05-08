@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/custom_field_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
+import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -79,14 +82,51 @@ class FakeRaceRepository implements RaceRepository {
   Future<void> clear() async => _store.clear();
 }
 
+class FakeRelationshipService implements RelationshipService {
+  final StreamController<List<Relationship>> _controller =
+      StreamController<List<Relationship>>.broadcast();
+
+  @override
+  Stream<List<Relationship>> watchAll() => _controller.stream;
+
+  @override
+  Future<void> saveRelationship(Relationship relationship,
+      {dynamic key}) async {}
+
+  @override
+  Future<void> deleteRelationship(Relationship relationship) async {}
+
+  @override
+  Future<bool> relationshipExists(String char1Id, String char2Id) async =>
+      false;
+
+  @override
+  Future<void> deleteRelationshipsForCharacter(String characterId) async {}
+
+  @override
+  Future<List<Relationship>> getAllRelationships() async => [];
+
+  @override
+  Future<Relationship?> getRelationshipByKey(dynamic key) async => null;
+
+  @override
+  Future<List<Relationship>> getRelationshipsForCharacter(
+          String characterId) async =>
+      [];
+}
+
+
 void main() {
   late FakeCharacterRepository charRepo;
   late FakeRaceRepository raceRepo;
+  late FakeRelationshipService relService;
 
   setUp(() {
     charRepo = FakeCharacterRepository();
     raceRepo = FakeRaceRepository();
+    relService = FakeRelationshipService();
   });
+
 
   Future<void> settle() => Future.delayed(const Duration(milliseconds: 600));
 
@@ -95,6 +135,7 @@ void main() {
     final controller = CharacterManagementController(
       characterRepo: charRepo,
       raceRepo: raceRepo,
+      relationshipService: relService,
       character: null,
       template: null,
     );
@@ -136,6 +177,7 @@ void main() {
     final controller = CharacterManagementController(
       characterRepo: charRepo,
       raceRepo: raceRepo,
+      relationshipService: relService,
       character: null,
       template: null,
     );
@@ -152,6 +194,7 @@ void main() {
     final controller = CharacterManagementController(
       characterRepo: charRepo,
       raceRepo: raceRepo,
+      relationshipService: relService,
       character: null,
       template: null,
     );
@@ -165,6 +208,7 @@ void main() {
     final controller = CharacterManagementController(
       characterRepo: charRepo,
       raceRepo: raceRepo,
+      relationshipService: relService,
       character: null,
       template: null,
     );

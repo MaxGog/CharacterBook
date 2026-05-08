@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
@@ -17,53 +19,60 @@ class EditRelationshipBottomSheet extends StatefulWidget {
 }
 
 class _EditRelationshipBottomSheetState
-    extends State<EditRelationshipBottomSheet> {
+    extends State<EditRelationshipBottomSheet>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  late final String _initialName;
-  late final String _initialDescription;
-  late final String _initialType;
-  late final bool _initialDirected;
-
-  late String _name;
-  late String _description;
-  late String _type;
-  late bool _directed;
+  late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _typeController;
 
   Character? _character1;
   Character? _character2;
   List<Character>? _characters;
   bool _isLoading = true;
+  bool _directed = false;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     final rel = widget.relationship;
-    _initialName = rel?.name ?? '';
-    _initialDescription = rel?.description ?? '';
-    _initialType = rel?.type ?? '';
-    _initialDirected = rel?.directed ?? false;
+    _nameController = TextEditingController(text: rel?.name ?? '');
+    _descriptionController =
+        TextEditingController(text: rel?.description ?? '');
+    _typeController = TextEditingController(text: rel?.type ?? '');
+    _directed = rel?.directed ?? false;
 
-    _name = _initialName;
-    _description = _initialDescription;
-    _type = _initialType;
-    _directed = _initialDirected;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+    _pulseAnimation =
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
 
     _loadCharacters();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _typeController.dispose();
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCharacters() async {
     final characterService =
         Provider.of<CharacterService>(context, listen: false);
     final characters = await characterService.getAllCharacters();
-
     if (!mounted) return;
-
     final unique = characters.toSet().toList();
-
     setState(() {
       _characters = unique;
       _isLoading = false;
-
       final rel = widget.relationship;
       if (rel != null) {
         _character1 = unique.cast<Character?>().firstWhere(
@@ -83,14 +92,12 @@ class _EditRelationshipBottomSheetState
     _formKey.currentState!.save();
 
     final s = S.of(context);
-
     if (_character1 == null || _character2 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(s.selectBothCharacters)),
       );
       return;
     }
-
     if (_character1!.id == _character2!.id) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(s.cannotRelateToItself)),
@@ -120,9 +127,11 @@ class _EditRelationshipBottomSheetState
       id: widget.relationship?.id,
       character1Id: _character1!.id,
       character2Id: _character2!.id,
-      name: _name.trim(),
-      description: _description.trim(),
-      type: _type.trim().isEmpty ? null : _type.trim(),
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim(),
+      type: _typeController.text.trim().isEmpty
+          ? null
+          : _typeController.text.trim(),
       directed: _directed,
     );
 
@@ -132,6 +141,45 @@ class _EditRelationshipBottomSheetState
     );
 
     if (mounted) Navigator.pop(context);
+  }
+
+  Widget _buildTypeChip(String label, IconData icon, ColorScheme colorScheme) {
+    final isSelected = _typeController.text.trim() == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _typeController.text = isSelected ? '' : label;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: colorScheme.onPrimaryContainer),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -155,237 +203,365 @@ class _EditRelationshipBottomSheetState
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 32,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // Заголовок
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Text(
-                widget.relationship == null
-                    ? s.createRelationship
-                    : s.editRelationship,
-                style: textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                child: Form(
-                  key: _formKey,
-                  child: _isLoading
-                      ? const Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : Column(
+        child: _isLoading
+            ? const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 8),
+                      width: 32,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Text(
+                      widget.relationship == null
+                          ? s.createRelationship
+                          : s.editRelationship,
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildCharacterDropdown(
-                              label: s.character1,
-                              value: _character1,
-                              onChanged: (val) {
-                                setState(() {
-                                  _character1 = val;
-                                  if (_character2 != null &&
-                                      val != null &&
-                                      _character2!.id == val.id) {
-                                    _character2 = null;
-                                  }
-                                });
-                              },
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildCharacterDropdown(
-                              label: s.character2,
-                              value: _character2,
-                              onChanged: (val) {
-                                setState(() {
-                                  _character2 = val;
-                                  if (_character1 != null &&
-                                      val != null &&
-                                      _character1!.id == val.id) {
-                                    _character1 = null;
-                                  }
-                                });
-                              },
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                            ),
-                            const SizedBox(height: 12),
+                            _buildConnectionCanvas(colorScheme, textTheme),
+                            const SizedBox(height: 24),
                             TextFormField(
-                              initialValue: _initialName,
+                              controller: _nameController,
                               decoration: InputDecoration(
                                 labelText: s.relationshipName,
-                                border: const OutlineInputBorder(),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
                                       color: colorScheme.primary, width: 2),
                                 ),
                               ),
-                              style: textTheme.bodyLarge,
-                              onSaved: (val) => _name = val ?? '',
-                              validator: (val) => val?.trim().isEmpty == true
-                                  ? s.enterName
-                                  : null,
+                              style: textTheme.titleMedium,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             TextFormField(
-                              initialValue: _initialDescription,
+                              controller: _descriptionController,
                               decoration: InputDecoration(
                                 labelText: s.description,
-                                border: const OutlineInputBorder(),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
                                       color: colorScheme.primary, width: 2),
                                 ),
                               ),
-                              maxLines: 3,
+                              maxLines: 2,
                               style: textTheme.bodyLarge,
-                              onSaved: (val) => _description = val ?? '',
                             ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              initialValue: _initialType,
-                              decoration: InputDecoration(
-                                labelText: s.typeOptional,
-                                border: const OutlineInputBorder(),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: colorScheme.primary, width: 2),
+                            const SizedBox(height: 16),
+                            Text(
+                              s.typeOptional,
+                              style: textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _buildTypeChip('Romance',
+                                    Icons.favorite_rounded, colorScheme),
+                                _buildTypeChip('Rivalry',
+                                    Icons.flash_on_rounded, colorScheme),
+                                _buildTypeChip('Family', Icons.groups_rounded,
+                                    colorScheme),
+                                _buildTypeChip('Friendship',
+                                    Icons.handshake_rounded, colorScheme),
+                                _buildTypeChip(
+                                    'Other', Icons.circle_rounded, colorScheme),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    s.directedRelationship,
+                                    style: textTheme.bodyLarge,
+                                  ),
                                 ),
-                              ),
-                              style: textTheme.bodyLarge,
-                              onSaved: (val) => _type = val ?? '',
-                            ),
-                            const SizedBox(height: 4),
-                            CheckboxListTile(
-                              title: Text(
-                                s.directedRelationship,
-                                style: textTheme.bodyLarge,
-                              ),
-                              value: _directed,
-                              onChanged: (val) =>
-                                  setState(() => _directed = val ?? false),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                              activeColor: colorScheme.primary,
-                              checkColor: colorScheme.onPrimary,
+                                Switch(
+                                  value: _directed,
+                                  onChanged: (val) =>
+                                      setState(() => _directed = val),
+                                  activeColor: colorScheme.primary,
+                                ),
+                              ],
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.onSurface,
+                            side: BorderSide(color: colorScheme.outline),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(s.cancel),
+                        ),
+                        const SizedBox(width: 12),
+                        FilledButton(
+                          onPressed: _save,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(s.save),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildConnectionCanvas(ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withOpacity(0.4),
+            colorScheme.tertiaryContainer.withOpacity(0.4),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 20,
+            top: 40,
+            child: _buildCharacterSelector(
+              0,
+              _character1,
+              (char) => setState(() => _character1 = char),
+              colorScheme,
+              textTheme,
+            ),
+          ),
+          Positioned(
+            right: 20,
+            bottom: 40,
+            child: _buildCharacterSelector(
+              1,
+              _character2,
+              (char) => setState(() => _character2 = char),
+              colorScheme,
+              textTheme,
+            ),
+          ),
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return CustomPaint(
+                size: const Size(300, 180),
+                painter: _RelationshipLinePainter(
+                  directed: _directed,
+                  color: colorScheme.primary,
+                  animationValue: _pulseAnimation.value,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCharacterSelector(
+    int index,
+    Character? current,
+    ValueChanged<Character?> onSelected,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _showCharacterPicker(index, current, onSelected),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: colorScheme.primary, width: 3),
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+            ),
+            child: CircleAvatar(
+              radius: 32,
+              backgroundColor: colorScheme.primaryContainer,
+              backgroundImage: current?.imageBytes != null
+                  ? MemoryImage(current!.imageBytes!)
+                  : null,
+              child: current?.imageBytes == null
+                  ? Text(
+                      current?.name.isNotEmpty == true
+                          ? current!.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          current?.name ?? '?',
+          style: textTheme.labelLarge?.copyWith(color: colorScheme.onSurface),
+        ),
+      ],
+    );
+  }
+
+  void _showCharacterPicker(
+    int index,
+    Character? current,
+    ValueChanged<Character?> onSelected,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Выберите персонажа',
+                  style: Theme.of(ctx).textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _characters!.length,
+                  itemBuilder: (_, i) {
+                    final char = _characters![i];
+                    final isSelected = current?.id == char.id;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: char.imageBytes != null
+                            ? MemoryImage(char.imageBytes!)
+                            : null,
+                        child: char.imageBytes == null
+                            ? Text(char.name[0].toUpperCase())
+                            : null,
+                      ),
+                      title: Text(char.name),
+                      trailing: isSelected
+                          ? const Icon(Icons.check, color: Colors.green)
+                          : null,
+                      onTap: () {
+                        onSelected(char);
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  },
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.onSurface,
-                      side: BorderSide(color: colorScheme.outline),
-                    ),
-                    child: Text(s.cancel),
-                  ),
-                  const SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: _save,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                    ),
-                    child: Text(s.save),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
+  }
+}
+
+class _RelationshipLinePainter extends CustomPainter {
+  final bool directed;
+  final Color color;
+  final double animationValue;
+
+  _RelationshipLinePainter({
+    required this.directed,
+    required this.color,
+    required this.animationValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+    path.moveTo(60, 80);
+    path.quadraticBezierTo(
+      size.width / 2,
+      80 + 40 * sin(animationValue * 2 * pi),
+      size.width - 60,
+      120,
+    );
+
+    canvas.drawPath(path, paint);
+
+    if (directed) {
+      final arrowPaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.fill;
+      final arrowPath = Path();
+      const arrowSize = 8.0;
+      final endPoint = Offset(size.width - 60, 120);
+      arrowPath.moveTo(endPoint.dx, endPoint.dy);
+      arrowPath.lineTo(endPoint.dx - arrowSize, endPoint.dy - arrowSize / 2);
+      arrowPath.lineTo(endPoint.dx - arrowSize, endPoint.dy + arrowSize / 2);
+      arrowPath.close();
+      canvas.drawPath(arrowPath, arrowPaint);
+    }
   }
 
-  Widget _buildCharacterDropdown({
-    required String label,
-    required Character? value,
-    required void Function(Character?) onChanged,
-    required ColorScheme colorScheme,
-    required TextTheme textTheme,
-  }) {
-    return DropdownButtonFormField<Character>(
-      value: value,
-      isExpanded: true,
-      items: _characters?.map((c) {
-            return DropdownMenuItem<Character>(
-              key: ValueKey(c.id),
-              value: c,
-              child: Row(
-                children: [
-                  _buildCharacterAvatar(c, colorScheme),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      c.name,
-                      style: textTheme.bodyLarge,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList() ??
-          [],
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-        ),
-      ),
-      validator: (value) => value == null
-          ? S.of(context).not_selected
-          : null,
-      dropdownColor: colorScheme.surfaceContainerHigh,
-      icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
-    );
-  }
-
-  Widget _buildCharacterAvatar(Character character, ColorScheme colorScheme) {
-    final hasAvatar = character.imageBytes != null;
-    return CircleAvatar(
-      radius: 14,
-      backgroundColor: hasAvatar ? null : colorScheme.primaryContainer,
-      backgroundImage: hasAvatar ? MemoryImage(character.imageBytes!) : null,
-      child: !hasAvatar
-          ? Text(
-              character.name.isNotEmpty ? character.name[0].toUpperCase() : '?',
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          : null,
-    );
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
