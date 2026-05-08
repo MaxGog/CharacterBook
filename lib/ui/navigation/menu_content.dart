@@ -1,7 +1,7 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/ui/screens/settings/settings_screen.dart';
-import 'package:characterbook/ui/screens/templates/templates_list_screen.dart';
-import 'package:characterbook/ui/widgets/sections/about_section_widget.dart';
+import 'package:characterbook/ui/screens/templates/template_list_screen.dart';
+import 'package:characterbook/ui/widgets/about_section_widget.dart';
 import 'package:flutter/material.dart';
 
 class MenuContent extends StatelessWidget {

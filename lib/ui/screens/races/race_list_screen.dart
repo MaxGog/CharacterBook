@@ -10,13 +10,13 @@ import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.d
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
-import 'package:characterbook/ui/widgets/buttons/common_fab_menu.dart';
+import 'package:characterbook/ui/widgets/common_fab_menu.dart';
 import 'package:characterbook/ui/widgets/items/race_card_item.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
 import 'package:characterbook/ui/widgets/list/grouped_tag_list.dart';
-import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
+import 'package:characterbook/ui/widgets/tag_filter.dart';
 import 'package:characterbook/ui/widgets/mixins/list_page_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';

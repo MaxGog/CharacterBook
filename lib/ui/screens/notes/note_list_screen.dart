@@ -4,14 +4,14 @@ import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/ui/controllers/note_list_controller.dart';
 import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
-import 'package:characterbook/ui/widgets/buttons/common_fab_menu.dart';
+import 'package:characterbook/ui/widgets/common_fab_menu.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
 import 'package:characterbook/ui/widgets/list/grouped_tag_list.dart';
-import 'package:characterbook/ui/widgets/states/empty_notes_state.dart';
-import 'package:characterbook/ui/widgets/tags/tag_filter.dart';
+import 'package:characterbook/ui/widgets/empty_notes_state.dart';
+import 'package:characterbook/ui/widgets/tag_filter.dart';
 import 'package:characterbook/ui/widgets/mixins/list_page_mixin.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 

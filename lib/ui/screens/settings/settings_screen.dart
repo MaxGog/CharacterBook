@@ -1,10 +1,10 @@
 import 'package:characterbook/ui/widgets/easter_egg_helper.dart';
-import 'package:characterbook/ui/widgets/sections/about_section_widget.dart';
+import 'package:characterbook/ui/widgets/about_section_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/ui/controllers/settings_controller.dart';
-import 'package:characterbook/ui/widgets/sections/settings_section.dart';
+import 'package:characterbook/ui/widgets/settings_section.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:characterbook/providers/locale_provider.dart';

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
@@ -18,11 +17,12 @@ import 'package:characterbook/ui/navigation/menu_content.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
-import 'package:characterbook/ui/widgets/buttons/home_fab_menu.dart';
+import 'package:characterbook/ui/widgets/home_fab_menu.dart';
 import 'package:characterbook/ui/widgets/items/character_keep_card_item.dart';
 import 'package:characterbook/ui/widgets/items/home_item.dart';
 import 'package:characterbook/ui/widgets/items/race_keep_card_item.dart';
 import 'package:characterbook/ui/widgets/items/tool_keep_card_item.dart';
+import 'package:characterbook/ui/widgets/pinned_section.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final HomeController _controller;
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  bool _isSearching = false;
+  FocusNode _searchFocus = FocusNode();
 
   @override
   void initState() {
@@ -59,7 +61,29 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchDebounce?.cancel();
     _searchController.dispose();
     _controller.dispose();
+    _searchFocus.dispose();
     super.dispose();
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+      _searchController.clear();
+      _controller.setSearchQuery('');
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_searchFocus);
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+    });
+    _searchController.clear();
+    _controller.setSearchQuery('');
+    _searchFocus.unfocus();
+    _searchDebounce?.cancel();
   }
 
   Future<void> _loadData() async {
@@ -456,40 +480,110 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double minExtent = kToolbarHeight + statusBarHeight;
+    final double maxExtent = minExtent + 80;   
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(
-        appBar: AppBar(
-          title: _buildSearchBar(context),
-          centerTitle: true,
-          elevation: 0,
-          scrolledUnderElevation: 3,
-          backgroundColor: colorScheme.surface,
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(12.0),
-              child: Image.asset(
-                'assets/iconapp.png',
-                height: 32,
-                width: 32,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.book_rounded, size: 32),
-              ),
+        body: RefreshIndicator(
+          onRefresh: () => _controller.loadData(),
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              if (!_isSearching)
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _HomeAppBarDelegate(
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: Image.asset(
+                          'assets/iconapp.png',
+                          height: 24,
+                          width: 24,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.book_rounded, size: 32),
+                        ),
+                      ),
+                    ),
+                    searchBar: _buildSearchBar(context),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.account_circle_rounded),
+                        iconSize: 32,
+                        onPressed: _showAccountMenu,
+                        tooltip: S.of(context).more_options,
+                      ),
+                    ],
+                    onSearchTap: _startSearch,
+                    minExtent: minExtent,
+                    maxExtent: maxExtent,
+                  ),
+                )
+              else
+                SliverAppBar(
+                  pinned: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: _stopSearch,
+                  ),
+                  title: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocus,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: S.of(context).search,
+                      border: InputBorder.none,
+                    ),
+                    onChanged: _onSearchChanged,
+                    onSubmitted: _onSearchSubmitted,
+                    textInputAction: TextInputAction.search,
+                  ),
+                  actions: [
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _controller.setSearchQuery('');
+                        },
+                      ),
+                  ],
+                ),
+            ],
+            body: Consumer<HomeController>(
+              builder: (context, controller, _) {
+                if (controller.searchQuery.isNotEmpty) {
+                  return _SearchResultsGrid(
+                    items: controller.filteredItems,
+                    onCharacterTap: _showCharacterDetail,
+                    onCharacterContextMenu: _showCharacterContextMenu,
+                    onRaceTap: _showRaceDetail,
+                    onRaceContextMenu: _showRaceContextMenu,
+                    onToolTap: (tool) => _navigateToTool(tool.page),
+                  );
+                }
+
+                if (!controller.hasItems) {
+                  return _EmptyState(
+                    isSearching: false,
+                    onCreateNew: _createNewContent,
+                  );
+                }
+
+                return _MainExpressiveContent(
+                  controller: controller,
+                  onCharacterTap: _showCharacterDetail,
+                  onCharacterContextMenu: _showCharacterContextMenu,
+                  onRaceTap: _showRaceDetail,
+                  onRaceContextMenu: _showRaceContextMenu,
+                  onToolTap: _navigateToTool,
+                );
+              },
             ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.account_circle_rounded),
-              iconSize: 32,
-              onPressed: _showAccountMenu,
-              tooltip: S.of(context).more_options,
-            ),
-          ],
         ),
         floatingActionButton: HomeFloatingMenu(
           onCreateCharacter: () {
@@ -517,38 +611,6 @@ class _HomeScreenState extends State<HomeScreen> {
               if (result == true && mounted) _loadData();
             });
           },
-        ),
-        body: SafeArea(
-          child: Consumer<HomeController>(
-            builder: (context, controller, _) {
-              if (controller.searchQuery.isNotEmpty) {
-                return _SearchResultsGrid(
-                  items: controller.filteredItems,
-                  onCharacterTap: _showCharacterDetail,
-                  onCharacterContextMenu: _showCharacterContextMenu,
-                  onRaceTap: _showRaceDetail,
-                  onRaceContextMenu: _showRaceContextMenu,
-                  onToolTap: (tool) => _navigateToTool(tool.page),
-                );
-              }
-
-              if (!controller.hasItems) {
-                return _EmptyState(
-                  isSearching: false,
-                  onCreateNew: _createNewContent,
-                );
-              }
-
-              return _MainExpressiveContent(
-                controller: controller,
-                onCharacterTap: _showCharacterDetail,
-                onCharacterContextMenu: _showCharacterContextMenu,
-                onRaceTap: _showRaceDetail,
-                onRaceContextMenu: _showRaceContextMenu,
-                onToolTap: _navigateToTool,
-              );
-            },
-          ),
         ),
       ),
     );
@@ -591,6 +653,87 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _HomeAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget leading;
+  final Widget searchBar;
+  final List<Widget> actions;
+  final VoidCallback onSearchTap;
+
+  _HomeAppBarDelegate({
+    required this.leading,
+    required this.searchBar,
+    required this.actions,
+    required this.onSearchTap,
+    required this.minExtent,
+    required this.maxExtent,
+  });
+
+  @override
+  final double minExtent;
+
+  @override
+  final double maxExtent;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final double maxScrollExtent = maxExtent - minExtent;
+    final double progress = (shrinkOffset / maxScrollExtent).clamp(0.0, 1.0);
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final double paddingTop = MediaQuery.of(context).padding.top;
+
+    const double searchBarTotalHeight = 76.0;
+
+    return Container(
+      color: colorScheme.surface,
+      child: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: minExtent - paddingTop,
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: leading,
+              actions: [
+                AnimatedOpacity(
+                  opacity: progress,
+                  duration: const Duration(milliseconds: 200),
+                  child: IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: onSearchTap,
+                  ),
+                ),
+                ...actions,
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: minExtent - paddingTop,
+            left: 0,
+            right: 0,
+            child: Transform.translate(
+              offset: Offset(0, -progress * searchBarTotalHeight),
+              child: Opacity(
+                opacity: 1 - progress,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: searchBar,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_HomeAppBarDelegate oldDelegate) => true;
 }
 
 class _SearchResultsGrid extends StatelessWidget {
@@ -729,58 +872,63 @@ class _MainExpressiveContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => controller.loadData(),
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: _PinnedSection(
-              items: controller.pinnedItems,
-              allCharactersAndRaces: [
-                ...controller.characters,
-                ...controller.races,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: PinnedSection(
+            items: controller.pinnedItems,
+            allCharactersAndRaces: [
+              ...controller.characters,
+              ...controller.races,
+            ],
+            controller: controller,
+            onCharacterTap: onCharacterTap,
+            onCharacterContextMenu: onCharacterContextMenu,
+            onRaceTap: onRaceTap,
+            onRaceContextMenu: onRaceContextMenu,
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Icon(Icons.handyman_outlined,
+                    size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  S.of(context).dnd_tools,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
               ],
-              controller: controller,
-              onCharacterTap: onCharacterTap,
-              onCharacterContextMenu: onCharacterContextMenu,
-              onRaceTap: onRaceTap,
-              onRaceContextMenu: onRaceContextMenu,
             ),
           ),
-          SliverPadding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                S.of(context).dnd_tools,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final tool = controller.tools[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: _ToolMaterialCard(
+                    tool: tool,
+                    onTap: () => onToolTap(tool.page),
+                  ),
+                );
+              },
+              childCount: controller.tools.length,
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final tool = controller.tools[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: _ToolMaterialCard(
-                      tool: tool,
-                      onTap: () => onToolTap(tool.page),
-                    ),
-                  );
-                },
-                childCount: controller.tools.length,
-              ),
-            ),
-          ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-        ],
-      ),
+        ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+      ],
     );
   }
 }
@@ -838,261 +986,3 @@ class _ToolMaterialCard extends StatelessWidget {
   }
 }
 
-class _PinnedSection extends StatefulWidget {
-  const _PinnedSection({
-    required this.items,
-    required this.allCharactersAndRaces,
-    required this.controller,
-    required this.onCharacterTap,
-    required this.onCharacterContextMenu,
-    required this.onRaceTap,
-    required this.onRaceContextMenu,
-  });
-
-  final List<HomeItem> items;
-  final List<HomeItem> allCharactersAndRaces;
-  final HomeController controller;
-  final void Function(CharacterHomeItem) onCharacterTap;
-  final void Function(CharacterHomeItem) onCharacterContextMenu;
-  final void Function(RaceHomeItem) onRaceTap;
-  final void Function(RaceHomeItem) onRaceContextMenu;
-
-  @override
-  State<_PinnedSection> createState() => _PinnedSectionState();
-}
-
-class _PinnedSectionState extends State<_PinnedSection> {
-  bool _isEditing = false;
-
-  void _toggleEditMode() {
-    setState(() {
-      _isEditing = !_isEditing;
-    });
-  }
-
-  void _addPin(HomeItem item) {
-    widget.controller.togglePin(item);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final s = S.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  s.pinned,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(_isEditing ? Icons.check : Icons.edit_outlined),
-                onPressed: _toggleEditMode,
-                tooltip: _isEditing ? s.done : s.edit_pins,
-                iconSize: 22,
-                splashRadius: 20,
-              ),
-            ],
-          ),
-        ),
-        if (widget.items.isEmpty && !_isEditing)
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Text(
-              s.no_pinned_items,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        if (_isEditing)
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.allCharactersAndRaces.map((item) {
-                final isPinned = widget.controller.isPinned(item);
-                final name = (item is CharacterHomeItem)
-                    ? item.character.name
-                    : (item as RaceHomeItem).race.name;
-                return InputChip(
-                  label: Text(name),
-                  selected: isPinned,
-                  onSelected: (_) => _addPin(item),
-                  deleteIcon: isPinned ? Icon(Icons.check, size: 16) : null,
-                  onDeleted: isPinned ? () => _addPin(item) : null,
-                );
-              }).toList(),
-            ),
-          )
-        else if (widget.items.isNotEmpty)
-          SizedBox(
-            height: 180,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: widget.items.length,
-              itemBuilder: (context, index) {
-                final item = widget.items[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: _PinnedItemCard(
-                    item: item,
-                    onTap: () {
-                      if (item is CharacterHomeItem) {
-                        widget.onCharacterTap(item);
-                      } else if (item is RaceHomeItem) {
-                        widget.onRaceTap(item);
-                      }
-                    },
-                    onContextMenu: () {
-                      if (item is CharacterHomeItem) {
-                        widget.onCharacterContextMenu(item);
-                      } else if (item is RaceHomeItem) {
-                        widget.onRaceContextMenu(item);
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _PinnedItemCard extends StatelessWidget {
-  const _PinnedItemCard({
-    required this.item,
-    required this.onTap,
-    required this.onContextMenu,
-  });
-
-  final HomeItem item;
-  final VoidCallback onTap;
-  final VoidCallback onContextMenu;
-
-  Uint8List? _getImage() {
-    if (item is CharacterHomeItem) {
-      return (item as CharacterHomeItem).character.imageBytes;
-    } else if (item is RaceHomeItem) {
-      return (item as RaceHomeItem).race.logo;
-    }
-    return null;
-  }
-
-  String _getTitle() {
-    if (item is CharacterHomeItem) {
-      return (item as CharacterHomeItem).character.name;
-    } else if (item is RaceHomeItem) {
-      return (item as RaceHomeItem).race.name;
-    }
-    return '';
-  }
-
-  String _getSubtitle(BuildContext context) {
-    if (item is CharacterHomeItem) {
-      final race = (item as CharacterHomeItem).character.race;
-      return race?.name ?? S.of(context).character;
-    } else if (item is RaceHomeItem) {
-      return S.of(context).race;
-    }
-    return '';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final image = _getImage();
-
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onContextMenu,
-      child: Container(
-        width: 140,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (image != null)
-              Image.memory(image, fit: BoxFit.cover)
-            else
-              Container(color: colorScheme.primaryContainer),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.6),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 12,
-              right: 12,
-              bottom: 12,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _getTitle(),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 4,
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _getSubtitle(context),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

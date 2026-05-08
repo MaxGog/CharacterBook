@@ -8,7 +8,7 @@ import 'package:characterbook/ui/controllers/note_management_controller.dart';
 import 'package:characterbook/ui/widgets/avatar_widget.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/markdown_context_menu.dart';
-import 'package:characterbook/ui/widgets/sections/tags_section.dart';
+import 'package:characterbook/ui/widgets/tags_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:hive_flutter/hive_flutter.dart';

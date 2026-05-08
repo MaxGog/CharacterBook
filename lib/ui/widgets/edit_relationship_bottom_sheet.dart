@@ -363,7 +363,7 @@ class _EditRelationshipBottomSheetState
         ),
       ),
       validator: (value) => value == null
-          ? S.of(context).select
+          ? S.of(context).not_selected
           : null,
       dropdownColor: colorScheme.surfaceContainerHigh,
       icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),

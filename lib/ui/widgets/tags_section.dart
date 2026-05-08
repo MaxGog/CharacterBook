@@ -1,4 +1,4 @@
-import 'package:characterbook/ui/widgets/tags/tags_input_widget.dart';
+import 'package:characterbook/ui/widgets/tags_input_widget.dart';
 import 'package:flutter/material.dart';
 
 class TagsSection extends StatelessWidget {
