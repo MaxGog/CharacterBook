@@ -569,5 +569,18 @@
   "enter_name_character": "Введите имя персонажа",
   "choose_race_character": "Выберите расу персонажа",
   "enter_title_note": "Введите название заметки",
-  "enter_title_template": "Введите название шаблона"
+  "enter_title_template": "Введите название шаблона",
+  "custom_event": "Своё событие",
+  "add_event": "Добавить событие",
+  "new_event": "Новое событие",
+  "edit_event": "Редактировать событие",
+  "event_title": "Название",
+  "event_description": "Описание",
+  "date": "Дата",
+  "time": "Время",
+  "minutes": "мин",
+  "minutes_before": "Напомнить за",
+  "enter_event_title": "Введите название события",
+  "reminder": "Напоминание",
+  "add_to_calendar": "Добавить в системный календарь"
 }

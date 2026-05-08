@@ -1,4 +1,6 @@
 import 'package:characterbook/data/enums/calendar_event_type_enum.dart';
+import 'package:characterbook/data/models/custom_event_model.dart';
+import 'package:characterbook/data/services/custom_event_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/calendar_event_model.dart';
 import 'package:characterbook/data/models/character_model.dart';
@@ -7,14 +9,14 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/device_calendar_service.dart';
+import 'package:characterbook/services/local_notification_service.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
+import 'package:characterbook/ui/widgets/modals/custom_event_modal.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
 import 'package:characterbook/ui/controllers/calendar_controller.dart';
 import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
 import 'package:characterbook/ui/widgets/appbar/common_edit_app_bar.dart';
-import 'package:characterbook/ui/widgets/items/character_card_item.dart';
-import 'package:characterbook/ui/widgets/items/note_card_item.dart';
-import 'package:characterbook/ui/widgets/items/race_card_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -24,16 +26,21 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final characterService = context.read<CharacterService>();
     final raceService = context.read<RaceService>();
     final noteService = context.read<NoteService>();
+    final customEventService = context.read<CustomEventService>();
+    final deviceCalendarService = context.read<DeviceCalendarService>();
+    final localNotificationService = context.read<LocalNotificationService>();
 
     return ChangeNotifierProvider(
       create: (_) => CalendarController(
         characterService: characterService,
         raceService: raceService,
         noteService: noteService,
+        customEventService: customEventService,
+        deviceCalendarService: deviceCalendarService,
+        notificationService: localNotificationService,
       )..loadEvents(),
       child: const _CalendarView(),
     );
@@ -42,6 +49,39 @@ class CalendarScreen extends StatelessWidget {
 
 class _CalendarView extends StatelessWidget {
   const _CalendarView();
+
+  void _showCreateEventModal(BuildContext context) {
+    final controller = context.read<CalendarController>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CustomEventModal(
+        initialDate: controller.selectedDay ?? DateTime.now(),
+        onSave: (event) {
+          controller.addCustomEvent(event);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _editCustomEvent(BuildContext context, CustomEvent event) {
+    final controller = context.read<CalendarController>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CustomEventModal(
+        initialDate: event.date,
+        existingEvent: event,
+        onSave: (updatedEvent) {
+          controller.loadEvents();
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +98,11 @@ class _CalendarView extends StatelessWidget {
           ),
         ],
         onSave: null,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCreateEventModal(context),
+        icon: const Icon(Icons.add),
+        label: Text(S.of(context).add_event),
       ),
       body: SafeArea(
         child: controller.isLoading
@@ -217,36 +262,54 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    switch (event.type) {
-      case CalendarEventType.character:
-        return CharacterCardItem(
-          character: event.character!,
-          isSelected: false,
-          onTap: () => _navigateToEvent(context, event),
-          onLongPress: () => _showCharacterModal(context, event.character!),
-          onEdit: () => _showCharacterModal(context, event.character!), 
-          onDelete: () => {},
-        );
-      case CalendarEventType.race:
-        return RaceCardItem(
-          race: event.race!,
-          isSelected: false,
-          onTap: () => _navigateToEvent(context, event),
-          onLongPress: () => _showRaceModal(context, event.race!),
-        );
-      case CalendarEventType.note:
-        return NoteCardItem(
-          note: event.note!,
-          isSelected: false,
-          onTap: () => _navigateToEvent(context, event),
-          enableDrag: false,
-          onEdit: () => _openNote(context, event.note!),
-          onDelete: () {
-            final controller = context.read<CalendarController>();
-            controller.loadEvents();
-          },
-        );
-    }
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      elevation: 1,
+      shadowColor: event.getColor(context).withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: event.getColor(context).withOpacity(0.15),
+          child: Icon(event.icon, color: event.getColor(context)),
+        ),
+        title: Text(
+          event.getTitle(context),
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          event.getSubtitle(context),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        trailing: event.type == CalendarEventType.custom
+            ? PopupMenuButton<String>(
+                onSelected: (action) {
+                  if (action == 'edit') {
+                    _editCustomEvent(context, event.customEvent!);
+                  } else if (action == 'delete') {
+                    _deleteCustomEvent(context, event.customEvent!);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(value: 'edit', child: Text(S.of(context).edit)),
+                  PopupMenuItem(
+                      value: 'delete', child: Text(S.of(context).delete)),
+                ],
+              )
+            : null,
+        onTap: () => _navigateToEvent(context, event),
+      ),
+    );
+  }
+
+  void _deleteCustomEvent(BuildContext context, CustomEvent event) {
+    context.read<CalendarController>().deleteCustomEvent(event.id);
+  }
+
+  void _editCustomEvent(BuildContext context, CustomEvent event) {
+    _editCustomEvent(context, event);
   }
 
   void _navigateToEvent(BuildContext context, CalendarEventModel event) {
@@ -260,6 +323,10 @@ class _EventCard extends StatelessWidget {
       case CalendarEventType.note:
         _openNote(context, event.note!);
         break;
+      case CalendarEventType.custom:
+        _editCustomEvent(context, event.customEvent!);
+        break;
+        
     }
   }
 
@@ -413,6 +480,18 @@ class _FilterButton extends StatelessWidget {
               const SizedBox(width: 8),
               Text(s.note_events),
               if (selectedFilter == CalendarEventType.note)
+                const Icon(Icons.check, size: 16),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: CalendarEventType.custom,
+          child: Row(
+            children: [
+              const Icon(Icons.event, size: 20),
+              const SizedBox(width: 8),
+              Text(s.custom_event),
+              if (selectedFilter == CalendarEventType.custom)
                 const Icon(Icons.check, size: 16),
             ],
           ),

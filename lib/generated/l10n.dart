@@ -5576,6 +5576,136 @@ class S {
       args: [],
     );
   }
+
+  /// `Своё событие`
+  String get custom_event {
+    return Intl.message(
+      'Своё событие',
+      name: 'custom_event',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Добавить событие`
+  String get add_event {
+    return Intl.message(
+      'Добавить событие',
+      name: 'add_event',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Новое событие`
+  String get new_event {
+    return Intl.message(
+      'Новое событие',
+      name: 'new_event',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Редактировать событие`
+  String get edit_event {
+    return Intl.message(
+      'Редактировать событие',
+      name: 'edit_event',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Название`
+  String get event_title {
+    return Intl.message(
+      'Название',
+      name: 'event_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Описание`
+  String get event_description {
+    return Intl.message(
+      'Описание',
+      name: 'event_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Дата`
+  String get date {
+    return Intl.message(
+      'Дата',
+      name: 'date',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Время`
+  String get time {
+    return Intl.message(
+      'Время',
+      name: 'time',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `мин`
+  String get minutes {
+    return Intl.message(
+      'мин',
+      name: 'minutes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Напомнить за`
+  String get minutes_before {
+    return Intl.message(
+      'Напомнить за',
+      name: 'minutes_before',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите название события`
+  String get enter_event_title {
+    return Intl.message(
+      'Введите название события',
+      name: 'enter_event_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Напоминание`
+  String get reminder {
+    return Intl.message(
+      'Напоминание',
+      name: 'reminder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Добавить в системный календарь`
+  String get add_to_calendar {
+    return Intl.message(
+      'Добавить в системный календарь',
+      name: 'add_to_calendar',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

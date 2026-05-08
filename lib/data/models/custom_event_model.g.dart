@@ -1,35 +1,35 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'note_model.dart';
+part of 'custom_event_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class NoteAdapter extends TypeAdapter<Note> {
+class CustomEventAdapter extends TypeAdapter<CustomEvent> {
   @override
-  final int typeId = 2;
+  final int typeId = 13;
 
   @override
-  Note read(BinaryReader reader) {
+  CustomEvent read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Note(
+    return CustomEvent(
       id: fields[0] as String?,
       title: fields[1] as String,
-      content: fields[2] as String,
-      createdAt: fields[3] as DateTime?,
-      updatedAt: fields[4] as DateTime?,
-      tags: (fields[6] as List).cast<String>(),
-      characterIds: fields[5] == null ? [] : (fields[5] as List).cast<String>(),
-      folderId: fields[7] as String?,
+      description: fields[2] as String,
+      date: fields[3] as DateTime,
+      hasReminder: fields[4] as bool,
+      reminderMinutesBefore: fields[5] as int,
+      addedToDeviceCalendar: fields[6] as bool,
+      deviceCalendarEventId: fields[7] as String?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Note obj) {
+  void write(BinaryWriter writer, CustomEvent obj) {
     writer
       ..writeByte(8)
       ..writeByte(0)
@@ -37,17 +37,17 @@ class NoteAdapter extends TypeAdapter<Note> {
       ..writeByte(1)
       ..write(obj.title)
       ..writeByte(2)
-      ..write(obj.content)
+      ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.createdAt)
+      ..write(obj.date)
       ..writeByte(4)
-      ..write(obj.updatedAt)
+      ..write(obj.hasReminder)
       ..writeByte(5)
-      ..write(obj.characterIds)
+      ..write(obj.reminderMinutesBefore)
       ..writeByte(6)
-      ..write(obj.tags)
+      ..write(obj.addedToDeviceCalendar)
       ..writeByte(7)
-      ..write(obj.folderId);
+      ..write(obj.deviceCalendarEventId);
   }
 
   @override
@@ -56,7 +56,7 @@ class NoteAdapter extends TypeAdapter<Note> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NoteAdapter &&
+      other is CustomEventAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -1,3 +1,6 @@
+import 'package:characterbook/data/models/custom_event_model.dart';
+import 'package:characterbook/data/repositories/custom_event_repository.dart';
+import 'package:characterbook/data/services/custom_event_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/handlers/file_handler.dart';
 import 'package:characterbook/handlers/file_handler_wrapper.dart';
@@ -19,9 +22,11 @@ import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
+import 'package:characterbook/services/device_calendar_service.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/file_share_service.dart';
 import 'package:characterbook/data/services/hive_service.dart';
+import 'package:characterbook/services/local_notification_service.dart';
 import 'package:characterbook/services/menu_channel_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/services/notification_service.dart';
@@ -38,9 +43,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  tz.initializeTimeZones();
 
   bool hiveInitialized = false;
   Box<Character>? characterBox;
@@ -49,15 +57,12 @@ void main() async {
   Box<QuestionnaireTemplate>? templateBox;
   Box<ExportPdfSettings>? settingsBox;
   Box<Relationship>? relationshipBox;
+  Box<CustomEvent>? customEventBox;
 
   Box<bool>? appSettingsBox;
 
   try {
     await HiveService.initHive();
-
-    if (!Hive.isAdapterRegistered(12)) {
-      Hive.registerAdapter(RelationshipAdapter());
-    }
 
     characterBox = await _openBoxWithRetry<Character>('characters');
     raceBox = await _openBoxWithRetry<Race>('races');
@@ -65,6 +70,7 @@ void main() async {
     templateBox = await _openBoxWithRetry<QuestionnaireTemplate>('templates');
     settingsBox = await _openBoxWithRetry<ExportPdfSettings>('pdf_settings');
     relationshipBox = await _openBoxWithRetry<Relationship>('relationships');
+    customEventBox = await _openBoxWithRetry<CustomEvent>('custom_events');
 
     appSettingsBox = await _openBoxWithRetry<bool>('app_settings');
 
@@ -84,6 +90,7 @@ void main() async {
     templateBox: templateBox,
     settingsBox: settingsBox,
     relationshipBox: relationshipBox,
+    customEventBox: customEventBox,
     appSettingsBox: appSettingsBox,
   ));
 }
@@ -106,6 +113,7 @@ class CharacterBookApp extends StatelessWidget {
   final Box<QuestionnaireTemplate>? templateBox;
   final Box<ExportPdfSettings>? settingsBox;
   final Box<Relationship>? relationshipBox;
+  final Box<CustomEvent>? customEventBox;
   final Box<bool>? appSettingsBox;
 
   const CharacterBookApp({
@@ -117,6 +125,7 @@ class CharacterBookApp extends StatelessWidget {
     this.templateBox,
     this.settingsBox,
     this.relationshipBox,
+    this.customEventBox,
     this.appSettingsBox
   });
 
@@ -175,6 +184,20 @@ class CharacterBookApp extends StatelessWidget {
           create: (context) => TemplateListController(
             context.read<TemplateRepository>(),
           ),
+        ),
+
+        if (customEventBox != null)
+          Provider<CustomEventRepository>(
+            create: (_) => CustomEventRepositoryHive(customEventBox!),
+          ),
+        ProxyProvider<CustomEventRepository, CustomEventService>(
+          update: (_, repo, __) => CustomEventService(repo),
+        ),
+        Provider<DeviceCalendarService>(
+          create: (_) => DeviceCalendarService(),
+        ),
+        Provider<LocalNotificationService>(
+          create: (_) => LocalNotificationService()..initialize(),
         ),
         
         ProxyProvider5<CharacterRepository, RaceRepository,

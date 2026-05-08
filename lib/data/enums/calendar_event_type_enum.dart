@@ -1,1 +1,1 @@
-enum CalendarEventType { character, race, note }
+enum CalendarEventType { character, race, note, custom, }

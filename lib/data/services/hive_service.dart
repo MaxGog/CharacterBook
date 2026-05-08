@@ -1,8 +1,10 @@
 import 'package:characterbook/data/models/character_model.dart';
+import 'package:characterbook/data/models/custom_event_model.dart';
 import 'package:characterbook/data/models/custom_field_model.dart';import 'package:characterbook/data/models/export_pdf_settings_model.dart';
 
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
+import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -35,6 +37,12 @@ class HiveService {
     }
     if (!Hive.isAdapterRegistered(ExportPdfSettingsAdapter().typeId)) {
       Hive.registerAdapter(ExportPdfSettingsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(RelationshipAdapter().typeId)) {
+      Hive.registerAdapter(RelationshipAdapter());
+    }
+    if (!Hive.isAdapterRegistered(CustomEventAdapter().typeId)) {
+      Hive.registerAdapter(CustomEventAdapter()); 
     }
   }
 

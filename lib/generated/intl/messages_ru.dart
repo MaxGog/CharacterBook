@@ -86,11 +86,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "acknowledgements":
             MessageLookupByLibrary.simpleMessage("Благодарности"),
         "activity_timeline": MessageLookupByLibrary.simpleMessage("Активность"),
+        "add_event": MessageLookupByLibrary.simpleMessage("Добавить событие"),
         "add_field": MessageLookupByLibrary.simpleMessage("Добавить поле"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Добавить"),
         "add_relationships":
             MessageLookupByLibrary.simpleMessage("Добавить связь"),
         "add_tag": MessageLookupByLibrary.simpleMessage("Добавить тег"),
+        "add_to_calendar": MessageLookupByLibrary.simpleMessage(
+            "Добавить в системный календарь"),
         "additional_images":
             MessageLookupByLibrary.simpleMessage("Доп. изображения"),
         "adults": MessageLookupByLibrary.simpleMessage("Взрослые"),
@@ -291,6 +294,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Часть данных могла быть утеряна"),
         "custom": MessageLookupByLibrary.simpleMessage("доп."),
         "custom_color": MessageLookupByLibrary.simpleMessage("Свой цвет"),
+        "custom_event": MessageLookupByLibrary.simpleMessage("Своё событие"),
         "custom_fields": MessageLookupByLibrary.simpleMessage("Доп. поля"),
         "custom_fields_editor_title":
             MessageLookupByLibrary.simpleMessage("Доп. поля"),
@@ -301,6 +305,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dark": MessageLookupByLibrary.simpleMessage("Тёмная"),
         "data_initialization_error":
             MessageLookupByLibrary.simpleMessage("Ошибка инициализации данных"),
+        "date": MessageLookupByLibrary.simpleMessage("Дата"),
         "day": MessageLookupByLibrary.simpleMessage("День"),
         "days_ago": m7,
         "default_settings":
@@ -336,6 +341,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Редактирование связи"),
         "edit_character":
             MessageLookupByLibrary.simpleMessage("Изменить персонажа"),
+        "edit_event":
+            MessageLookupByLibrary.simpleMessage("Редактировать событие"),
         "edit_folder": MessageLookupByLibrary.simpleMessage("Править папку"),
         "edit_pins": MessageLookupByLibrary.simpleMessage("Закреплённые"),
         "edit_race": MessageLookupByLibrary.simpleMessage("Изменить расы"),
@@ -346,6 +353,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "empty_list": MessageLookupByLibrary.simpleMessage("Пусто!"),
         "enterName": MessageLookupByLibrary.simpleMessage("Введите название"),
         "enter_age": MessageLookupByLibrary.simpleMessage("Возраст"),
+        "enter_event_title":
+            MessageLookupByLibrary.simpleMessage("Введите название события"),
         "enter_name_character":
             MessageLookupByLibrary.simpleMessage("Введите имя персонажа"),
         "enter_race_name":
@@ -363,6 +372,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "event": MessageLookupByLibrary.simpleMessage("Событие"),
         "event_calendar":
             MessageLookupByLibrary.simpleMessage("Календарь событий"),
+        "event_description": MessageLookupByLibrary.simpleMessage("Описание"),
+        "event_title": MessageLookupByLibrary.simpleMessage("Название"),
         "event_type": MessageLookupByLibrary.simpleMessage("Тип"),
         "events": MessageLookupByLibrary.simpleMessage("События"),
         "events_loading_error":
@@ -539,6 +550,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "metadata": MessageLookupByLibrary.simpleMessage("Метаданные"),
         "migration_in_progress":
             MessageLookupByLibrary.simpleMessage("Миграция…"),
+        "minutes": MessageLookupByLibrary.simpleMessage("мин"),
+        "minutes_before": MessageLookupByLibrary.simpleMessage("Напомнить за"),
         "month": MessageLookupByLibrary.simpleMessage("Месяц"),
         "months_ago": m12,
         "more_fields": m13,
@@ -551,6 +564,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "new_character": MessageLookupByLibrary.simpleMessage("Новый персонаж"),
         "new_character_from_template":
             MessageLookupByLibrary.simpleMessage("Новый персонаж (шаблон)"),
+        "new_event": MessageLookupByLibrary.simpleMessage("Новое событие"),
         "new_folder": MessageLookupByLibrary.simpleMessage("Новая папка"),
         "new_note": MessageLookupByLibrary.simpleMessage("Новая заметка"),
         "new_race": MessageLookupByLibrary.simpleMessage("Новая раса"),
@@ -682,6 +696,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Название связи"),
         "relationships":
             MessageLookupByLibrary.simpleMessage("Cвязи между персонажами"),
+        "reminder": MessageLookupByLibrary.simpleMessage("Напоминание"),
         "replace": MessageLookupByLibrary.simpleMessage("Заменить"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Обязательное поле"),
@@ -800,6 +815,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Шаблоны не найдены"),
         "terms_of_service": MessageLookupByLibrary.simpleMessage("Условия"),
         "theme": MessageLookupByLibrary.simpleMessage("Тема"),
+        "time": MessageLookupByLibrary.simpleMessage("Время"),
         "timeout_error": MessageLookupByLibrary.simpleMessage("Таймаут"),
         "title_color": MessageLookupByLibrary.simpleMessage("Цвет заголовка"),
         "title_font_size": MessageLookupByLibrary.simpleMessage("Заголовок"),

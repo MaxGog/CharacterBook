@@ -425,5 +425,18 @@
   "enter_name_character": "Enter name character",
   "choose_race_character": "Enter name race",
   "enter_title_note": "Enter title note",
-  "enter_title_template": "Enter title template"
+  "enter_title_template": "Enter title template",
+  "custom_event": "Custom event",
+  "add_event": "Add event",
+  "new_event": "Новое событие",
+  "edit_event": "Редактировать событие",
+  "event_title": "Название",
+  "event_description": "Описание",
+  "date": "Дата",
+  "time": "Время",
+  "minutes": "мин",
+  "minutes_before": "Напомнить за",
+  "enter_event_title": "Введите название события",
+  "reminder": "Напоминание",
+  "add_to_calendar": "Добавить в системный календарь"
 }
