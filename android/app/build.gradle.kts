@@ -20,7 +20,7 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        isCoreLibraryDesugaringEnabled = true          // ← исправлено
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -30,11 +30,6 @@ android {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-    
 
     defaultConfig {
         applicationId = "ru.maxgog.listcharacters"
