@@ -56,7 +56,7 @@ class AboutSection extends StatelessWidget {
           leading:
               Icon(Icons.info_outline, color: colorScheme.onSurfaceVariant),
           title: Text(s.version),
-          trailing: Text('1.8.0', style: theme.textTheme.bodyLarge),
+          trailing: Text('26.5.0', style: theme.textTheme.bodyLarge),
         ),
         const SizedBox(height: 8),
         ListTile(
@@ -78,7 +78,7 @@ class AboutSection extends StatelessWidget {
           onTap: () => showLicensePage(
               context: context,
               applicationName: s.app_name,
-              applicationVersion: '1.8.0',
+              applicationVersion: '26.5.0',
               applicationIcon:
                   Image.asset('assets/iconapp.png', width: 50, height: 50),
               useRootNavigator: true),
