@@ -43,7 +43,7 @@ class RaceModalCard extends StatelessWidget {
               onAvatarTap: race.logo != null
                   ? () => showFullImage(context, race.logo!, race.name)
                   : null,
-              heroTag: 'race-logo-${race.key}',
+              heroTag: 'modal-race-logo-${race.key}',
             ),
             contentSections: _buildContentSections(context, controller),
           );

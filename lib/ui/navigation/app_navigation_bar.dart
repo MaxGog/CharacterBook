@@ -4,6 +4,7 @@ import 'package:characterbook/ui/screens/home_screen.dart';
 import 'package:characterbook/ui/screens/notes/note_list_screen.dart';
 import 'package:characterbook/ui/screens/races/race_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppNavigationBar extends StatefulWidget {
   const AppNavigationBar({super.key});
@@ -72,32 +73,48 @@ class _AppNavigationBarState extends State<AppNavigationBar>
     });
   }
 
+  SystemUiOverlayStyle _getSystemOverlayStyle(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness:
+          brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 600) {
-            return _WideScreenLayout(
-              currentIndex: _currentIndex,
-              pages: _pages,
-              titles: _getTitles(context),
-              icons: _icons,
-              selectedIcons: _selectedIcons,
-              onIndexChanged: _updateIndex,
-              isRailExtended: _isRailExtended,
-              onToggleExtension: _toggleRailExtension,
-            );
-          }
-          return _NarrowScreenLayout(
-            currentIndex: _currentIndex,
-            pages: _pages,
-            titles: _getTitles(context),
-            icons: _icons,
-            selectedIcons: _selectedIcons,
-            onIndexChanged: _updateIndex,
-          );
-        },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _getSystemOverlayStyle(context),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return constraints.maxWidth >= 600
+                ? _WideScreenLayout(
+                    currentIndex: _currentIndex,
+                    pages: _pages,
+                    titles: _getTitles(context),
+                    icons: _icons,
+                    selectedIcons: _selectedIcons,
+                    onIndexChanged: _updateIndex,
+                    isRailExtended: _isRailExtended,
+                    onToggleExtension: _toggleRailExtension,
+                    animationController: _animationController,
+                  )
+                : _NarrowScreenLayout(
+                    currentIndex: _currentIndex,
+                    pages: _pages,
+                    titles: _getTitles(context),
+                    icons: _icons,
+                    selectedIcons: _selectedIcons,
+                    onIndexChanged: _updateIndex,
+                  );
+          },
+        ),
       ),
     );
   }
@@ -120,6 +137,7 @@ class _WideScreenLayout extends StatelessWidget {
     required this.onIndexChanged,
     required this.isRailExtended,
     required this.onToggleExtension,
+    required this.animationController,
   });
 
   final int currentIndex;
@@ -130,23 +148,22 @@ class _WideScreenLayout extends StatelessWidget {
   final ValueChanged<int> onIndexChanged;
   final bool isRailExtended;
   final VoidCallback onToggleExtension;
+  final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
       body: Row(
         children: [
           NavigationRail(
             selectedIndex: currentIndex,
             onDestinationSelected: onIndexChanged,
             extended: isRailExtended,
-            leading: IconButton(
-              onPressed: onToggleExtension,
-              icon: AnimatedRotation(
-                turns: isRailExtended ? 0.5 : 0,
-                duration: const Duration(milliseconds: 300),
-                child: const Icon(Icons.menu),
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: IconButton(
+                onPressed: onToggleExtension,
+                icon: const Icon(Icons.menu),
               ),
             ),
             destinations: List.generate(
@@ -158,7 +175,12 @@ class _WideScreenLayout extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: pages[currentIndex]),
+          Expanded(
+            child: IndexedStack(
+              index: currentIndex,
+              children: pages,
+            ),
+          ),
         ],
       ),
     );
@@ -186,25 +208,21 @@ class _NarrowScreenLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      body: Column(
-        children: [
-          Expanded(
-            child: pages[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: pages,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: onIndexChanged,
+        destinations: List.generate(
+          titles.length,
+          (index) => NavigationDestination(
+            icon: Icon(icons[index]),
+            selectedIcon: Icon(selectedIcons[index]),
+            label: titles[index],
           ),
-          NavigationBar(
-            selectedIndex: currentIndex,
-            onDestinationSelected: onIndexChanged,
-            destinations: List.generate(
-              titles.length,
-              (index) => NavigationDestination(
-                icon: Icon(icons[index]),
-                selectedIcon: Icon(selectedIcons[index]),
-                label: titles[index],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -6,7 +6,7 @@ import 'package:characterbook/data/services/custom_event_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/device_calendar_service.dart';
-import 'package:characterbook/services/local_notification_service.dart';
+import 'package:characterbook/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -36,7 +36,7 @@ class CalendarController extends ChangeNotifier {
   Map<DateTime, List<CalendarEventModel>> _filteredEventsByDay = {};
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
   CalendarEventType? _selectedFilter;
 
   Map<DateTime, List<CalendarEventModel>> get filteredEventsByDay =>

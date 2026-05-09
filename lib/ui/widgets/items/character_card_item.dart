@@ -57,7 +57,7 @@ class CharacterCardItem extends StatelessWidget {
             Row(
               children: [
                 Hero(
-                  tag: 'avatar-${character.key ?? character.id}',
+                  tag: 'list-character-avatar-${character.key ?? character.id}',
                   child: AvatarWidget.character(
                     imageBytes: character.imageBytes,
                     size: 36,

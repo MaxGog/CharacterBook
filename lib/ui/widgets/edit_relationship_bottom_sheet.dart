@@ -397,19 +397,6 @@ class _EditRelationshipBottomSheetState
               textTheme,
             ),
           ),
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return CustomPaint(
-                size: const Size(300, 180),
-                painter: _RelationshipLinePainter(
-                  directed: _directed,
-                  color: colorScheme.primary,
-                  animationValue: _pulseAnimation.value,
-                ),
-              );
-            },
-          ),
         ],
       ),
     );
@@ -515,53 +502,4 @@ class _EditRelationshipBottomSheetState
       },
     );
   }
-}
-
-class _RelationshipLinePainter extends CustomPainter {
-  final bool directed;
-  final Color color;
-  final double animationValue;
-
-  _RelationshipLinePainter({
-    required this.directed,
-    required this.color,
-    required this.animationValue,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path();
-    path.moveTo(60, 80);
-    path.quadraticBezierTo(
-      size.width / 2,
-      80 + 40 * sin(animationValue * 2 * pi),
-      size.width - 60,
-      120,
-    );
-
-    canvas.drawPath(path, paint);
-
-    if (directed) {
-      final arrowPaint = Paint()
-        ..color = color
-        ..style = PaintingStyle.fill;
-      final arrowPath = Path();
-      const arrowSize = 8.0;
-      final endPoint = Offset(size.width - 60, 120);
-      arrowPath.moveTo(endPoint.dx, endPoint.dy);
-      arrowPath.lineTo(endPoint.dx - arrowSize, endPoint.dy - arrowSize / 2);
-      arrowPath.lineTo(endPoint.dx - arrowSize, endPoint.dy + arrowSize / 2);
-      arrowPath.close();
-      canvas.drawPath(arrowPath, arrowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

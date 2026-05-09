@@ -17,6 +17,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/data/repositories/relationship_repository.dart';
 import 'package:characterbook/services/backup_service.dart';
+import 'package:characterbook/data/services/hive_service.dart';
 
 void main() {
   late Box<Character> charBox;
@@ -32,14 +33,11 @@ void main() {
     Hive.init(dir.path);
 
     if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(CharacterAdapter());
-    if (!Hive.isAdapterRegistered(1))
-      Hive.registerAdapter(CustomFieldAdapter());
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(CustomFieldAdapter());
     if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(NoteAdapter());
     if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(RaceAdapter());
-    if (!Hive.isAdapterRegistered(4))
-      Hive.registerAdapter(QuestionnaireTemplateAdapter());
-    if (!Hive.isAdapterRegistered(12))
-      Hive.registerAdapter(RelationshipAdapter());
+    if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(QuestionnaireTemplateAdapter());
+    if (!Hive.isAdapterRegistered(12)) Hive.registerAdapter(RelationshipAdapter());
 
     charBox = await Hive.openBox<Character>('test_chars');
     raceBox = await Hive.openBox<Race>('test_races');
@@ -48,6 +46,16 @@ void main() {
     settingsBox = await Hive.openBox<ExportPdfSettings>('test_pdf_settings');
     relBox = await Hive.openBox<Relationship>('test_relationships');
     appSettingsBox = await Hive.openBox<bool>('test_app_settings');
+
+    HiveService.setBoxesForTesting(
+      characterBox: charBox,
+      raceBox: raceBox,
+      noteBox: noteBox,
+      templateBox: templateBox,
+      settingsBox: settingsBox,
+      relationshipBox: relBox,
+      appSettingsBox: appSettingsBox,
+    );
   });
 
   tearDown(() async {
@@ -69,21 +77,13 @@ void main() {
     ]) {
       Hive.deleteBoxFromDisk(name);
     }
+    HiveService.setBoxesForTesting();
   });
 
   testWidgets('CharacterBookApp создаёт BackupManager с RelationshipRepository',
       (tester) async {
     await tester.pumpWidget(
-      CharacterBookApp(
-        hiveInitialized: true,
-        characterBox: charBox,
-        raceBox: raceBox,
-        noteBox: noteBox,
-        templateBox: templateBox,
-        settingsBox: settingsBox,
-        relationshipBox: relBox,
-        appSettingsBox: appSettingsBox,
-      ),
+      CharacterBookApp(hiveInitialized: true),
     );
     await tester.pumpAndSettle();
 
@@ -101,16 +101,7 @@ void main() {
   testWidgets('LocalBackupService и CloudBackupService доступны',
       (tester) async {
     await tester.pumpWidget(
-      CharacterBookApp(
-        hiveInitialized: true,
-        characterBox: charBox,
-        raceBox: raceBox,
-        noteBox: noteBox,
-        templateBox: templateBox,
-        settingsBox: settingsBox,
-        relationshipBox: relBox,
-        appSettingsBox: appSettingsBox,
-      ),
+      CharacterBookApp(hiveInitialized: true),
     );
     await tester.pumpAndSettle();
 

@@ -6,17 +6,14 @@ import 'package:characterbook/ui/controllers/template_list_controller.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
-import 'package:characterbook/ui/widgets/list/optimized_list_view.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/items/template_card_item.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
-import 'package:characterbook/ui/widgets/appbar/common_main_app_bar.dart';
 import 'package:characterbook/ui/widgets/common_fab_menu.dart';
 import 'package:characterbook/ui/screens/templates/template_management_screen.dart';
 import 'package:characterbook/ui/widgets/tag_filter.dart';
 import 'package:characterbook/data/enums/template_sort_enum.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 class TemplatesListScreen extends StatefulWidget {
@@ -28,28 +25,17 @@ class TemplatesListScreen extends StatefulWidget {
 
 class _TemplatesListScreenState extends State<TemplatesListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
 
   bool _isSearching = false;
   bool _isImporting = false;
   bool _isFabVisible = true;
+  bool _isTagsVisible = true;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     _initializeDefaultTemplates();
-  }
-
-  void _onScroll() {
-    final isScrollingDown = _scrollController.position.userScrollDirection ==
-        ScrollDirection.reverse;
-    if (isScrollingDown && _isFabVisible) {
-      setState(() => _isFabVisible = false);
-    } else if (!isScrollingDown && !_isFabVisible) {
-      setState(() => _isFabVisible = true);
-    }
   }
 
   Future<void> _initializeDefaultTemplates() async {
@@ -57,17 +43,29 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
     await repo.initializeDefaultTemplates();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch() => setState(() => _isSearching = true);
+  void _stopSearch() {
+    setState(() => _isSearching = false);
+    _searchController.clear();
+  }
+
   List<String> _getSortTags(BuildContext context) {
     final s = S.of(context);
     return [s.a_to_z, s.z_to_a, s.fields_asc, s.fields_desc];
   }
 
-  void _onTagSelected(String? tag, BuildContext context, TemplateListController controller) {
+  void _onTagSelected(
+      String? tag, BuildContext context, TemplateListController controller) {
     if (tag == null) {
       controller.setSelectedTag(null);
       return;
     }
-
     final s = S.of(context);
     if (tag == s.a_to_z) {
       controller.setSort(TemplateSort.nameAsc);
@@ -85,7 +83,6 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
       }
     }
   }
-  
 
   void _showTemplateContextMenu(QuestionnaireTemplate template,
       BuildContext context, TemplateListController controller) {
@@ -142,15 +139,12 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
         content: Text(S.of(context).template_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(S.of(context).cancel),
-          ),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(S.of(context).cancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              S.of(context).delete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text(S.of(context).delete,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -199,13 +193,8 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
     Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => TemplateManagementScreen(template: template),
-      ),
-    ).then((changed) {
-      if (changed == true && mounted) {
-
-      }
-    });
+          builder: (_) => TemplateManagementScreen(template: template)),
+    );
   }
 
   Future<void> _importTemplate(BuildContext context, TemplateService service,
@@ -232,13 +221,11 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
                 Text(S.of(context).template_replace_confirm(template.name)),
             actions: [
               TextButton(
-                child: Text(S.of(context).cancel),
-                onPressed: () => Navigator.pop(ctx, false),
-              ),
+                  child: Text(S.of(context).cancel),
+                  onPressed: () => Navigator.pop(ctx, false)),
               TextButton(
-                child: Text(S.of(context).replace),
-                onPressed: () => Navigator.pop(ctx, true),
-              ),
+                  child: Text(S.of(context).replace),
+                  onPressed: () => Navigator.pop(ctx, true)),
             ],
           ),
         );
@@ -249,9 +236,8 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
       }
 
       await service.saveTemplate(template);
-      if (mounted) {
+      if (mounted)
         _showSnackBar(S.of(context).template_imported(template.name));
-      }
     } catch (e) {
       setState(() => _errorMessage = e.toString());
       if (mounted) _showSnackBar(S.of(context).import_error(e.toString()));
@@ -266,95 +252,193 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final controller = context.watch<TemplateListController>();
     final service = context.read<TemplateService>();
     final s = S.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final sortTags = _getSortTags(context);
 
     return Scaffold(
-      appBar: CommonMainAppBar(
-        title: s.templates,
-        isSearching: _isSearching,
-        searchController: _searchController,
-        searchHint: s.search,
-        onSearchToggle: () {
-          setState(() {
-            _isSearching = !_isSearching;
-            if (!_isSearching) {
-              _searchController.clear();
-              controller.setSearchQuery('');
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollUpdateNotification) {
+            final metrics = notification.metrics;
+            final delta = notification.scrollDelta ?? 0;
+            if (metrics.pixels <= metrics.minScrollExtent) {
+              if (!_isFabVisible) {
+                setState(() {
+                  _isFabVisible = true;
+                });
+              }
+            } else if (delta > 0) {
+              if (_isFabVisible) {
+                setState(() {
+                  _isFabVisible = false;
+                });
+              }
+            } else if (delta < 0) {
+              if (!_isFabVisible) {
+                setState(() {
+                  _isFabVisible = true;
+                });
+              }
             }
-          });
+          } else if (notification is ScrollEndNotification) {
+            final metrics = notification.metrics;
+            if (metrics.pixels <= metrics.minScrollExtent) {
+              if (!_isFabVisible || !_isTagsVisible) {
+                setState(() {
+                  _isFabVisible = true;
+                  _isTagsVisible = true;
+                });
+              }
+            }
+          }
+          return false;
         },
-        onSearchChanged: (query) => controller.setSearchQuery(query),
-      ),
-      body: Column(
-        children: [
-          ListStateIndicator(
-            isLoading: _isImporting || controller.isLoading,
-            errorMessage: _errorMessage ?? controller.error,
-            onErrorClose: () => setState(() => _errorMessage = null),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                if (sortTags.isNotEmpty)
-                  TagFilter(
-                    tags: sortTags,
-                    selectedTag: controller
-                        .selectedTag,
-                    onTagSelected: (tag) =>
-                        _onTagSelected(tag, context, controller),
-                    context: context,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverAppBar.large(
+              pinned: true,
+              leading: _isSearching
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: _stopSearch,
+                    )
+                  : null,
+              title: _isSearching ? null : Text(s.templates),
+              actions: [
+                if (!_isSearching) ...[
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: _startSearch,
                   ),
-                Expanded(
-                  child: OptimizedListView<QuestionnaireTemplate>(
-                    items: controller.filteredItems,
-                    itemBuilder: (ctx, template, index) => TemplateCardItem(
-                      key: ValueKey('${template.name}-$index'),
-                      template: template,
-                      isSelected: false,
-                      onTap: () => _navigateToDetail(template),
-                      onLongPress: () => _showTemplateContextMenu(
-                          template, context, controller),
-                      onMenuPressed: () => _showTemplateContextMenu(
-                          template, context, controller),
-                      onShare: () => service.shareTemplate(template),
-                      onSettings: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SwipeActionSettingsScreen(),
+                ] else ...[
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        controller.setSearchQuery('');
+                      },
+                    ),
+                ],
+              ],
+              bottom: _isSearching
+                  ? PreferredSize(
+                      preferredSize: const Size.fromHeight(kToolbarHeight),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                        child: SearchBar(
+                          controller: _searchController,
+                          hintText: s.search_hint,
+                          leading: const Padding(
+                            padding: EdgeInsets.only(left: 8.0),
+                            child: Icon(Icons.search),
+                          ),
+                          padding: const WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          backgroundColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceContainerHigh,
+                          ),
+                          elevation: const WidgetStatePropertyAll(0),
+                          onChanged: (query) =>
+                              controller.setSearchQuery(query),
+                          onSubmitted: (query) =>
+                              controller.setSearchQuery(query),
                         ),
                       ),
+                    )
+                  : null,
+            ),
+          ],
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: ListStateIndicator(
+                  isLoading: _isImporting || controller.isLoading,
+                  errorMessage: _errorMessage ?? controller.error,
+                  onErrorClose: () => setState(() => _errorMessage = null),
+                ),
+              ),
+              if (sortTags.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    crossFadeState: _isTagsVisible
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    firstChild: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: TagFilter(
+                        tags: sortTags,
+                        selectedTag: controller.selectedTag,
+                        onTagSelected: (tag) =>
+                            _onTagSelected(tag, context, controller),
+                        context: context,
+                      ),
                     ),
-                    onReorder: (oldIndex, newIndex) =>
-                        controller.reorder(oldIndex, newIndex),
-                    scrollController: _scrollController,
-                    enableReorder: false,
+                    secondChild: const SizedBox.shrink(),
                   ),
                 ),
-              ],
-            ),
+              if (controller.filteredItems.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child:
+                        Text(s.no_templates, style: theme.textTheme.bodyLarge),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final template = controller.filteredItems[index];
+                      return TemplateCardItem(
+                        key: ValueKey('${template.name}-$index'),
+                        template: template,
+                        isSelected: false,
+                        onTap: () => _navigateToDetail(template),
+                        onLongPress: () => _showTemplateContextMenu(
+                            template, context, controller),
+                        onMenuPressed: () => _showTemplateContextMenu(
+                            template, context, controller),
+                        onShare: () => service.shareTemplate(template),
+                        onSettings: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SwipeActionSettingsScreen(),
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: controller.filteredItems.length,
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
-      floatingActionButton: _isFabVisible
-          ? CommonListFloatingButtons(
-              onImport: () => _importTemplate(context, service, controller),
-              onAdd: () => _navigateToEdit(context),
-              importTooltip: s.import_template_tooltip,
-              addTooltip: s.create_template_tooltip,
-              heroTag: "templates_list",
-            )
-          : null,
+      floatingActionButton: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _isFabVisible
+            ? CommonListFloatingButtons(
+                onImport: () => _importTemplate(context, service, controller),
+                onAdd: () => _navigateToEdit(context),
+                importTooltip: S.of(context).import_template_tooltip,
+                addTooltip: S.of(context).create_template_tooltip,
+                heroTag: "templates_list",
+              )
+            : const SizedBox.shrink(),
+      ),
     );
   }
 }

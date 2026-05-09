@@ -62,7 +62,7 @@ class CharacterModalCard extends StatelessWidget {
                   ? () => showFullImage(
                       context, character.imageBytes!, s.character_avatar)
                   : null,
-              heroTag: 'character-avatar-${character.key}',
+              heroTag: 'modal-character-avatar-${character.key}',
             ),
             contentSections: _buildContentSections(context, controller),
           );

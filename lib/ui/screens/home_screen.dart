@@ -480,9 +480,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final double minExtent = kToolbarHeight + statusBarHeight;
-    final double maxExtent = minExtent + 80;   
+    final s = S.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(
@@ -490,41 +491,85 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: () => _controller.loadData(),
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              SliverPersistentHeader(
+              SliverAppBar.large(
                 pinned: true,
-                delegate: _HomeAppBarDelegate(
-                  isSearching: _isSearching,
-                  leading: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: Image.asset(
-                        'assets/iconapp.png',
-                        height: 24,
-                        width: 24,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.book_rounded, size: 32),
+                leading: _isSearching
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: _stopSearch,
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: Image.asset(
+                            'assets/iconapp.png',
+                            height: 32,
+                            width: 32,
+                            fit: BoxFit.fitHeight,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.book_rounded, size: 32),
+                          ),
+                        ),
                       ),
+
+                title: _isSearching ? null : Text(s.app_name),
+                actions: [
+                  if (!_isSearching) ...[
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: _startSearch,
                     ),
-                  ),
-                  searchController: _searchController,
-                  searchFocus: _searchFocus,
-                  onSearchChanged: _onSearchChanged,
-                  onSearchSubmitted: _onSearchSubmitted,
-                  onSearchTap: _startSearch,
-                  onStopSearch: _stopSearch,
-                  actions: [
                     IconButton(
                       icon: const Icon(Icons.account_circle_rounded),
                       iconSize: 32,
                       onPressed: _showAccountMenu,
-                      tooltip: S.of(context).more_options,
+                      tooltip: s.more_options,
                     ),
+                  ] else ...[
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _searchDebounce?.cancel();
+                          _controller.setSearchQuery('');
+                          _searchFocus.requestFocus();
+                        },
+                      ),
                   ],
-                  minExtent: minExtent,
-                  maxExtent: maxExtent,
-                ),
+                ],
+
+                bottom: _isSearching
+                    ? PreferredSize(
+                        preferredSize: const Size.fromHeight(kToolbarHeight),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                          child: SearchBar(
+                            controller: _searchController,
+                            focusNode: _searchFocus,
+                            hintText: s.search,
+                            leading: const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Icon(Icons.search),
+                            ),
+                            padding: const WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            shape: WidgetStatePropertyAll(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
+                            backgroundColor: WidgetStatePropertyAll(
+                              colorScheme.surfaceContainerHigh,
+                            ),
+                            elevation: const WidgetStatePropertyAll(0),
+                            onChanged: _onSearchChanged,
+                            onSubmitted: _onSearchSubmitted,
+                          ),
+                        ),
+                      )
+                    : null,
               ),
             ],
             body: Consumer<HomeController>(
@@ -593,189 +638,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _createNewContent() {
     // FAB уже обрабатывает создание
   }
-}
-
-class _HomeAppBarDelegate extends SliverPersistentHeaderDelegate {
-  final bool isSearching;
-  final Widget leading;
-  final List<Widget> actions;
-  final TextEditingController searchController;
-  final FocusNode searchFocus;
-  final ValueChanged<String> onSearchChanged;
-  final ValueChanged<String> onSearchSubmitted;
-  final VoidCallback onSearchTap;
-  final VoidCallback onStopSearch;
-
-  _HomeAppBarDelegate({
-    required this.isSearching,
-    required this.leading,
-    required this.actions,
-    required this.searchController,
-    required this.searchFocus,
-    required this.onSearchChanged,
-    required this.onSearchSubmitted,
-    required this.onSearchTap,
-    required this.onStopSearch,
-    required double minExtent,
-    required double maxExtent,
-  })  : _minExtent = minExtent,
-        _maxExtent = maxExtent;
-
-  final double _minExtent;
-  final double _maxExtent;
-
-  @override
-  double get minExtent => isSearching ? _minExtent : _minExtent;
-
-  @override
-  double get maxExtent => isSearching ? _minExtent : _maxExtent;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final double maxScrollExtent = maxExtent - minExtent;
-    final double progress =
-        isSearching ? 0.0 : (shrinkOffset / maxScrollExtent).clamp(0.0, 1.0);
-    const double searchBarTotalHeight = 76.0;
-
-    const searchBarHeroTag = 'home_search_bar';
-
-    return ClipRect(
-      child: Container(
-        color: colorScheme.surface,
-        child: Stack(
-          children: [
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: minExtent - statusBarHeight,
-              child: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: isSearching
-                    ? IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: onStopSearch,
-                      )
-                    : leading,
-                title: isSearching
-                    ? Hero(
-                        tag: searchBarHeroTag,
-                        child: SearchBar(
-                          controller: searchController,
-                          focusNode: searchFocus,
-                          hintText: S.of(context).search,
-                          padding: const WidgetStatePropertyAll(
-                            EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          shape: WidgetStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          backgroundColor: WidgetStatePropertyAll(
-                            colorScheme.surfaceContainerHigh,
-                          ),
-                          surfaceTintColor:
-                              const WidgetStatePropertyAll(Colors.transparent),
-                          elevation: const WidgetStatePropertyAll(0),
-                          onChanged: onSearchChanged,
-                          onSubmitted: onSearchSubmitted,
-                          textStyle: WidgetStatePropertyAll(
-                            TextStyle(color: colorScheme.onSurface),
-                          ),
-                          hintStyle: WidgetStatePropertyAll(
-                            TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      )
-                    : null,
-                actions: [
-                  if (!isSearching) ...[
-                    AnimatedOpacity(
-                      opacity: progress,
-                      duration: const Duration(milliseconds: 200),
-                      child: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: onSearchTap,
-                      ),
-                    ),
-                    ...actions,
-                  ] else ...[
-                    if (searchController.text.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                      ),
-                  ],
-                ],
-              ),
-            ),
-            if (!isSearching)
-              Positioned(
-                bottom: minExtent - statusBarHeight,
-                left: 0,
-                right: 0,
-                child: Transform.translate(
-                  offset: Offset(0, -progress * searchBarTotalHeight),
-                  child: Opacity(
-                    opacity: 1 - progress,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Hero(
-                        tag: searchBarHeroTag,
-                        child: SearchBar(
-                          controller: searchController,
-                          focusNode: searchFocus,
-                          hintText: S.of(context).app_name,
-                          padding: const WidgetStatePropertyAll(
-                            EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          shape: WidgetStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          backgroundColor: WidgetStatePropertyAll(
-                            colorScheme.surfaceContainerHigh,
-                          ),
-                          surfaceTintColor:
-                              const WidgetStatePropertyAll(Colors.transparent),
-                          elevation: const WidgetStatePropertyAll(0),
-                          onChanged: onSearchChanged,
-                          onSubmitted: onSearchSubmitted,
-                          textStyle: WidgetStatePropertyAll(
-                            TextStyle(color: colorScheme.onSurface),
-                          ),
-                          hintStyle: WidgetStatePropertyAll(
-                            TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(_HomeAppBarDelegate oldDelegate) => true;
 }
 
 class _SearchResultsGrid extends StatelessWidget {

@@ -59,7 +59,7 @@ class DeviceCalendarService {
       final calendarsResult = await _deviceCalendar.retrieveCalendars();
       if (calendarsResult.data == null) return false;
 
-      for (final calendar in calendarsResult!.data!) {
+      for (final calendar in calendarsResult.data!) {
         if (calendar.isReadOnly!) continue;
         final delResult =
             await _deviceCalendar.deleteEvent(eventId, calendar.id);

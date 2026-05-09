@@ -10,7 +10,7 @@ import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/device_calendar_service.dart';
-import 'package:characterbook/services/local_notification_service.dart';
+import 'package:characterbook/services/notification_service.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/widgets/modals/custom_event_modal.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
