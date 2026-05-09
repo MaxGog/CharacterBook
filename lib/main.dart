@@ -1,8 +1,8 @@
+import 'package:characterbook/config/app_router.dart';
 import 'package:characterbook/data/repositories/custom_event_repository.dart';
 import 'package:characterbook/data/services/custom_event_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/handlers/file_handler.dart';
-import 'package:characterbook/handlers/file_handler_wrapper.dart';
 import 'package:characterbook/providers/auto_backup_provider.dart';
 import 'package:characterbook/providers/locale_provider.dart';
 import 'package:characterbook/providers/swipe_action_settings_provider.dart';
@@ -27,7 +27,6 @@ import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/data/services/template_service.dart';
 import 'package:characterbook/ui/controllers/template_list_controller.dart';
-import 'package:characterbook/ui/navigation/app_navigation_bar.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -261,10 +260,9 @@ class _AppContentState extends State<_AppContent> {
               dark: darkDynamic,
             );
 
-            return MaterialApp(
-              navigatorKey: appNavigatorKey,
+            return MaterialApp.router(
+              routerConfig: appRouter,
               debugShowCheckedModeBanner: false,
-              scaffoldMessengerKey: widget.messengerKey,
               title: 'CharacterBook',
               locale: localeProvider.locale,
               theme: themeProvider.lightTheme,
@@ -277,7 +275,6 @@ class _AppContentState extends State<_AppContent> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: S.delegate.supportedLocales,
-              home: const FileHandlerWrapper(child: AppNavigationBar()),
             );
           },
         );

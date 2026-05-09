@@ -9,7 +9,7 @@ class OverlayNotification {
     OverlayNotificationType type = OverlayNotificationType.success,
     Duration duration = const Duration(seconds: 2),
   }) {
-    final navigator = appNavigatorKey.currentState;
+    final navigator = AppNavigator.navigator;
     if (navigator == null) return;
 
     final overlay = navigator.overlay;
