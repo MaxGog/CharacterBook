@@ -38,6 +38,10 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Для добавления напоминаний о событиях</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Для уведомлений о предстоящих событиях</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
