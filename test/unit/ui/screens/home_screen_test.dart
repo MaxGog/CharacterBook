@@ -6,6 +6,7 @@ import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/ui/screens/home_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 class FakeCharacterService extends Fake implements CharacterService {}
 
 class FakeRaceService extends Fake implements RaceService {}
@@ -30,16 +31,24 @@ Widget createTestableHomeScreen() {
 }
 
 void main() {
-  testWidgets('HomeScreen отображает поисковую строку и кнопку меню',
+  testWidgets('HomeScreen отображает иконки поиска и меню', (tester) async {
+    await tester.pumpWidget(createTestableHomeScreen());
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.search), findsOneWidget);
+
+    expect(find.byIcon(Icons.account_circle_rounded), findsOneWidget);
+  });
+
+  testWidgets('HomeScreen показывает SearchBar при нажатии на поиск',
       (tester) async {
     await tester.pumpWidget(createTestableHomeScreen());
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
     expect(find.byType(SearchBar), findsOneWidget);
-
-    expect(find.byIcon(Icons.account_circle_rounded), findsOneWidget);
-
-    expect(find.byType(Image), findsOneWidget);
   });
 
   testWidgets('HomeScreen показывает FAB (плавающую кнопку)', (tester) async {
@@ -48,5 +57,4 @@ void main() {
 
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
-
 }
