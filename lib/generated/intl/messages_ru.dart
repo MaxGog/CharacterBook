@@ -419,6 +419,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "file_ready": MessageLookupByLibrary.simpleMessage("Файл готов"),
         "file_sharing_timeout":
             MessageLookupByLibrary.simpleMessage("Таймаут отправки"),
+        "file_word": MessageLookupByLibrary.simpleMessage("Word документ"),
         "filter_by": MessageLookupByLibrary.simpleMessage("Фильтр"),
         "filter_events": MessageLookupByLibrary.simpleMessage("Фильтр"),
         "finalizing_setup": MessageLookupByLibrary.simpleMessage("Завершение…"),
@@ -857,6 +858,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "whats_new": MessageLookupByLibrary.simpleMessage("Что нового"),
         "window_manager_initialization_error":
             MessageLookupByLibrary.simpleMessage("Ошибка менеджера окон"),
+        "word_export_error":
+            MessageLookupByLibrary.simpleMessage("Ошибка экспорта в Word"),
+        "word_export_success": MessageLookupByLibrary.simpleMessage(
+            "Word документ успешно экспортирован"),
         "years": MessageLookupByLibrary.simpleMessage("лет"),
         "years_ago": m20,
         "young": MessageLookupByLibrary.simpleMessage("Молодые"),

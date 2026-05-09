@@ -294,6 +294,16 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                 if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
               }
             },
+            onExportWord: () async {
+              try {
+                await controller.exportCharacterToWord(
+                    character, context);
+              } catch (e) {
+                if (context.mounted) {
+                  AppNavigator.showError('${s.export_error}: $e');
+                }
+              }
+            },
           );
         },
       ),

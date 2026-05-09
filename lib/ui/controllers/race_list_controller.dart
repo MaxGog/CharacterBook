@@ -7,6 +7,7 @@ import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
+import 'package:characterbook/services/word_export_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -109,6 +110,10 @@ class RaceListController extends ChangeNotifier {
       biology: race.biology,
       backstory: race.backstory,
     );
+  }
+
+  Future<void> exportRaceToWord(Race race, BuildContext context) async {
+    await WordExportManager.exportRaceWithDialog(context, race);
   }
 
   Future<void> shareRaceAsFile(Race race) async {

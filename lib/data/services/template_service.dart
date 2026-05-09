@@ -6,6 +6,8 @@ import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/file_share_service.dart';
+import 'package:characterbook/services/word_export_manager.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TemplateService {
@@ -69,5 +71,9 @@ class TemplateService {
     } catch (e) {
       throw Exception('Ошибка при шаринге шаблона: ${e.toString()}');
     }
+  }
+
+  Future<void> exportToWord(BuildContext context, QuestionnaireTemplate template) async {
+    await WordExportManager.exportTemplateWithDialog(context, template);
   }
 }

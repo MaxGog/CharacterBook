@@ -223,6 +223,9 @@ class CharacterModalCard extends StatelessWidget {
           if (context.mounted) showSnackBar(context, '${s.export_error}: $e');
         }
       },
+      onExportWord: () async {
+        await _handleExportWord(context, controller);
+      },
     );
   }
 
@@ -230,6 +233,16 @@ class CharacterModalCard extends StatelessWidget {
       BuildContext context, CharacterModalController controller) async {
     try {
       await controller.exportToPdf(context);
+      _showSnackBar(context, S.of(context).pdf_export_success, isError: false);
+    } catch (e) {
+      _showSnackBar(context, '${S.of(context).export_error}: ${e.toString()}');
+    }
+  }
+
+  Future<void> _handleExportWord(
+      BuildContext context, CharacterModalController controller) async {
+    try {
+      await controller.exportToWord(context);
       _showSnackBar(context, S.of(context).pdf_export_success, isError: false);
     } catch (e) {
       _showSnackBar(context, '${S.of(context).export_error}: ${e.toString()}');

@@ -5,12 +5,14 @@ class ShareOptionsDialog extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onShareFile;
   final VoidCallback? onExportPdf;
+  final VoidCallback? onExportWord;
 
   const ShareOptionsDialog({
     super.key,
     required this.onCopy,
     required this.onShareFile,
     this.onExportPdf,
+    this.onExportWord,
   });
 
   static Future<void> show(
@@ -18,6 +20,7 @@ class ShareOptionsDialog extends StatelessWidget {
     required VoidCallback onCopy,
     required VoidCallback onShareFile,
     VoidCallback? onExportPdf,
+    VoidCallback? onExportWord,
   }) {
     return showDialog(
       context: context,
@@ -26,6 +29,7 @@ class ShareOptionsDialog extends StatelessWidget {
         onCopy: onCopy,
         onShareFile: onShareFile,
         onExportPdf: onExportPdf,
+        onExportWord: onExportWord,
       ),
     );
   }
@@ -61,6 +65,15 @@ class ShareOptionsDialog extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 onExportPdf!();
+              },
+            ),
+          if (onExportWord != null)
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: Text(s.file_word),
+              onTap: () {
+                Navigator.pop(context);
+                onExportWord!();
               },
             ),
         ],

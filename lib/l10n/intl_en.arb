@@ -438,5 +438,8 @@
   "minutes_before": "Remind me for",
   "enter_event_title": "Enter the event name",
   "reminder": "Reminder",
-  "add_to_calendar": "Add to the system calendar"
+  "add_to_calendar": "Add to the system calendar",
+  "file_word": "Document Word",
+  "word_export_success": "Word export success",
+  "word_export_error": "Export error Word"
 }

@@ -1,6 +1,7 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/ui/controllers/race_modal_card_controller.dart';
@@ -126,6 +127,13 @@ class RaceModalCard extends StatelessWidget {
           await _handleExportPdf(context, controller);
         } catch (e) {
           if (context.mounted) showSnackBar(context, '${s.export_error}: $e');
+        }
+      },
+      onExportWord: () async {
+        try {
+          await controller.exportRaceToWord(race, context);
+        } catch (e) {
+          if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
         }
       },
     );

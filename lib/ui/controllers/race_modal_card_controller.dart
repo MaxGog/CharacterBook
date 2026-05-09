@@ -2,6 +2,7 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/word_export_manager.dart';
 import 'package:flutter/material.dart';
 
 class RaceModalController extends ChangeNotifier {
@@ -65,6 +66,10 @@ class RaceModalController extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  Future<void> exportRaceToWord(Race race, BuildContext context) async {
+    await WordExportManager.exportRaceWithDialog(context, race);
   }
 
   Future<void> copyToClipboard(BuildContext context) async {

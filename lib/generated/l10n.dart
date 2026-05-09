@@ -5706,6 +5706,36 @@ class S {
       args: [],
     );
   }
+
+  /// `Word документ`
+  String get file_word {
+    return Intl.message(
+      'Word документ',
+      name: 'file_word',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Word документ успешно экспортирован`
+  String get word_export_success {
+    return Intl.message(
+      'Word документ успешно экспортирован',
+      name: 'word_export_success',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ошибка экспорта в Word`
+  String get word_export_error {
+    return Intl.message(
+      'Ошибка экспорта в Word',
+      name: 'word_export_error',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

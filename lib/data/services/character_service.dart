@@ -8,6 +8,7 @@ import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/services/file_share_service.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
 import 'package:characterbook/data/services/relationship_service.dart';
+import 'package:characterbook/services/word_export_manager.dart';
 import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/dialogs/loading_dialog.dart';
 import 'package:flutter/material.dart';
@@ -120,5 +121,9 @@ class CharacterService {
         showErrorDialog(context: context, title: title, message: message);
       }
     });
+  }
+
+  Future<void> exportToWord(BuildContext context, Character character) async {
+    await WordExportManager.exportCharacterWithDialog(context, character);
   }
 }

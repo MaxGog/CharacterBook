@@ -2,6 +2,7 @@ import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
 import 'package:characterbook/data/services/template_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/ui/controllers/template_list_controller.dart';
 import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
@@ -101,15 +102,13 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
               try {
                 await controller.templateClipboardText(template, context);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(s.copied_to_clipboard)),
+                  (
+                    AppNavigator.showSuccess(s.copied_to_clipboard)
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${s.copy_error}: $e')),
-                  );
+                  AppNavigator.showSuccess('${s.copy_error}: $e');
                 }
               }
             },
@@ -118,9 +117,16 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
                 await controller.shareTemplateAsFile(template);
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${s.error}: $e')),
-                  );
+                  AppNavigator.showSuccess('${s.error}: $e');
+                }
+              }
+            },
+            onExportWord: () async {
+              try {
+                await controller.exportTemplateToWord(template, context);
+              } catch (e) {
+                if (context.mounted) {
+                  AppNavigator.showSuccess('${s.export_error}: $e');
                 }
               }
             },

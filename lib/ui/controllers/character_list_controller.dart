@@ -8,6 +8,7 @@ import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
+import 'package:characterbook/services/word_export_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -106,6 +107,10 @@ class CharacterListController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> exportCharacterToWord(Character character, BuildContext context) async {
+    await WordExportManager.exportCharacterWithDialog(context, character);
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {

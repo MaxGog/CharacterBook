@@ -331,6 +331,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "file_ready": MessageLookupByLibrary.simpleMessage("Ready"),
         "file_sharing_timeout":
             MessageLookupByLibrary.simpleMessage("File share timeout"),
+        "file_word": MessageLookupByLibrary.simpleMessage("Document Word"),
         "finalizing_setup":
             MessageLookupByLibrary.simpleMessage("Finalizing..."),
         "flutterLicense":
@@ -624,6 +625,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "welcome_message": MessageLookupByLibrary.simpleMessage("Welcome!"),
         "window_manager_initialization_error":
             MessageLookupByLibrary.simpleMessage("Window mgr init error"),
+        "word_export_error":
+            MessageLookupByLibrary.simpleMessage("Export error Word"),
+        "word_export_success":
+            MessageLookupByLibrary.simpleMessage("Word export success"),
         "years": MessageLookupByLibrary.simpleMessage("years"),
         "years_ago": m20,
         "young": MessageLookupByLibrary.simpleMessage("Young"),

@@ -582,5 +582,8 @@
   "minutes_before": "Напомнить за",
   "enter_event_title": "Введите название события",
   "reminder": "Напоминание",
-  "add_to_calendar": "Добавить в системный календарь"
+  "add_to_calendar": "Добавить в системный календарь",
+  "file_word": "Word документ",
+  "word_export_success": "Word документ успешно экспортирован",
+  "word_export_error": "Ошибка экспорта в Word"
 }

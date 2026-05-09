@@ -9,6 +9,7 @@ import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
+import 'package:characterbook/services/word_export_manager.dart';
 import 'package:flutter/material.dart';
 
 class CharacterModalController extends ChangeNotifier {
@@ -175,6 +176,10 @@ class CharacterModalController extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  Future<void> exportToWord(BuildContext context) async {
+    await WordExportManager.exportCharacterWithDialog(context, character);
   }
 
   @override
