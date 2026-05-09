@@ -7,7 +7,7 @@ on:
     branches: [main, master]
 
 env:
-  FLUTTER_VERSION: '3.32.6'
+  FLUTTER_VERSION: '3.41.9'
 
 jobs:
   build-windows:
