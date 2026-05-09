@@ -28,8 +28,6 @@ import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/data/services/template_service.dart';
 import 'package:characterbook/ui/controllers/template_list_controller.dart';
 import 'package:characterbook/ui/navigation/app_navigation_bar.dart';
-import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
-import 'package:characterbook/ui/screens/settings/settings_screen.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
