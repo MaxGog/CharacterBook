@@ -200,7 +200,8 @@ class ModalScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return DraggableScrollableSheet(
       expand: false,
@@ -210,14 +211,21 @@ class ModalScaffold extends StatelessWidget {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLowest,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colorScheme.surfaceContainerLow,
+                colorScheme.surfaceContainerLowest,
+              ],
+            ),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(32),
               topRight: Radius.circular(32),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: colorScheme.shadow.withOpacity(0.2),
                 blurRadius: 16,
                 offset: const Offset(0, -4),
               ),
@@ -225,17 +233,20 @@ class ModalScaffold extends StatelessWidget {
           ),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            floatingActionButton: Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: FloatingActionButton(
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: FloatingActionButton.extended(
                 onPressed: onEdit,
-                tooltip: S.of(context).edit,
-                child: const Icon(Icons.edit_rounded),
+                icon: const Icon(Icons.edit_rounded),
+                label: Text(S.of(context).edit),
+                elevation: 4,
+                backgroundColor: colorScheme.primaryContainer,
+                foregroundColor: colorScheme.onPrimaryContainer,
               ),
             ),
             body: Column(
               children: [
-                // Handle
+                // Ручка для захвата
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -261,14 +272,13 @@ class ModalScaffold extends StatelessWidget {
                       slivers: [
                         _buildAppBar(context),
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
                               heroSection,
-                              const SizedBox(height: 16),
-                              contentSections,
                               const SizedBox(height: 24),
+                              contentSections,
+                              const SizedBox(height: 32),
                             ]),
                           ),
                         ),
@@ -290,21 +300,19 @@ class ModalScaffold extends StatelessWidget {
 
     return SliverAppBar(
       expandedHeight: 140,
-      collapsedHeight: 70,
       pinned: true,
-      floating: false,
-      snap: false,
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      shadowColor: colorScheme.shadow,
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      shape: const ContinuousRectangleBorder(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
+      shadowColor: Colors.transparent,
       leading: IconButton(
-        icon: const Icon(Icons.close_rounded),
+        icon: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            shape: BoxShape.circle,
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Icon(Icons.close_rounded, color: colorScheme.onSurface),
+        ),
         onPressed: onClose,
         tooltip: S.of(context).close,
       ),
@@ -316,6 +324,7 @@ class ModalScaffold extends StatelessWidget {
             fontWeight: FontWeight.w800,
             height: 1.2,
             letterSpacing: -0.5,
+            color: colorScheme.onSurface,
           ),
         ),
         background: Container(
@@ -324,8 +333,8 @@ class ModalScaffold extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
+                colorScheme.surfaceContainerLow.withOpacity(0.5),
                 colorScheme.surfaceContainerLowest,
-                colorScheme.surfaceContainerLowest.withOpacity(0.3),
               ],
             ),
           ),
@@ -336,6 +345,7 @@ class ModalScaffold extends StatelessWidget {
           icon: Icon(Icons.more_vert_rounded, color: colorScheme.onSurface),
           position: PopupMenuPosition.under,
           surfaceTintColor: colorScheme.surfaceContainerHighest,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           itemBuilder: (context) => menuItems,
           onSelected: onMenuItemSelected,
         ),
@@ -366,11 +376,24 @@ class HeroSection extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outlineVariant, width: 1),
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withOpacity(0.3),
+            colorScheme.secondaryContainer.withOpacity(0.3),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -378,7 +401,14 @@ class HeroSection extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: colorScheme.outline, width: 2),
+                border: Border.all(color: colorScheme.outlineVariant, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: InkWell(
                 onTap: onAvatarTap,
@@ -399,13 +429,14 @@ class HeroSection extends StatelessWidget {
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
+              color: colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
-            runSpacing: 6,
+            runSpacing: 8,
             children: chips,
           ),
         ],
@@ -445,66 +476,64 @@ class _ExpandableSectionState extends State<ExpandableSection> {
       children: [
         InkWell(
           onTap: () => widget.onToggle(!widget.isExpanded),
-          borderRadius: BorderRadius.circular(10),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: widget.isExpanded
+                  ? LinearGradient(
+                      colors: [
+                        colorScheme.primaryContainer.withOpacity(0.2),
+                        colorScheme.secondaryContainer.withOpacity(0.2),
+                      ],
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
                 Icon(
-                  widget.isExpanded
-                      ? Icons.expand_less_rounded
-                      : Icons.expand_more_rounded,
-                  color: colorScheme.onSurface,
-                  size: 20,
+                  widget.isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  color: colorScheme.primary,
+                  size: 22,
                 ),
-                const SizedBox(width: 6),
-                Icon(widget.icon, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
-                SelectableText(
-                  widget.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                    fontSize: 16,
+                Icon(widget.icon, color: colorScheme.primary, size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 250),
-          crossFadeState: widget.isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          firstChild: const SizedBox.shrink(),
-          secondChild: Column(
-            children: [
-              const SizedBox(height: 6),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: CurvedAnimation(
-                        parent: animation, curve: Curves.easeOut),
-                    child: SizeTransition(
-                        sizeFactor: animation,
-                        axisAlignment: -1.0,
-                        child: child),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: widget.isExpanded
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    ),
+                    child: widget.child,
                   ),
-                  child: widget.child,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
+                )
+              : const SizedBox.shrink(),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }

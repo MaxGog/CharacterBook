@@ -16,6 +16,7 @@ class CharacterCardItem extends StatelessWidget {
   final VoidCallback? onDuplicate;
   final VoidCallback? onSettings;
   final bool enableDrag;
+  final bool animateHero;
 
   const CharacterCardItem({
     super.key,
@@ -29,6 +30,7 @@ class CharacterCardItem extends StatelessWidget {
     this.onDuplicate,
     this.onSettings,
     this.enableDrag = false,
+    this.animateHero = true,
   });
 
   @override
@@ -48,64 +50,87 @@ class CharacterCardItem extends StatelessWidget {
       onSettings: onSettings,
       onShare: onShare,
       deleteConfirmationMessage: s.deleteConfirmation,
-      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primaryContainer.withOpacity(0.3),
+              colorScheme.tertiaryContainer.withOpacity(0.3),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withOpacity(0.4),
+            width: 0.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Hero(
-                  tag: 'list-character-avatar-${character.key ?? character.id}',
-                  child: AvatarWidget.character(
-                    imageBytes: character.imageBytes,
-                    size: 36,
-                  ),
+            HeroMode(
+              enabled: animateHero,
+              child: Hero(
+                tag: 'character-avatar-${character.key ?? character.id}',
+                child: AvatarWidget.character(
+                  imageBytes: character.imageBytes,
+                  size: 34,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    character.name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
-                      Text(
-                        character.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      if (character.age > 0)
+                        _buildInfoChip(
+                          context,
+                          icon: Icons.cake_rounded,
+                          label: '${character.age} ${s.years}',
+                          color: colorScheme.tertiaryContainer,
                         ),
+                      _buildInfoChip(
+                        context,
+                        icon: _getGenderIcon(character.gender),
+                        label: _getLocalizedGender(context, character.gender),
+                        color: _getGenderColor(context, character.gender),
                       ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _buildInfoChip(
-                            context,
-                            icon: Icons.cake_rounded,
-                            label: '${character.age} ${s.years}',
-                            color: colorScheme.tertiaryContainer,
-                          ),
-                          _buildInfoChip(
-                            context,
-                            icon: _getGenderIcon(character.gender),
-                            label: _getLocalizedGender(
-                                context, character.gender),
-                            color: _getGenderColor(context, character.gender),
-                          ),
-                          ...character.tags.map(
-                            (tag) => _buildInfoChip(
-                              context,
-                              label: tag,
-                              color: colorScheme.surfaceContainerHighest,
-                            ),
-                          ),
-                        ],
+                      ...character.tags.map(
+                        (tag) => _buildInfoChip(
+                          context,
+                          label: tag,
+                          color: colorScheme.surfaceContainerHighest,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -118,8 +143,12 @@ class CharacterCardItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color,
+        color: color.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.3),
+          width: 0.5,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -131,7 +160,11 @@ class CharacterCardItem extends StatelessWidget {
           ],
           Text(
             label,
-            style: const TextStyle(fontSize: 11),
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -164,5 +197,4 @@ class CharacterCardItem extends StatelessWidget {
       _ => theme.colorScheme.secondaryContainer,
     };
   }
-
 }

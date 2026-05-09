@@ -41,9 +41,10 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   bool _isSearching = false;
   bool _isImporting = false;
   bool _isFabVisible = true;
-  bool _isTagsVisible = true;
+  final bool _isTagsVisible = true;
   bool _isGroupByTagMode = false;
   String? _errorMessage;
+  String? _animatingHeroId;
 
   final Map<String, bool> _expandedGroups = {};
 
@@ -207,12 +208,17 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   }
 
   void _navigateToDetail(Character character) {
+    setState(() => _animatingHeroId = character.id);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => CharacterModalCard(character: character),
-    );
+    ).then((_) {
+      if (mounted) {
+        setState(() => _animatingHeroId = null);
+      } 
+    });
   }
 
   void _navigateToEdit(BuildContext context, [Character? character]) {
@@ -551,8 +557,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                           children: group.characters
                                               .map((character) =>
                                                   CharacterCardItem(
-                                                    key:
-                                                        ValueKey(character.key),
+                                                    key: ValueKey(character.key),
+                                                    animateHero: _animatingHeroId != character.id,
                                                     character: character,
                                                     isSelected: false,
                                                     onTap: () =>
