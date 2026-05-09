@@ -12,6 +12,7 @@ import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/relationship_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
@@ -196,7 +197,6 @@ class _AppContent extends StatefulWidget {
 
 class _AppContentState extends State<_AppContent> {
   bool _showErrorDialog = false;
-  final _navigatorKey = GlobalKey<NavigatorState>();
 
   void initState() {
     super.initState();
@@ -209,22 +209,9 @@ class _AppContentState extends State<_AppContent> {
 
   void _setupMethodChannel() {
     MenuChannel.initialize(
-      onOpenSettings: () {
-        _navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (context) => const SettingsScreen()),
-        );
-      },
-      onNewCharacter: () {
-        _navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (context) => const CharacterManagementScreen()),
-        );
-      },
-      onOpenFile: () {
-        final context = _navigatorKey.currentContext;
-        if (context != null) {
-          final filePicker = Provider.of<FilePickerService>(context, listen: false);
-        }
-      },
+      onOpenSettings: AppNavigator.openSettings,
+      onNewCharacter: AppNavigator.openNewCharacter,
+      onOpenFile: AppNavigator.openFilePicker,
     );
   }
 
@@ -277,7 +264,7 @@ class _AppContentState extends State<_AppContent> {
             );
 
             return MaterialApp(
-              navigatorKey: _navigatorKey,
+              navigatorKey: appNavigatorKey,
               debugShowCheckedModeBanner: false,
               scaffoldMessengerKey: widget.messengerKey,
               title: 'CharacterBook',

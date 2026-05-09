@@ -1,5 +1,6 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/providers/auto_backup_provider.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/backup_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,12 +31,12 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     try {
       final hasData = await _hasData();
       if (!hasData) {
-        _showWarning(S.of(context).no_data_for_backup);
+        AppNavigator.showInfo(S.of(context).no_data_for_backup);
         return;
       }
       await context.read<LocalBackupService>().exportData();
     } catch (e) {
-      _showError('${S.of(context).export_failed}: $e');
+      AppNavigator.showError('${S.of(context).export_failed}: $e');
     } finally {
       if (mounted) setState(() => _isExportingLocal = false);
     }
@@ -47,12 +48,12 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     try {
       final hasData = await _hasData();
       if (!hasData) {
-        _showWarning(S.of(context).no_data_for_backup);
+        AppNavigator.showInfo(S.of(context).no_data_for_backup);
         return;
       }
       await context.read<CloudBackupService>().exportData();
     } catch (e) {
-      _showError('${S.of(context).export_failed}: $e');
+      AppNavigator.showError('${S.of(context).export_failed}: $e');
     } finally {
       if (mounted) setState(() => _isExportingCloud = false);
     }
@@ -67,7 +68,7 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     try {
       await context.read<LocalBackupService>().importData();
     } catch (e) {
-      _showError('${S.of(context).import_failed}: $e');
+      AppNavigator.showError('${S.of(context).import_failed}: $e');
     } finally {
       if (mounted) setState(() => _isImportingLocal = false);
     }
@@ -82,7 +83,7 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     try {
       await context.read<CloudBackupService>().importData();
     } catch (e) {
-      _showError('${S.of(context).import_failed}: $e');
+      AppNavigator.showError('${S.of(context).import_failed}: $e');
     } finally {
       if (mounted) setState(() => _isImportingCloud = false);
     }
@@ -105,27 +106,6 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
             child: Text(s.restore_confirm),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showWarning(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

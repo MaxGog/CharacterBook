@@ -5,6 +5,7 @@ import 'package:characterbook/ui/controllers/template_management_controller.dart
 import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/custom_fields_editor.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
+import 'package:characterbook/ui/widgets/overlay_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,10 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
       );
       return;
     }
+    OverlayNotification.show(
+      S.of(context).changes_saved,
+      type: OverlayNotificationType.success,
+    );
     _saveTemplate(controller)();
   }
 

@@ -15,6 +15,7 @@ import 'package:characterbook/ui/widgets/fields/custom_fields_editor.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/fields/gender_selector_field.dart';
 import 'package:characterbook/ui/widgets/fields/race_selector_field.dart';
+import 'package:characterbook/ui/widgets/overlay_notification.dart';
 import 'package:characterbook/ui/widgets/reference_image_picker.dart';
 import 'package:characterbook/ui/widgets/image_gallery_section.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
@@ -81,7 +82,13 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pop(true);
+      OverlayNotification.show(
+        S.of(context).changes_saved,
+        type: OverlayNotificationType.success,
+      );
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) Navigator.of(context).pop(true);
+      });
     } else {
       final errorMsg = controller.error ?? S.of(context).error;
       ScaffoldMessenger.of(context)

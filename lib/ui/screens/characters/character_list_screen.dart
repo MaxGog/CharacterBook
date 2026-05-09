@@ -4,6 +4,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/ui/navigation/menu_content.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
@@ -116,18 +117,13 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
           .importCharacter(
               () => FilePickerService().importCharacter(), service);
       if (mounted && character != null) {
-        _showSnackBar(S.of(context).character_imported(character.name));
+        AppNavigator.showSuccess(S.of(context).character_imported(character.name));
       }
     } catch (e) {
       setState(() => _errorMessage = e.toString());
     } finally {
       if (mounted) setState(() => _isImporting = false);
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<bool> _showDeleteConfirmation(String title, String content) async {
@@ -247,7 +243,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     );
     if (confirmed) {
       await controller.deleteCharacter(character);
-      if (mounted) _showSnackBar(S.of(context).character_deleted);
+      if (mounted) AppNavigator.showSuccess(S.of(context).character_deleted);
     }
   }
 
@@ -268,9 +264,9 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         onDuplicate: () async {
           try {
             await controller.duplicateCharacter(character, service);
-            if (context.mounted) _showSnackBar(s.character_duplicated);
+            if (context.mounted) AppNavigator.showSuccess(s.character_duplicated);
           } catch (e) {
-            if (context.mounted) _showSnackBar('${s.duplicate_error}: $e');
+            if (context.mounted) AppNavigator.showError('${s.duplicate_error}: $e');
           }
         },
         onShare: () {
@@ -279,23 +275,23 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
             onCopy: () async {
               try {
                 await controller.characterClipboardText(character, context);
-                if (context.mounted) _showSnackBar(s.copied_to_clipboard);
+                if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.copy_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
               }
             },
             onShareFile: () async {
               try {
                 await controller.shareCharacterAsFile(character);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.error}: $e');
               }
             },
             onExportPdf: () async {
               try {
                 await controller.exportCharacterToPdf(character, context);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.export_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
               }
             },
           );
@@ -558,7 +554,9 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                               .map((character) =>
                                                   CharacterCardItem(
                                                     key: ValueKey(character.key),
-                                                    animateHero: _animatingHeroId != character.id,
+                                                    animateHero:
+                                                        _animatingHeroId !=
+                                                            character.id,
                                                     character: character,
                                                     isSelected: false,
                                                     onTap: () =>
@@ -612,6 +610,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                               key: ValueKey(character.key),
                               character: character,
                               isSelected: false,
+                              animateHero: _animatingHeroId != character.id,
                               onTap: () => _navigateToDetail(character),
                               onLongPress: () => _showCharacterContextMenu(
                                   character, context, controller, service),

@@ -1,4 +1,5 @@
 import 'package:characterbook/generated/l10n.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -161,17 +162,13 @@ Future<void> _sendErrorReport({
     if (await canLaunchUrl(emailUri)) {
       await launchUrl(emailUri);
     } else {
-      _showEmailError(context);
+      _showEmailError();
     }
   } catch (e) {
-    _showEmailError(context);
+    _showEmailError();
   }
 }
 
-void _showEmailError(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Не удалось открыть почтовое приложение'),
-    ),
-  );
+void _showEmailError() {
+  AppNavigator.showError('Не удалось открыть почтовое приложение');
 }

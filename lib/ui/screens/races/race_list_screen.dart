@@ -4,6 +4,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/ui/controllers/race_list_controller.dart';
 import 'package:characterbook/ui/navigation/menu_content.dart';
@@ -67,11 +68,6 @@ class _RaceListScreenState extends State<RaceListScreen> {
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
   Future<bool> _isRaceUsed(Race race) async {
     final characters = _charactersBox.values;
     return characters.any((character) => character.race?.key == race.key);
@@ -102,7 +98,7 @@ class _RaceListScreenState extends State<RaceListScreen> {
     );
     if (confirmed == true) {
       await controller.deleteRace(race.key);
-      if (mounted) _showSnackBar(S.of(context).race_deleted);
+      if (mounted) AppNavigator.showSuccess(S.of(context).race_deleted);
     }
   }
 
@@ -137,23 +133,23 @@ class _RaceListScreenState extends State<RaceListScreen> {
             onCopy: () async {
               try {
                 await controller.raceClipboardText(race, context);
-                if (context.mounted) _showSnackBar(s.copied_to_clipboard);
+                if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.copy_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
               }
             },
             onShareFile: () async {
               try {
                 await controller.shareRaceAsFile(race);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.error}: $e');
               }
             },
             onExportPdf: () async {
               try {
                 await controller.exportRaceToPdf(race, context);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.export_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
               }
             },
           );
@@ -182,7 +178,7 @@ class _RaceListScreenState extends State<RaceListScreen> {
             service,
           );
       if (mounted && race != null) {
-        _showSnackBar(S.of(context).race_imported(race.name));
+        AppNavigator.showSuccess(S.of(context).race_imported(race.name));
       }
     } catch (e) {
       setState(() => _errorMessage = e.toString());

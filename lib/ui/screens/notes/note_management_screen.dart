@@ -9,6 +9,7 @@ import 'package:characterbook/ui/widgets/avatar_widget.dart';
 import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/markdown_context_menu.dart';
+import 'package:characterbook/ui/widgets/overlay_notification.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
@@ -177,6 +178,10 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
       );
       return;
     }
+    OverlayNotification.show(
+      S.of(context).changes_saved,
+      type: OverlayNotificationType.success,
+    );
     Navigator.of(context).pop(true);
   }
 

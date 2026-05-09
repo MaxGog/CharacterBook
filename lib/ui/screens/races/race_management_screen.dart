@@ -7,6 +7,7 @@ import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
 import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
 import 'package:characterbook/ui/widgets/fields/fullscreen_field_preview.dart';
+import 'package:characterbook/ui/widgets/overlay_notification.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -67,6 +68,10 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
       );
       return;
     }
+    OverlayNotification.show(
+      S.of(context).changes_saved,
+      type: OverlayNotificationType.success,
+    );
     Navigator.of(context).pop(true);
   }
 

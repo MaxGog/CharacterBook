@@ -2,6 +2,7 @@ import 'package:characterbook/data/enums/note_sort_enum.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/ui/controllers/note_list_controller.dart';
 import 'package:characterbook/ui/navigation/menu_content.dart';
 import 'package:characterbook/ui/widgets/common_fab_menu.dart';
@@ -61,11 +62,6 @@ class _NotesListScreenState extends State<NotesListScreen> {
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
   Future<void> _deleteNote(Note note, NoteListController controller) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -88,8 +84,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
     if (confirmed == true) {
       await controller.deleteNote(note);
       if (mounted) {
-        _showSnackBar(
-            '${S.of(context).posts} "${note.title}" ${S.of(context).template_deleted}');
+        AppNavigator.showSuccess('${S.of(context).posts} "${note.title}" ${S.of(context).template_deleted}');
       }
     }
   }
@@ -130,16 +125,16 @@ class _NotesListScreenState extends State<NotesListScreen> {
             onCopy: () async {
               try {
                 await controller.noteClipboardText(note, context);
-                if (context.mounted) _showSnackBar(s.copied_to_clipboard);
+                if (context.mounted) AppNavigator.showError(s.copied_to_clipboard);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.copy_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
               }
             },
             onShareFile: () async {
               try {
                 await controller.shareNoteAsFile(note);
               } catch (e) {
-                if (context.mounted) _showSnackBar('${s.error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.error}: $e');
               }
             },
           );

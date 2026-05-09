@@ -1,4 +1,5 @@
 import 'package:characterbook/generated/l10n.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -9,22 +10,15 @@ class NotificationService {
   NotificationService(this.messengerKey);
 
   void showSuccess(String message) {
-    messengerKey.currentState?.showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    AppNavigator.showSuccess(message);
   }
 
   void showError(String message) {
-    messengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+    AppNavigator.showError(message);
   }
 
   void showBackupSuccess() {
-    showSuccess(S.current.local_backup_success);
+    AppNavigator.showSuccess(S.current.local_backup_success);
   }
 
   void showBackupError(String error) {
