@@ -27,6 +27,7 @@ void main() {
   late Box<ExportPdfSettings> settingsBox;
   late Box<Relationship> relBox;
   late Box<bool> appSettingsBox;
+  late Box<Character> charactersBox;
 
   setUp(() async {
     final dir = await Directory.systemTemp.createTemp('hive_test_main');
@@ -46,6 +47,8 @@ void main() {
     settingsBox = await Hive.openBox<ExportPdfSettings>('test_pdf_settings');
     relBox = await Hive.openBox<Relationship>('test_relationships');
     appSettingsBox = await Hive.openBox<bool>('test_app_settings');
+    charactersBox =
+        await Hive.openBox<Character>('characters');
 
     HiveService.setBoxesForTesting(
       characterBox: charBox,
@@ -66,6 +69,7 @@ void main() {
     await settingsBox.close();
     await relBox.close();
     await appSettingsBox.close();
+    await charactersBox.close();
     for (final name in [
       'test_chars',
       'test_races',
@@ -73,7 +77,8 @@ void main() {
       'test_templates',
       'test_pdf_settings',
       'test_relationships',
-      'test_app_settings'
+      'test_app_settings',
+      'characters',
     ]) {
       Hive.deleteBoxFromDisk(name);
     }
