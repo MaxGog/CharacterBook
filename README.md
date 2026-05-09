@@ -1,190 +1,91 @@
+[![Flutter](https://img.shields.io/badge/Flutter-3.13+-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.7+-0175C2?style=flat&logo=dart&logoColor=white)](https://dart.dev)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat)](LICENSE)
+
 # 🎭 CharacterBook
 
-<div align="center">
+**Кроссплатформенное приложение для создания и управления персонажами в настольных RPG.**
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.13+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.7+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
-[![Platforms](https://img.shields.io/badge/Platforms-Android%20|%20Windows%20|%20macOS%20-4CAF50?style=for-the-badge)](https://github.com/maxgog/characterbook)
-[![License](https://img.shields.io/badge/License-GPL--3.0-4285F4?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+Хотите организовать всех своих персонажей и NPC в одном месте? CharacterBook поможет вам быстро создать детализированного персонажа с помощью гибких шаблонов, структурировать его по папкам и тегам, а затем экспортировать в красивый PDF-лист.
 
-**Кроссплатформенное приложение для создания и управления персонажами RPG**
+[![Google Play](https://img.shields.io/badge/Get_it_on_Google_Play-414141?style=flat&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=ru.maxgog.listcharacters&hl)
+[![Microsoft Store](https://img.shields.io/badge/Get_it_on_Microsoft_Store-0078D6?style=flat&logo=microsoft&logoColor=white)](https://apps.microsoft.com/detail/9NKV4DBQJW0S)
+[![GitHub Release](https://img.shields.io/badge/Download_on_GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/maxgog/characterbook/releases)
 
-[📖 Документация](docs/ARCHITECTURE.md) • [🎮 Возможности](docs/FEATURES.md) • [📥 Установка](docs/INSTALLATION.md) • [👨‍💻 Руководство](docs/MANUAL.md)
+![Главный экран](https://play-lh.googleusercontent.com/s8D2VaHx1PO5JEfIaisZrezpEGOImAeLFBzdL68pHrOVD86-ByCn_8dAvAFILe4X8g=w5120-h2880)
 
-</div>
+## ✨ Ключевые возможности
 
-## ✨ О проекте
-
-**CharacterBook** – это мощное кроссплатформенное приложение, созданное для игроков и мастеров ролевых игр. Создавайте, организуйте и экспортируйте персонажей для любых RPG систем с невероятной легкостью!
-
-### 🎯 Ключевые возможности
-
-| Компонент | Статус | Примечания |
-|-----------|--------|------------|
-| **Android** | ✅ Разработано | [Google Play](https://play.google.com/store/apps/details?id=ru.maxgog.listcharacters) |
-| **Windows** | ✅ Разработано | [Microsoft Store](https://apps.microsoft.com/detail/9NKV4DBQJW0S) |
-| **macOS** | 🔧 Бета-версия | Доступна сборка, но требуется тестирование |
-| **Web** | 🔧 В разработке | Ограниченная функциональность из-за работы с файловой системой |
-| **iOS** | 📅 В планах | Требуется Mac для сборки и публикации |
-| **Linux** | 📅 В планах | Будущий порт |
-| **Облачная синхронизация** | ✅ Реализовано | Google Drive интеграция готова |
+*   **🎲 Гибкое создание персонажей:** Используйте встроенные шаблоны (D&D 5e, универсальный) или создавайте свои с помощью конструктора!.
+*   **🗂️ Удобная организация:** Раскладывайте персонажей по папкам, добавляйте теги и используйте поиск для быстрого доступа.
+*   **📄 Экспорт в PDF:** Превращайте ваших персонажей в готовые листы для печати в один клик.
+*   **📱 Кроссплатформенность:** Приложение одинаково хорошо работает на Android, Windows и macOS. Версии для Web и iOS в разработке..
+*   **💯 Бесплатно и без рекламы:** Все функции доступны без ограничений и скрытых платежей.
 
 ## 🚀 Быстрый старт
 
-### 📥 Установка для пользователей
+### 📥 Для пользователей
 
-<div align="center">
+Просто скачайте приложение из удобного для вас магазина:
 
-[![Google Play](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white&label=Android)](https://play.google.com/store/apps/details?id=ru.maxgog.listcharacters&hl)
-[![RuStore](https://img.shields.io/badge/RuStore-5551FF?style=for-the-badge&logo=rustore&logoColor=white&label=Android)](https://www.rustore.ru/catalog/app/ru.maxgog.listcharacters)
-[![Microsoft Store](https://img.shields.io/badge/Microsoft_Store-0078D6?style=for-the-badge&logo=microsoft&logoColor=white&label=Windows)](https://apps.microsoft.com/detail/9NKV4DBQJW0S)
-[![GitHub Releases](https://img.shields.io/badge/GitHub_Releases-181717?style=for-the-badge&logo=github&logoColor=white&label=Все%20платформы)](https://github.com/maxgog/characterbook/releases)
-
-</div>
+| Платформа | Ссылка |
+| :--- | :--- |
+| **Android** | [Google Play](https://play.google.com/store/apps/details?id=ru.maxgog.listcharacters&hl) или [RuStore](https://www.rustore.ru/catalog/app/ru.maxgog.listcharacters) |
+| **Windows** | [Microsoft Store](https://apps.microsoft.com/detail/9NKV4DBQJW0S) или [GitHub Releases](https://github.com/maxgog/characterbook/releases) |
+| **macOS** | [GitHub Releases](https://github.com/maxgog/characterbook/releases) *(бета-версия)* |
 
 ### 🛠️ Для разработчиков
 
-```bash
-# 1. Клонируйте репозиторий
-git clone https://github.com/maxgog/characterbook.git
-cd characterbook
+Чтобы собрать и запустить проект локально:
 
-# 2. Установите зависимости
-flutter pub get
+1.  **Клонируйте репозиторий:**
+    ```bash
+    git clone https://github.com/maxgog/characterbook.git
+    cd characterbook
+    ```
+2.  **Установите зависимости:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Запустите приложение:**
+    ```bash
+    flutter run
+    ```
 
-# 3. Запустите приложение
-flutter run
+> Для получения подробной информации ознакомьтесь с нашим [руководством по установке](INSTALLATION.md).
 
-# 4. Сборка для production
-flutter build apk --release    # Android
-flutter build windows --release # Windows
-flutter build web --release    # Web
-```
+## 🧱 Технологический стек
 
-## 📸 Галерея приложения
+*   **Фреймворк:** [Flutter](https://flutter.dev/) (3.13+).
+*   **Язык:** [Dart](https://dart.dev/) (3.7+).
+*   **База данных:** [Hive](https://docs.hivedb.dev/) для быстрого локального хранения.
+*   **Управление состоянием:** `Provider` и `flutter_bloc`.
+*   **Генерация PDF:** Пакеты `pdf` и `printing`.
 
-<div align="center">
+Для ознакомления с полным списком зависимостей и архитектурой проекта обратитесь к файлу [ARCHITECTURE.md](ARCHITECTURE.md).
 
-| Главный экран | Создание персонажа | Управление расами |
-|:-------------:|:------------------:|:-----------------:|
-| ![Главный экран](https://play-lh.googleusercontent.com/s8D2VaHx1PO5JEfIaisZrezpEGOImAeLFBzdL68pHrOVD86-ByCn_8dAvAFILe4X8g=w5120-h2880) | ![Создание](https://play-lh.googleusercontent.com/rbMgJUpij1St19tMacQ_IyMhQ_3IpWntD-deZ8BfafKjSJRAcdHWdETjgQPuk_-tkps=w5120-h2880) | ![Расы](https://github.com/user-attachments/assets/017700ff-da16-4c44-b979-fa6aaafdfc7c) |
+## 👥 Внесение вклада
 
-*Доступный и интуитивный интерфейс для всех платформ*
+Приветствуются любые предложения и помощь в развитии проекта! Пожалуйста, ознакомьтесь с [CONTRIBUTING.md](CONTRIBUTING.md) для получения информации о том, как сообщать об ошибках, предлагать улучшения и отправлять Pull Request.
 
-</div>
+## ⚖️ Лицензия
 
-## 🏗️ Технологический стек
-
-### 🔧 Основные технологии
-
-| Компонент | Технология | Назначение |
-|-----------|------------|------------|
-| **🖼️ Фреймворк** | Flutter 3.13+ | Кроссплатформенный UI |
-| **💙 Язык** | Dart 3.7+ | Бизнес-логика и производительность |
-| **💾 Хранилище** | Hive 2.2.3 | Быстрая NoSQL база данных |
-| **🎮 State Management** | Provider + Flutter Bloc | Управление состоянием |
-| **📄 Экспорт** | PDF, Printing | Генерация документов |
-
-### 📦 Ключевые зависимости
-
-```yaml
-dependencies:
-  # State Management
-  provider: ^6.0.5
-  flutter_bloc: ^8.1.3
-  
-  # Local Storage
-  hive: ^2.2.3
-  shared_preferences: ^2.5.3
-  
-  # File Operations
-  pdf: ^3.10.0
-  file_selector: ^1.0.3
-  
-  # Platform Integration
-  window_manager: ^0.5.1
-  msix: ^3.16.10
-```
-
-## 🎯 Для кого это приложение?
-
-### 🎮 Для игроков
-
-- ✅ **Полная кастомизация** персонажей под любую систему
-- ✅ **Оффлайн доступ** - играйте где угодно без интернета
-- ✅ **Бесплатность** - все функции доступны без подписок
-- ✅ **Визуализация** - добавляйте изображения и галереи
-
-### 🎲 Для мастеров
-
-- ✅ **Единая база** всех NPC и персонажей кампании
-- ✅ **Быстрый экспорт** материалов для сессий
-- ✅ **Гибкая организация** под вашу кампанию
-- ✅ **Шаблоны** для быстрого создания контента
-
-### 💻 Для разработчиков
-
-- ✅ **Открытый код** - возможность модификации
-- ✅ **Современный стек** - актуальные технологии
-- ✅ **Активное развитие** - регулярные обновления
-
-## 📊 Статус разработки
-
-| Компонент | Статус | Примечания |
-|-----------|--------|------------|
-| **Android** | ✅ Разработано | [Google Play](https://play.google.com/store/apps/details?id=ru.maxgog.listcharacters) |
-| **Windows** | ✅ Разработано | [Microsoft Store](https://apps.microsoft.com/detail/9NKV4DBQJW0S) |
-| **Web** | 🔧 В разработке | Скоро будет доступно |
-| **iOS** | 📅 В планах | Требуется Mac для сборки |
-| **Облачная синхронизация** | ✅ Разработано | Google Drive интеграция |
-
-## 🤝 Участие в разработке
-
-Мы приветствуем вклад в развитие CharacterBook!
-
-### 🐛 Сообщение об ошибках
-
-Нашли баг? [Создайте issue](https://github.com/maxgog/characterbook/issues) с подробным описанием.
-
-### 💡 Предложения функций
-
-Есть идея для улучшения? [Обсудим в issues](https://github.com/maxgog/characterbook/issues)!
-
-### 🔧 Pull Requests
-
-1. Форкните репозиторий
-2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
-3. Закоммитьте изменения (`git commit -m 'Add amazing feature'`)
-4. Запушьте branch (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
-
-## 📄 Лицензия
-
-Этот проект распространяется под лицензией **GPL-3.0**. Подробнее см. в файле [LICENSE](LICENSE).
+Распространяется под лицензией **GNU General Public License v3.0**. Подробнее см. в файле [LICENSE](LICENSE).
 
 ## 💖 Поддержка проекта
 
-<div align="center">
+Если вам нравится CharacterBook, вы можете поддержать его разработчика:
 
-Если вам нравится CharacterBook, рассмотрите возможность поддержать разработчика:
+[![Boosty](https://img.shields.io/badge/Boosty-FF6B6B?style=flat&logo=heart&logoColor=white)](https://boosty.to/maxupshur/donate)
 
-[![Boosty](https://img.shields.io/badge/Boosty-FF6B6B?style=for-the-badge&logo=heart&logoColor=white&label=Поддержать%20разработчика)](https://boosty.to/maxupshur/donate)
+## 📞 Контакты
 
-</div>
+*   **Автор:** MaxGog
+*   **Почта:** max.gog2005@outlook.com
+*   **GitHub:** [maxgog](https://github.com/maxgog)
 
 ---
 
 <div align="center">
-
-## 📞 Контакты
-
-**👨‍💻 Автор:** MaxGog  
-**📧 Почта:** <max.gog2005@outlook.com>  
-**🐙 GitHub:** [maxgog](https://github.com/maxgog)  
-**💬 Поддержка:** [Создать issue](https://github.com/maxgog/characterbook/issues)
-
-*CharacterBook вдохновлен классическими бумажными листами персонажей и создан для современной эпохи цифровых RPG!*
-
-**⭐ Не забудьте поставить звезду репозиторию, если проект вам понравился!**
-
+    <b>⭐ Не забудьте поставить звезду репозиторию, если проект вам понравился!</b>
 </div>
