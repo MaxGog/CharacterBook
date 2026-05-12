@@ -40,7 +40,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m7(days) => "${days} дн. назад";
 
-  static String m8(count) => "${count} пол.";
+  static String m8(count) => "${count} характ.";
 
   static String m22(count) => "Папок: ${count}";
 
@@ -87,7 +87,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Благодарности"),
         "activity_timeline": MessageLookupByLibrary.simpleMessage("Активность"),
         "add_event": MessageLookupByLibrary.simpleMessage("Добавить событие"),
-        "add_field": MessageLookupByLibrary.simpleMessage("Добавить поле"),
+        "add_field":
+            MessageLookupByLibrary.simpleMessage("Добавить характеристику"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Добавить"),
         "add_relationships":
             MessageLookupByLibrary.simpleMessage("Добавить связь"),
@@ -112,7 +113,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allow_printing": MessageLookupByLibrary.simpleMessage("Печать"),
         "another": MessageLookupByLibrary.simpleMessage("Другой"),
         "appLanguage": MessageLookupByLibrary.simpleMessage("Язык"),
-        "app_name": MessageLookupByLibrary.simpleMessage("CharacterBook"),
+        "app_name": MessageLookupByLibrary.simpleMessage("Characterbook"),
         "app_tour": MessageLookupByLibrary.simpleMessage("Тур по приложению"),
         "appearance": MessageLookupByLibrary.simpleMessage("Внешность"),
         "archived": MessageLookupByLibrary.simpleMessage("Архив"),
@@ -194,7 +195,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "character_reference": MessageLookupByLibrary.simpleMessage("Референс"),
         "character_share_text": m5,
         "characterbookLicense":
-            MessageLookupByLibrary.simpleMessage("Лицензия CharacterBook"),
+            MessageLookupByLibrary.simpleMessage("Лицензия Characterbook"),
         "characters": MessageLookupByLibrary.simpleMessage("Персонажи"),
         "characters_and_races":
             MessageLookupByLibrary.simpleMessage("Персонажи и расы"),
@@ -297,7 +298,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "custom_event": MessageLookupByLibrary.simpleMessage("Своё событие"),
         "custom_fields": MessageLookupByLibrary.simpleMessage("Доп. поля"),
         "custom_fields_editor_title":
-            MessageLookupByLibrary.simpleMessage("Доп. поля"),
+            MessageLookupByLibrary.simpleMessage("Доп. характеристики"),
         "custom_layout": MessageLookupByLibrary.simpleMessage("Свой"),
         "custom_preset": MessageLookupByLibrary.simpleMessage("Свой пресет"),
         "customize_theme":
@@ -399,13 +400,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "favorites": MessageLookupByLibrary.simpleMessage("Избранное"),
         "feedback": MessageLookupByLibrary.simpleMessage("Отзыв"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
-        "field_name": MessageLookupByLibrary.simpleMessage("Имя поля"),
+        "field_name":
+            MessageLookupByLibrary.simpleMessage("Имя характеристики"),
         "field_name_hint":
-            MessageLookupByLibrary.simpleMessage("Название поля"),
+            MessageLookupByLibrary.simpleMessage("Название характеристики"),
         "field_removed": MessageLookupByLibrary.simpleMessage("Поле удалено"),
         "field_value": MessageLookupByLibrary.simpleMessage("Значение"),
         "field_value_hint":
-            MessageLookupByLibrary.simpleMessage("Значение поля"),
+            MessageLookupByLibrary.simpleMessage("Значение характеристики"),
         "fields_asc": MessageLookupByLibrary.simpleMessage("Полей ↑"),
         "fields_count": m8,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Полей ↓"),
@@ -576,7 +578,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_content": MessageLookupByLibrary.simpleMessage("Нет содержания"),
         "no_content_home": MessageLookupByLibrary.simpleMessage("Пока пусто"),
         "no_custom_fields":
-            MessageLookupByLibrary.simpleMessage("Нет доп. полей"),
+            MessageLookupByLibrary.simpleMessage("Нет доп. характеристик"),
         "no_data_for_backup": MessageLookupByLibrary.simpleMessage(
             "Нет данных для резервного копирования. Добавьте хотя бы один элемент (персонажа, заметку, расу и т.д.) перед экспортом."),
         "no_data_found": MessageLookupByLibrary.simpleMessage("Нет данных"),
@@ -779,7 +781,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sort_by": MessageLookupByLibrary.simpleMessage("Сортировка"),
         "standard": MessageLookupByLibrary.simpleMessage("основных"),
         "standard_fields":
-            MessageLookupByLibrary.simpleMessage("Основные поля"),
+            MessageLookupByLibrary.simpleMessage("Основные характеристики"),
         "start_writing":
             MessageLookupByLibrary.simpleMessage("Начните писать…"),
         "statistics": MessageLookupByLibrary.simpleMessage("Статистика"),

@@ -88,7 +88,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "all_tags": MessageLookupByLibrary.simpleMessage("All tags"),
         "another": MessageLookupByLibrary.simpleMessage("Other"),
         "appLanguage": MessageLookupByLibrary.simpleMessage("Language"),
-        "app_name": MessageLookupByLibrary.simpleMessage("CharacterBook"),
+        "app_name": MessageLookupByLibrary.simpleMessage("Characterbook"),
         "appearance": MessageLookupByLibrary.simpleMessage("Appearance"),
         "auth_cancelled":
             MessageLookupByLibrary.simpleMessage("Auth cancelled"),

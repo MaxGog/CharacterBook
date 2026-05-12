@@ -50,10 +50,10 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
-  /// `CharacterBook`
+  /// `Characterbook`
   String get app_name {
     return Intl.message(
-      'CharacterBook',
+      'Characterbook',
       name: 'app_name',
       desc: '',
       args: [],
@@ -970,10 +970,10 @@ class S {
     );
   }
 
-  /// `Основные поля`
+  /// `Основные характеристики`
   String get standard_fields {
     return Intl.message(
-      'Основные поля',
+      'Основные характеристики',
       name: 'standard_fields',
       desc: '',
       args: [],
@@ -990,50 +990,50 @@ class S {
     );
   }
 
-  /// `Доп. поля`
+  /// `Доп. характеристики`
   String get custom_fields_editor_title {
     return Intl.message(
-      'Доп. поля',
+      'Доп. характеристики',
       name: 'custom_fields_editor_title',
       desc: '',
       args: [],
     );
   }
 
-  /// `Добавить поле`
+  /// `Добавить характеристику`
   String get add_field {
     return Intl.message(
-      'Добавить поле',
+      'Добавить характеристику',
       name: 'add_field',
       desc: '',
       args: [],
     );
   }
 
-  /// `Нет доп. полей`
+  /// `Нет доп. характеристик`
   String get no_custom_fields {
     return Intl.message(
-      'Нет доп. полей',
+      'Нет доп. характеристик',
       name: 'no_custom_fields',
       desc: '',
       args: [],
     );
   }
 
-  /// `Имя поля`
+  /// `Имя характеристики`
   String get field_name {
     return Intl.message(
-      'Имя поля',
+      'Имя характеристики',
       name: 'field_name',
       desc: '',
       args: [],
     );
   }
 
-  /// `Название поля`
+  /// `Название характеристики`
   String get field_name_hint {
     return Intl.message(
-      'Название поля',
+      'Название характеристики',
       name: 'field_name_hint',
       desc: '',
       args: [],
@@ -1050,10 +1050,10 @@ class S {
     );
   }
 
-  /// `Значение поля`
+  /// `Значение характеристики`
   String get field_value_hint {
     return Intl.message(
-      'Значение поля',
+      'Значение характеристики',
       name: 'field_value_hint',
       desc: '',
       args: [],
@@ -1080,10 +1080,10 @@ class S {
     );
   }
 
-  /// `{count} пол.`
+  /// `{count} характ.`
   String fields_count(Object count) {
     return Intl.message(
-      '$count пол.',
+      '$count характ.',
       name: 'fields_count',
       desc: '',
       args: [count],
@@ -1550,10 +1550,10 @@ class S {
     );
   }
 
-  /// `Лицензия CharacterBook`
+  /// `Лицензия Characterbook`
   String get characterbookLicense {
     return Intl.message(
-      'Лицензия CharacterBook',
+      'Лицензия Characterbook',
       name: 'characterbookLicense',
       desc: '',
       args: [],
