@@ -60,12 +60,16 @@ class AppDelegate: FlutterAppDelegate {
     private func determineType(from path: String) -> String {
         let ext = (path as NSString).pathExtension.lowercased()
         switch ext {
-        case "character", "json":
+        case "character":
             return "character"
         case "race":
             return "race"
         case "chax":
             return "chax"
+        case "note":
+            return "note"
+        case "characterbook":
+            return "characterbook"
         default:
             return "unknown"
         }

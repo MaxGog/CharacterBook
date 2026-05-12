@@ -99,9 +99,12 @@ public class AppDelegate: FlutterAppDelegate {
             return "race"
         } else if path.contains(".chax") || fileName.hasSuffix(".chax") {
             return "chax"
-        } else if fileName.hasSuffix(".json") {
-            return "json"
-        } else {
+        } else if path.contains(".note") || fileName.hasSuffix(".note") {
+            return "note"
+        } else if path.contains(".characterbook") || fileName.hasSuffix(".characterbook") {
+            return "characterbook"
+        }
+        else {
             return "unknown"
         }
     }

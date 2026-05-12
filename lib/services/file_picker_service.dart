@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:characterbook/data/models/character_model.dart';
+import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
@@ -289,6 +290,29 @@ class FilePickerService {
     } catch (e) {
       throw Exception(
           'Ошибка импорта файла в нативной версии: ${e.toString()}');
+    }
+  }
+
+  Future<Note?> importNote({BuildContext? context}) async {
+    try {
+      String? jsonStr;
+
+      if (kIsWeb) {
+        jsonStr = await _importFileWeb('.note', 'note');
+      } else {
+        jsonStr = await _importFileNative('.note');
+      }
+
+      if (jsonStr == null || jsonStr.isEmpty) return null;
+
+      final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return Note.fromJson(jsonMap);
+    } catch (e) {
+      final errorMessage = 'Не удалось импортировать заметку: ${e.toString()}';
+      if (context != null) {
+        _showErrorDialog(context, errorMessage);
+      }
+      rethrow;
     }
   }
 }

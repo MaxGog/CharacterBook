@@ -82,8 +82,8 @@ class MainActivity: FlutterActivity() {
                 data.toString().contains(".character") -> "character"
                 data.toString().contains(".race") -> "race"
                 data.toString().contains(".chax") -> "chax"
-                data.toString().contains(".json") -> "json"
                 data.toString().contains(".characterbook") -> "characterbook"
+                data.toString().contains(".note") -> "note" 
                 type == "application/json" -> "json"
                 else -> {
                     val path = data.path ?: ""
@@ -91,8 +91,8 @@ class MainActivity: FlutterActivity() {
                         path.contains(".character", ignoreCase = true) -> "character"
                         path.contains(".race", ignoreCase = true) -> "race"
                         path.contains(".chax", ignoreCase = true) -> "chax"
-                        path.contains(".json", ignoreCase = true) -> "json"
                         path.contains(".characterbook", ignoreCase = true) -> "characterbook"
+                        path.contains(".note", ignoreCase = true) -> "note"
                         else -> "unknown"
                     }
                 }
@@ -128,6 +128,8 @@ class MainActivity: FlutterActivity() {
                     originalName.endsWith(".character", ignoreCase = true) -> "character"
                     originalName.endsWith(".race", ignoreCase = true) -> "race"
                     originalName.endsWith(".chax", ignoreCase = true) -> "chax"
+                    originalName.endsWith(".note", ignoreCase = true) -> "note"
+                    originalName.endsWith(".characterbook", ignoreCase = true) -> "characterbook"
                     else -> originalName.substringAfterLast('.', "")
                 }
 

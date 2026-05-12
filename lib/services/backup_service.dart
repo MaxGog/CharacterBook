@@ -7,12 +7,12 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
-import 'package:characterbook/data/models/relationship_model.dart'; // добавлено
+import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/repositories/template_repository.dart';
-import 'package:characterbook/data/repositories/relationship_repository.dart'; // добавлено
+import 'package:characterbook/data/repositories/relationship_repository.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/notification_service.dart';
 import 'package:flutter/foundation.dart';
@@ -71,7 +71,6 @@ class BackupManager {
           templateRepo, data['templates']);
     }
     if (data.containsKey('relationships')) {
-      // добавлено
       await _restoreItems<Relationship>(
           relationshipRepo, data['relationships']);
     }
@@ -95,8 +94,7 @@ class BackupManager {
     if (type == Character) return Character.fromJson(json);
     if (type == Note) return Note.fromJson(json);
     if (type == Race) return Race.fromJson(json);
-    if (type == QuestionnaireTemplate)
-      return QuestionnaireTemplate.fromJson(json);
+    if (type == QuestionnaireTemplate) return QuestionnaireTemplate.fromJson(json);
     if (type == Relationship) return Relationship.fromJson(json);
     return null;
   }
@@ -154,7 +152,7 @@ class LocalBackupService implements BackupService {
   Future<void> _exportForMobile(String backupJson) async {
     final directory = await getApplicationDocumentsDirectory();
     final fileName =
-        'characterbook_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+        'characterbook_backup_${DateTime.now().millisecondsSinceEpoch}.characterbook';
     final file = File('${directory.path}/$fileName');
     await file.writeAsBytes(utf8.encode(backupJson));
     await Share.shareXFiles(
@@ -237,7 +235,7 @@ class CloudBackupService implements BackupService {
 
     final driveApi = drive.DriveApi(client);
     final fileName =
-        '${_backupPrefix}_${DateTime.now().toIso8601String()}.json';
+        '${_backupPrefix}_${DateTime.now().toIso8601String()}.characterbook';
 
     await driveApi.files.create(
       drive.File()..name = fileName,
@@ -258,7 +256,7 @@ class CloudBackupService implements BackupService {
     _driveApi ??= drive.DriveApi(client);
 
     final files = await _driveApi!.files.list(
-      q: "name contains '$_backupPrefix' and mimeType='application/json'",
+      q: "name contains '$_backupPrefix' and mimeType='application/characterbook'",
       orderBy: 'createdTime desc',
       pageSize: 1,
     );

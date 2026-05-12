@@ -32,6 +32,8 @@
                 <data android:pathPattern=".*\\.character" />
                 <data android:pathPattern=".*\\.race" />
                 <data android:pathPattern=".*\\.chax" />
+                <data android:pathPattern=".*\\.note" />
+                <data android:pathPattern=".*\\.characterbook" />
             </intent-filter>
 
             <meta-data
