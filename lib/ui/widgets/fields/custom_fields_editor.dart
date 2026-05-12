@@ -155,7 +155,6 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
     final field = _fields[index];
     final s = S.of(context);
     final result = await Navigator.push<FieldEditorResult>(
-      // ← FieldEditorResult!
       context,
       MaterialPageRoute(
         builder: (_) => FieldEditorScreen(
@@ -208,8 +207,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
       clipBehavior: Clip.antiAlias,
       child: ReorderableDragStartListener(
         index: index,
-        key: ValueKey(
-            '${field.key}_${field.value}_$index'),
+        key: ValueKey('${field.key}_${field.value}_$index'),
         child: ListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -231,12 +229,20 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   style: theme.textTheme.bodyMedium
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 )
-              : null,
-          trailing: IconButton(
-            icon: const Icon(Icons.delete_outline),
-            color: theme.colorScheme.error,
-            tooltip: s.delete,
-            onPressed: () => _removeField(index),
+              : const SizedBox.shrink(),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.edit_outlined,
+                  size: 20, color: theme.colorScheme.primary),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                color: theme.colorScheme.error,
+                tooltip: s.delete,
+                onPressed: () => _removeField(index),
+              ),
+            ],
           ),
           onTap: () => _editFieldFullscreen(index),
         ),
@@ -251,12 +257,24 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                s.custom_fields_editor_title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.custom_fields_editor_title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.custom_fields_editor_subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),
@@ -286,19 +304,8 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
             },
           ),
         if (_fields.isEmpty)
-          Column(
-            children: [
-              Icon(Icons.notes_rounded,
-                  size: 48, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(height: 16),
-              Text(
-                s.no_custom_fields,
-                style: theme.textTheme.bodyLarge
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+          _buildEmptyCallToAction(s, theme,
+              onTap: _addAndEditField, isFullscreen: true),
       ],
     );
   }
@@ -310,12 +317,24 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                s.custom_fields_editor_title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.custom_fields_editor_title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.custom_fields_editor_subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),
@@ -349,19 +368,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
             },
           ),
         if (_fields.isEmpty)
-          Column(
-            children: [
-              Icon(Icons.notes_rounded,
-                  size: 48, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(height: 16),
-              Text(
-                s.no_custom_fields,
-                style: theme.textTheme.bodyLarge
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+          _buildEmptyCallToAction(s, theme, onTap: _addField),
       ],
     );
   }
@@ -447,12 +454,24 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                s.custom_fields,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.custom_fields,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.custom_fields_editor_subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),
@@ -475,31 +494,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
           ),
         ),
         if (_fields.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.notes_rounded,
-                  size: 48,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  s.no_custom_fields,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+          _buildEmptyCallToAction(s, theme, onTap: _addField),
       ],
     );
   }
@@ -573,6 +568,50 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyCallToAction(S s, ThemeData theme,
+      {required VoidCallback onTap, bool isFullscreen = false}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isFullscreen ? Icons.edit_note_rounded : Icons.notes_rounded,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            s.no_custom_fields,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            s.custom_fields_editor_subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          FilledButton.tonalIcon(
+            onPressed: onTap,
+            icon: const Icon(Icons.add_rounded),
+            label: Text(s.add_field),
+          ),
+        ],
       ),
     );
   }

@@ -585,5 +585,15 @@
   "add_to_calendar": "Добавить в системный календарь",
   "file_word": "Word документ",
   "word_export_success": "Word документ успешно экспортирован",
-  "word_export_error": "Ошибка экспорта в Word"
+  "word_export_error": "Ошибка экспорта в Word",
+  "custom_fields_editor_title": "Дополнительные характеристики",
+  "custom_fields_editor_subtitle": "Добавьте любые произвольные поля для описания персонажа",
+  "add_field": "Добавить поле",
+  "no_custom_fields": "Пока нет дополнительных характеристик",
+  "field_removed": "Характеристика удалена",
+  "field_name": "Название характеристики",
+  "field_name_hint": "Например: «Цвет глаз»",
+  "field_value": "Значение",
+  "field_value_hint": "Введите значение",
+  "custom_fields": "Дополнительные поля"
 }

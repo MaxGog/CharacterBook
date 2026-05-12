@@ -72,7 +72,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "accentColor": MessageLookupByLibrary.simpleMessage("Accent"),
         "acknowledgements": MessageLookupByLibrary.simpleMessage("Credits"),
         "add_event": MessageLookupByLibrary.simpleMessage("Add event"),
-        "add_field": MessageLookupByLibrary.simpleMessage("Add"),
+        "add_field": MessageLookupByLibrary.simpleMessage("Add Field"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Add"),
         "add_relationships":
             MessageLookupByLibrary.simpleMessage("Add relationship"),
@@ -237,9 +237,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "custom": MessageLookupByLibrary.simpleMessage("custom"),
         "custom_color": MessageLookupByLibrary.simpleMessage("Custom"),
         "custom_event": MessageLookupByLibrary.simpleMessage("Custom event"),
-        "custom_fields": MessageLookupByLibrary.simpleMessage("Custom"),
+        "custom_fields": MessageLookupByLibrary.simpleMessage("Custom Fields"),
+        "custom_fields_editor_subtitle": MessageLookupByLibrary.simpleMessage(
+            "Add any custom fields to describe the character"),
         "custom_fields_editor_title":
-            MessageLookupByLibrary.simpleMessage("Custom Fields"),
+            MessageLookupByLibrary.simpleMessage("Additional Characteristics"),
         "customize_theme": MessageLookupByLibrary.simpleMessage("Customize"),
         "dark": MessageLookupByLibrary.simpleMessage("Dark"),
         "data_initialization_error":
@@ -314,11 +316,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "export_to_file":
             MessageLookupByLibrary.simpleMessage("Export to file"),
         "female": MessageLookupByLibrary.simpleMessage("Female"),
-        "field_name": MessageLookupByLibrary.simpleMessage("Name"),
-        "field_name_hint": MessageLookupByLibrary.simpleMessage("Field name"),
+        "field_name": MessageLookupByLibrary.simpleMessage("Field Name"),
+        "field_name_hint":
+            MessageLookupByLibrary.simpleMessage("e.g. \"Eye color\""),
         "field_removed": MessageLookupByLibrary.simpleMessage("Field removed"),
         "field_value": MessageLookupByLibrary.simpleMessage("Value"),
-        "field_value_hint": MessageLookupByLibrary.simpleMessage("Field value"),
+        "field_value_hint": MessageLookupByLibrary.simpleMessage("Enter value"),
         "fields_asc": MessageLookupByLibrary.simpleMessage("Fields ↑"),
         "fields_count": m8,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Fields ↓"),
@@ -455,7 +458,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_content": MessageLookupByLibrary.simpleMessage("No content"),
         "no_content_home": MessageLookupByLibrary.simpleMessage("Empty"),
         "no_custom_fields":
-            MessageLookupByLibrary.simpleMessage("No custom fields"),
+            MessageLookupByLibrary.simpleMessage("No custom fields yet"),
         "no_data_for_backup": MessageLookupByLibrary.simpleMessage(
             "No data to back up. Add at least one item (character, note, race, etc.) before exporting."),
         "no_data_found": MessageLookupByLibrary.simpleMessage("No data"),

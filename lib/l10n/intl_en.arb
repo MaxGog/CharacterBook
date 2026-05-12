@@ -441,5 +441,15 @@
   "add_to_calendar": "Add to the system calendar",
   "file_word": "Document Word",
   "word_export_success": "Word export success",
-  "word_export_error": "Export error Word"
+  "word_export_error": "Export error Word",
+  "custom_fields_editor_title": "Additional Characteristics",
+  "custom_fields_editor_subtitle": "Add any custom fields to describe the character",
+  "add_field": "Add Field",
+  "no_custom_fields": "No custom fields yet",
+  "field_removed": "Field removed",
+  "field_name": "Field Name",
+  "field_name_hint": "e.g. \"Eye color\"",
+  "field_value": "Value",
+  "field_value_hint": "Enter value",
+  "custom_fields": "Custom Fields"
 }

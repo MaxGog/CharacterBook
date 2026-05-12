@@ -980,60 +980,60 @@ class S {
     );
   }
 
-  /// `Доп. поля`
+  /// `Дополнительные поля`
   String get custom_fields {
     return Intl.message(
-      'Доп. поля',
+      'Дополнительные поля',
       name: 'custom_fields',
       desc: '',
       args: [],
     );
   }
 
-  /// `Доп. характеристики`
+  /// `Дополнительные характеристики`
   String get custom_fields_editor_title {
     return Intl.message(
-      'Доп. характеристики',
+      'Дополнительные характеристики',
       name: 'custom_fields_editor_title',
       desc: '',
       args: [],
     );
   }
 
-  /// `Добавить характеристику`
+  /// `Добавить поле`
   String get add_field {
     return Intl.message(
-      'Добавить характеристику',
+      'Добавить поле',
       name: 'add_field',
       desc: '',
       args: [],
     );
   }
 
-  /// `Нет доп. характеристик`
+  /// `Пока нет дополнительных характеристик`
   String get no_custom_fields {
     return Intl.message(
-      'Нет доп. характеристик',
+      'Пока нет дополнительных характеристик',
       name: 'no_custom_fields',
       desc: '',
       args: [],
     );
   }
 
-  /// `Имя характеристики`
+  /// `Название характеристики`
   String get field_name {
     return Intl.message(
-      'Имя характеристики',
+      'Название характеристики',
       name: 'field_name',
       desc: '',
       args: [],
     );
   }
 
-  /// `Название характеристики`
+  /// `Например: «Цвет глаз»`
   String get field_name_hint {
     return Intl.message(
-      'Название характеристики',
+      'Например: «Цвет глаз»',
       name: 'field_name_hint',
       desc: '',
       args: [],
@@ -1050,10 +1050,10 @@ class S {
     );
   }
 
-  /// `Значение характеристики`
+  /// `Введите значение`
   String get field_value_hint {
     return Intl.message(
-      'Значение характеристики',
+      'Введите значение',
       name: 'field_value_hint',
       desc: '',
       args: [],
@@ -5057,10 +5057,10 @@ class S {
     );
   }
 
-  /// `Поле удалено`
+  /// `Характеристика удалена`
   String get field_removed {
     return Intl.message(
-      'Поле удалено',
+      'Характеристика удалена',
       name: 'field_removed',
       desc: '',
       args: [],
@@ -5732,6 +5732,16 @@ class S {
     return Intl.message(
       'Ошибка экспорта в Word',
       name: 'word_export_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Добавьте любые произвольные поля для описания персонажа`
+  String get custom_fields_editor_subtitle {
+    return Intl.message(
+      'Добавьте любые произвольные поля для описания персонажа',
+      name: 'custom_fields_editor_subtitle',
       desc: '',
       args: [],
     );

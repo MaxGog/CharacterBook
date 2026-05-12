@@ -87,8 +87,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Благодарности"),
         "activity_timeline": MessageLookupByLibrary.simpleMessage("Активность"),
         "add_event": MessageLookupByLibrary.simpleMessage("Добавить событие"),
-        "add_field":
-            MessageLookupByLibrary.simpleMessage("Добавить характеристику"),
+        "add_field": MessageLookupByLibrary.simpleMessage("Добавить поле"),
         "add_picture": MessageLookupByLibrary.simpleMessage("Добавить"),
         "add_relationships":
             MessageLookupByLibrary.simpleMessage("Добавить связь"),
@@ -296,9 +295,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "custom": MessageLookupByLibrary.simpleMessage("доп."),
         "custom_color": MessageLookupByLibrary.simpleMessage("Свой цвет"),
         "custom_event": MessageLookupByLibrary.simpleMessage("Своё событие"),
-        "custom_fields": MessageLookupByLibrary.simpleMessage("Доп. поля"),
-        "custom_fields_editor_title":
-            MessageLookupByLibrary.simpleMessage("Доп. характеристики"),
+        "custom_fields":
+            MessageLookupByLibrary.simpleMessage("Дополнительные поля"),
+        "custom_fields_editor_subtitle": MessageLookupByLibrary.simpleMessage(
+            "Добавьте любые произвольные поля для описания персонажа"),
+        "custom_fields_editor_title": MessageLookupByLibrary.simpleMessage(
+            "Дополнительные характеристики"),
         "custom_layout": MessageLookupByLibrary.simpleMessage("Свой"),
         "custom_preset": MessageLookupByLibrary.simpleMessage("Свой пресет"),
         "customize_theme":
@@ -401,13 +403,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "feedback": MessageLookupByLibrary.simpleMessage("Отзыв"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
         "field_name":
-            MessageLookupByLibrary.simpleMessage("Имя характеристики"),
-        "field_name_hint":
             MessageLookupByLibrary.simpleMessage("Название характеристики"),
-        "field_removed": MessageLookupByLibrary.simpleMessage("Поле удалено"),
+        "field_name_hint":
+            MessageLookupByLibrary.simpleMessage("Например: «Цвет глаз»"),
+        "field_removed":
+            MessageLookupByLibrary.simpleMessage("Характеристика удалена"),
         "field_value": MessageLookupByLibrary.simpleMessage("Значение"),
         "field_value_hint":
-            MessageLookupByLibrary.simpleMessage("Значение характеристики"),
+            MessageLookupByLibrary.simpleMessage("Введите значение"),
         "fields_asc": MessageLookupByLibrary.simpleMessage("Полей ↑"),
         "fields_count": m8,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Полей ↓"),
@@ -577,8 +580,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_characters": MessageLookupByLibrary.simpleMessage("Нет персонажей"),
         "no_content": MessageLookupByLibrary.simpleMessage("Нет содержания"),
         "no_content_home": MessageLookupByLibrary.simpleMessage("Пока пусто"),
-        "no_custom_fields":
-            MessageLookupByLibrary.simpleMessage("Нет доп. характеристик"),
+        "no_custom_fields": MessageLookupByLibrary.simpleMessage(
+            "Пока нет дополнительных характеристик"),
         "no_data_for_backup": MessageLookupByLibrary.simpleMessage(
             "Нет данных для резервного копирования. Добавьте хотя бы один элемент (персонажа, заметку, расу и т.д.) перед экспортом."),
         "no_data_found": MessageLookupByLibrary.simpleMessage("Нет данных"),
