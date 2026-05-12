@@ -238,6 +238,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
           final colorScheme = theme.colorScheme;
 
           return Scaffold(
+            key: const PageStorageKey('noteList'),
             body: NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification is ScrollUpdateNotification) {

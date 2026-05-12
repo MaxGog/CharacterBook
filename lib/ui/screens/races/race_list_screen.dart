@@ -7,7 +7,6 @@ import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/ui/controllers/race_list_controller.dart';
-import 'package:characterbook/ui/navigation/menu_content.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/tools_context_menu.dart';
@@ -196,61 +195,6 @@ class _RaceListScreenState extends State<RaceListScreen> {
     }
   }
 
-  void _showAccountMenu() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 4),
-                  width: 32,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.pop(context),
-                        tooltip: S.of(context).close,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: MenuContent(scrollController: scrollController),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void _handleCreateRace(BuildContext context) {
     Navigator.push(
       context,
@@ -419,7 +363,7 @@ class _RaceListScreenState extends State<RaceListScreen> {
                           icon: const Icon(Icons.account_circle_rounded),
                           iconSize: 32,
                           tooltip: s.more_options,
-                          onPressed: _showAccountMenu,
+                          onPressed: () => AppNavigator.openMenu(context),
                         ),
                       ] else ...[
                         if (_searchController.text.isNotEmpty)

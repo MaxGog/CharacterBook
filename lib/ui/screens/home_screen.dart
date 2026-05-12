@@ -416,6 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(
+        key: const PageStorageKey('home'),
         body: RefreshIndicator(
           onRefresh: () => _controller.loadData(),
           child: NestedScrollView(

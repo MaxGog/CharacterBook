@@ -321,6 +321,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
           final colorScheme = theme.colorScheme;
 
           return Scaffold(
+            key: const PageStorageKey('characterList'),
             body: NotificationListener<ScrollUpdateNotification>(
               onNotification: (notification) {
                 final metrics = notification.metrics;
