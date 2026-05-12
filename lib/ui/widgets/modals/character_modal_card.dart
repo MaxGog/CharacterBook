@@ -7,11 +7,10 @@ import 'package:characterbook/data/models/note_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/character_modal_controller.dart';
-import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
-import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/edit_relationship_bottom_sheet.dart';
 import 'package:characterbook/ui/widgets/items/note_card_item.dart';
@@ -316,22 +315,13 @@ class CharacterModalCard extends StatelessWidget {
   }
 
   void _showSnackBar(BuildContext context, String message,
-      {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
-      ),
-    );
-  }
+    {bool isError = true}) {
+      AppNavigator.showError(message);
+    }
 
   Future<void> _navigateToEdit(BuildContext context) async {
     Navigator.pop(context);
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => CharacterManagementScreen(character: character)),
-    );
+    AppNavigator.editCharacter(character);
   }
 
   Widget _buildContentSections(
@@ -546,12 +536,7 @@ class CharacterModalCard extends StatelessWidget {
   }
 
   Future<void> _openNoteForEditing(BuildContext context, Note note) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => NoteManagementScreen(note: note)),
-    );
-    if (result == true) {
-      context.read<CharacterModalController>().refreshNotes();
-    }
+    Navigator.pop(context);
+    await AppNavigator.editNote(note);
   }
 }

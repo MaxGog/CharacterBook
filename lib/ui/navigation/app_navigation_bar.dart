@@ -1,19 +1,32 @@
 import 'package:characterbook/generated/l10n.dart';
+import 'package:characterbook/ui/navigation/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppNavigationBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  const AppNavigationBar({super.key, required this.navigationShell});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  const AppNavigationBar({
+    super.key,
+    required this.navigationShell,
+    required this.scaffoldKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= 600) {
-          return _WideScreenLayout(navigationShell: navigationShell);
+          return _WideScreenLayout(
+            navigationShell: navigationShell,
+            scaffoldKey: scaffoldKey,
+          );
         } else {
-          return _NarrowScreenLayout(navigationShell: navigationShell);
+          return _NarrowScreenLayout(
+            navigationShell: navigationShell,
+            scaffoldKey: scaffoldKey,
+          );
         }
       },
     );
@@ -22,7 +35,12 @@ class AppNavigationBar extends StatelessWidget {
 
 class _WideScreenLayout extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  const _WideScreenLayout({required this.navigationShell});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  const _WideScreenLayout({
+    required this.navigationShell,
+    required this.scaffoldKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +60,8 @@ class _WideScreenLayout extends StatelessWidget {
     ];
 
     return Scaffold(
+      key: scaffoldKey,
+      drawer: const AppDrawer(),
       body: Row(
         children: [
           NavigationRail(
@@ -69,7 +89,12 @@ class _WideScreenLayout extends StatelessWidget {
 
 class _NarrowScreenLayout extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  const _NarrowScreenLayout({required this.navigationShell});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  const _NarrowScreenLayout({
+    required this.navigationShell,
+    required this.scaffoldKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +114,8 @@ class _NarrowScreenLayout extends StatelessWidget {
     ];
 
     return Scaffold(
+      key: scaffoldKey,
+      drawer: const AppDrawer(),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,

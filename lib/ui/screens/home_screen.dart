@@ -6,6 +6,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/date_formatter.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
@@ -13,10 +14,6 @@ import 'package:characterbook/ui/controllers/home_controller.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/widgets/modals/race_modal_card.dart';
-import 'package:characterbook/ui/navigation/menu_content.dart';
-import 'package:characterbook/ui/screens/characters/character_management_screen.dart';
-import 'package:characterbook/ui/screens/notes/note_management_screen.dart';
-import 'package:characterbook/ui/screens/races/race_management_screen.dart';
 import 'package:characterbook/ui/widgets/home_fab_menu.dart';
 import 'package:characterbook/ui/widgets/items/character_keep_card_item.dart';
 import 'package:characterbook/ui/widgets/items/home_item.dart';
@@ -42,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
   bool _isSearching = false;
-  FocusNode _searchFocus = FocusNode();
+  final FocusNode _searchFocus = FocusNode();
 
   @override
   void initState() {
@@ -111,64 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToTool(Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  void _showAccountMenu() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(32),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 4),
-                  width: 32,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.pop(context),
-                        tooltip: S.of(context).close,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: MenuContent(
-                    scrollController: scrollController,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
   }
 
   void _showCharacterDetail(CharacterHomeItem item) {
@@ -397,22 +336,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _editCharacter(Character character) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CharacterManagementScreen(character: character),
-      ),
-    );
+    final result = AppNavigator.editCharacter(character);
     if (result == true && mounted) await _loadData();
   }
 
   Future<void> _editRace(Race race) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RaceManagementScreen(race: race),
-      ),
-    );
+    final result = AppNavigator.editRace(race);
     if (result == true && mounted) await _loadData();
   }
 
@@ -511,7 +440,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-
                 title: _isSearching ? null : Text(s.app_name),
                 actions: [
                   if (!_isSearching) ...[
@@ -522,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.account_circle_rounded),
                       iconSize: 32,
-                      onPressed: _showAccountMenu,
+                      onPressed: () => AppNavigator.openMenu(context),
                       tooltip: s.more_options,
                     ),
                   ] else ...[
@@ -605,39 +533,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         floatingActionButton: HomeFloatingMenu(
-          onCreateCharacter: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const CharacterManagementScreen()),
-            ).then((result) {
-              if (result == true && mounted) _loadData();
-            });
-          },
-          onCreateRace: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RaceManagementScreen()),
-            ).then((result) {
-              if (result == true && mounted) _loadData();
-            });
-          },
-          onCreateNote: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NoteManagementScreen()),
-            ).then((result) {
-              if (result == true && mounted) _loadData();
-            });
-          },
+          onCreateCharacter: () => AppNavigator.openNewCharacter(),
+          onCreateRace: () => AppNavigator.openNewRace(),
+          onCreateNote: () => AppNavigator.openNewNote(),
         ),
       ),
     );
   }
 
-  void _createNewContent() {
-    // FAB уже обрабатывает создание
-  }
+  void _createNewContent() => AppNavigator.openNewCharacter();
+
+  Future<void> refresh() async => await _loadData();
+
 }
 
 class _SearchResultsGrid extends StatelessWidget {

@@ -10,18 +10,107 @@ import 'package:characterbook/ui/screens/notes/note_list_screen.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
 import 'package:characterbook/ui/screens/races/race_list_screen.dart';
 import 'package:characterbook/ui/screens/settings/settings_screen.dart';
+import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
+import 'package:characterbook/ui/screens/templates/template_list_screen.dart';
 import 'package:characterbook/ui/navigation/app_navigation_bar.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+final scaffoldKey = GlobalKey<ScaffoldState>();
+
+class SharedAxisPage<T> extends CustomTransitionPage<T> {
+  SharedAxisPage({
+    required LocalKey key,
+    required Widget child,
+    bool fullscreenDialog = false,
+    Duration duration = const Duration(milliseconds: 300),
+  }) : super(
+          key: key,
+          child: child,
+          fullscreenDialog: fullscreenDialog,
+          transitionDuration: duration,
+          reverseTransitionDuration: duration,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return _SharedAxisTransition(
+              animation: animation,
+              secondaryAnimation: secondaryAnimation,
+              child: child,
+            );
+          },
+        );
+}
+
+class _SharedAxisTransition extends StatelessWidget {
+  final Animation<double> animation;
+  final Animation<double> secondaryAnimation;
+  final Widget child;
+
+  const _SharedAxisTransition({
+    required this.animation,
+    required this.secondaryAnimation,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ));
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ));
+
+        return SlideTransition(
+          position: slideAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class FadeThroughPage<T> extends CustomTransitionPage<T> {
+  FadeThroughPage({
+    required LocalKey super.key,
+    required super.child,
+    super.fullscreenDialog,
+    super.transitionDuration,
+  }) : super(
+          reverseTransitionDuration: transitionDuration,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        );
+}
 
 final appRouter = GoRouter(
   initialLocation: '/home',
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return AppNavigationBar(navigationShell: navigationShell);
+        return AppNavigationBar(
+          navigationShell: navigationShell,
+          scaffoldKey: scaffoldKey,
+        );
       },
       branches: [
-        // Ветка: Главная
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -38,27 +127,35 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final extra = state.extra;
-                    if (extra is QuestionnaireTemplate) {
-                      return CharacterManagementScreen(template: extra);
-                    }
-                    return const CharacterManagementScreen();
+                    final template =
+                        extra is QuestionnaireTemplate ? extra : null;
+                    return SharedAxisPage<bool>(
+                      key: const ValueKey('character_create'),
+                      child: template != null
+                          ? CharacterManagementScreen(template: template)
+                          : const CharacterManagementScreen(),
+                    );
                   },
                 ),
                 GoRoute(
                   path: ':characterId/edit',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final extra = state.extra;
-                    final character = extra is Character ? extra : null;
-                    return CharacterManagementScreen(character: character);
+                    return SharedAxisPage<bool>(
+                      key: ValueKey(
+                          'character_edit_${state.pathParameters['characterId']}'),
+                      child: CharacterManagementScreen(
+                        character: extra is Character ? extra : null,
+                      ),
+                    );
                   },
                 ),
               ],
             ),
           ],
         ),
-        // Ветка: Расы
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -67,21 +164,27 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
-                  builder: (context, state) => const RaceManagementScreen(),
+                  pageBuilder: (context, state) => SharedAxisPage<bool>(
+                    key: const ValueKey('race_create'),
+                    child: const RaceManagementScreen(),
+                  ),
                 ),
                 GoRoute(
                   path: ':raceId/edit',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final extra = state.extra;
-                    final race = extra is Race ? extra : null;
-                    return RaceManagementScreen(race: race);
+                    return SharedAxisPage<bool>(
+                      key: ValueKey(
+                          'race_edit_${state.pathParameters['raceId']}'),
+                      child: RaceManagementScreen(
+                          race: extra is Race ? extra : null),
+                    );
                   },
                 ),
               ],
             ),
           ],
         ),
-        // Ветка: Заметки
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -90,14 +193,21 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
-                  builder: (context, state) => const NoteManagementScreen(),
+                  pageBuilder: (context, state) => SharedAxisPage<bool>(
+                    key: const ValueKey('note_create'),
+                    child: const NoteManagementScreen(),
+                  ),
                 ),
                 GoRoute(
                   path: ':noteId/edit',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final extra = state.extra;
-                    final note = extra is Note ? extra : null;
-                    return NoteManagementScreen(note: note);
+                    return SharedAxisPage<bool>(
+                      key: ValueKey(
+                          'note_edit_${state.pathParameters['noteId']}'),
+                      child: NoteManagementScreen(
+                          note: extra is Note ? extra : null),
+                    );
                   },
                 ),
               ],
@@ -106,9 +216,29 @@ final appRouter = GoRouter(
         ),
       ],
     ),
+    // Настройки и шаблоны
     GoRoute(
       path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
+      pageBuilder: (context, state) => SharedAxisPage(
+        key: const ValueKey('settings'),
+        child: const SettingsScreen(),
+      ),
+      routes: [
+        GoRoute(
+          path: 'swipe-actions',
+          pageBuilder: (context, state) => SharedAxisPage<bool>(
+            key: const ValueKey('swipe_actions'),
+            child: const SwipeActionSettingsScreen(),
+          ),
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/templates',
+      pageBuilder: (context, state) => FadeThroughPage<QuestionnaireTemplate?>(
+        key: const ValueKey('templates'),
+        child: const TemplatesListScreen(),
+      ),
     ),
   ],
 );

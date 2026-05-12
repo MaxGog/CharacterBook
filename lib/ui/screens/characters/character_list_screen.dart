@@ -1,17 +1,13 @@
 import 'package:characterbook/data/enums/character_sort_enum.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
-import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
-import 'package:characterbook/ui/navigation/menu_content.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/controllers/character_list_controller.dart';
-import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
-import 'package:characterbook/ui/screens/templates/template_list_screen.dart';
 import 'package:characterbook/ui/widgets/common_fab_menu.dart';
 import 'package:characterbook/ui/widgets/list/list_state_indicator.dart';
 import 'package:characterbook/ui/widgets/items/character_card_item.dart';
@@ -20,8 +16,6 @@ import 'package:characterbook/ui/widgets/tools_context_menu.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'character_management_screen.dart';
 
 class _TagGroup {
   final String tag;
@@ -114,8 +108,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     try {
       final character = await context
           .read<CharacterListController>()
-          .importCharacter(
-              () => FilePickerService().importCharacter(), service);
+          .importCharacter(() => FilePickerService().importCharacter(), service);
       if (mounted && character != null) {
         AppNavigator.showSuccess(S.of(context).character_imported(character.name));
       }
@@ -148,60 +141,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         false;
   }
 
-  void _showAccountMenu() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 4),
-                  width: 32,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.pop(context),
-                        tooltip: S.of(context).close,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: MenuContent(scrollController: scrollController),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   void _navigateToDetail(Character character) {
     setState(() => _animatingHeroId = character.id);
@@ -218,20 +157,17 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   }
 
   void _navigateToEdit(BuildContext context, [Character? character]) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (_) => CharacterManagementScreen(character: character)),
-    );
+    if (character != null) {
+      AppNavigator.editCharacter(character);
+    } else {
+      AppNavigator.openNewCharacter();
+    }
   }
 
   Future<void> _createFromTemplate(BuildContext context) async {
-    final template = await Navigator.push<QuestionnaireTemplate>(
-      context,
-      MaterialPageRoute(builder: (_) => const TemplatesListScreen()),
-    );
+    final template = await AppNavigator.openTemplates();
     if (template != null && mounted) {
-      _navigateToEdit(context, template.applyToCharacter(Character.empty()));
+      AppNavigator.openNewCharacter(template: template);
     }
   }
 
@@ -431,7 +367,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                           icon: const Icon(Icons.account_circle_rounded),
                           iconSize: 32,
                           tooltip: s.more_options,
-                          onPressed: _showAccountMenu,
+                          onPressed: () => AppNavigator.openMenu(context),
                         ),
                       ] else ...[
                         if (_searchController.text.isNotEmpty)
@@ -588,14 +524,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                                     onDuplicate: () => service
                                                         .duplicateCharacter(
                                                             character),
-                                                    onSettings: () =>
-                                                        Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            const SwipeActionSettingsScreen(),
-                                                      ),
-                                                    ),
+                                                    onSettings: () => AppNavigator
+                                                        .openSwipeActionSettings(),
                                                     onShare: () =>
                                                         service.exportToPdf(
                                                             context, character),
@@ -629,13 +559,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                   _deleteCharacter(character, controller),
                               onDuplicate: () =>
                                   service.duplicateCharacter(character),
-                              onSettings: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const SwipeActionSettingsScreen(),
-                                ),
-                              ),
+                              onSettings: () =>
+                                  AppNavigator.openSwipeActionSettings(),
                               onShare: () =>
                                   service.exportToPdf(context, character),
                             );

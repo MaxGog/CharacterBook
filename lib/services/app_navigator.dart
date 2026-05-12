@@ -59,6 +59,14 @@ class AppNavigator {
     appRouter.push('/settings');
   }
 
+  static Future<QuestionnaireTemplate?> openTemplates() {
+    return appRouter.push<QuestionnaireTemplate>('/templates');
+  }
+
+  static Future<bool?> openSwipeActionSettings() {
+    return appRouter.push<bool>('/settings/swipe-actions');
+  }
+
   static void openFilePicker() {
     final ctx = _context;
     if (ctx != null) {
@@ -84,7 +92,7 @@ class AppNavigator {
 
   static void openMenu(BuildContext context) {
     if (MediaQuery.of(context).size.width >= 600) {
-      Scaffold.of(context).openDrawer();
+      scaffoldKey.currentState?.openDrawer();
     } else {
       showModalBottomSheet(
         context: context,

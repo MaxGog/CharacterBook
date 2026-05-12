@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
@@ -33,7 +31,6 @@ class _EditRelationshipBottomSheetState
   bool _directed = false;
 
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -49,8 +46,6 @@ class _EditRelationshipBottomSheetState
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
-    _pulseAnimation =
-        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
 
     _loadCharacters();
   }
