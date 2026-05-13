@@ -25,10 +25,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -38,6 +36,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {
@@ -45,17 +44,18 @@ android {
                 storePassword = keystoreProperties["storePassword"] as String
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
+            } else {
+                storeFile = file("keystore.jks")
+                storePassword = "2404Bhbyf1975"
+                keyAlias = "upload"
+                keyPassword = "2404Bhbyf1975"
             }
         }
     }
 
     buildTypes {
-        getByName("release") {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+        release {
+            signingConfig = signingConfigs["release"]
             isShrinkResources = true
             isMinifyEnabled = true
             proguardFiles(
