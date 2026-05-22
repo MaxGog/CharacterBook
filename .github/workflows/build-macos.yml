@@ -1,9 +1,7 @@
-name: Build macOS App
+name: Build macOS App (unsigned)
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
@@ -13,50 +11,34 @@ env:
 jobs:
   build-macos:
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-
-      - name: Enable macOS desktop support
+      
+      - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
-
+      
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Build macOS app
-        run: flutter build macos --release
-
-      - name: Create DMG (optional)
+      
+      - name: Fix deployment target & disable code signing
         run: |
-          brew install create-dmg
-          create-dmg --volname "CharacterBook" \
-                     --window-pos 200 120 \
-                     --window-size 800 400 \
-                     --icon-size 100 \
-                     --icon "CharacterBook.app" 200 190 \
-                     --hide-extension "CharacterBook.app" \
-                     --app-drop-link 600 185 \
-                     "CharacterBook.dmg" \
-                     "build/macos/Build/Products/Release/CharacterBook.app"
-
-      - name: Upload .app bundle
+          sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = 26.0/MACOSX_DEPLOYMENT_TARGET = 11.0/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_IDENTITY = "Mac Development"/CODE_SIGN_IDENTITY = ""/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' macos/Runner.xcodeproj/project.pbxproj
+      
+      - name: Build macOS app (unsigned)
+        run: flutter build macos --release
+      
+      - name: Upload .app
         uses: actions/upload-artifact@v4
         with:
-          name: characterbook-macos-app
+          name: characterbook-macos
           path: build/macos/Build/Products/Release/*.app
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload DMG (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: characterbook-macos-dmg
-          path: CharacterBook.dmg
-          if-no-files-found: warn
-          retention-days: 30
