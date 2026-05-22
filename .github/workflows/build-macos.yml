@@ -32,11 +32,16 @@ jobs:
           pod install --repo-update
           cd ..
 
-      - name: Disable code signing in Xcode project
+      - name: Fix deployment target and entitlements
         run: |
-          # Фикс deployment target
-          /usr/libexec/PlistBuddy -c "Set :MACOSX_DEPLOYMENT_TARGET 11.0" macos/Runner.xcodeproj/project.pbxproj || true
-          
+          # Исправляем deployment target (замена 26.0 на 11.0)
+          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET = 26.0;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g' macos/Runner.xcodeproj/project.pbxproj
+
+          touch macos/Runner/Debug.entitlements
+          touch macos/Runner/Release.entitlements
+          touch macos/Runner/Profile.entitlements
+          touch macos/Runner/DebugProfile.entitlements
+
           perl -pi -e 's/CODE_SIGN_IDENTITY = ".*?";/CODE_SIGN_IDENTITY = "";/g' macos/Runner.xcodeproj/project.pbxproj
           perl -pi -e 's/CODE_SIGN_STYLE = .*?;/CODE_SIGN_STYLE = Manual;/g' macos/Runner.xcodeproj/project.pbxproj
           perl -pi -e 's/CODE_SIGNING_REQUIRED = .*?;/CODE_SIGNING_REQUIRED = NO;/g' macos/Runner.xcodeproj/project.pbxproj
@@ -44,11 +49,6 @@ jobs:
           perl -pi -e 's/CODE_SIGN_ENTITLEMENTS = .*?;/CODE_SIGN_ENTITLEMENTS = "";/g' macos/Runner.xcodeproj/project.pbxproj
           perl -pi -e 's/DEVELOPMENT_TEAM = .*?;//g' macos/Runner.xcodeproj/project.pbxproj
           perl -pi -e 's/PROVISIONING_PROFILE_SPECIFIER = .*?;//g' macos/Runner.xcodeproj/project.pbxproj
-
-          rm -f macos/Runner/*.entitlements
-          touch macos/Runner/Release.entitlements
-          touch macos/Runner/Debug.entitlements
-          touch macos/Runner/Profile.entitlements
 
       - name: Build macOS app (debug, unsigned)
         run: flutter build macos --debug
