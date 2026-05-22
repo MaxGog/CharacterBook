@@ -26,19 +26,48 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Fix deployment target & disable code signing
+      - name: Prepare project for unsigned build
         run: |
-          sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = 26.0/MACOSX_DEPLOYMENT_TARGET = 11.0/g' macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGN_IDENTITY = "Mac Development"/CODE_SIGN_IDENTITY = ""/g' macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' macos/Runner.xcodeproj/project.pbxproj
+          # Исправляем deployment target (было 26.0 — недопустимо)
+          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET = 26.0;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET = 26.0;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g' macos/Runner.xcodeproj/project.pbxproj
+          
+          # Отключаем code signing полностью
+          perl -pi -e 's/CODE_SIGN_IDENTITY = "Mac Development";/CODE_SIGN_IDENTITY = "";/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGNING_ALLOWED = YES;/CODE_SIGNING_ALLOWED = NO;/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGN_ENTITLEMENTS = Runner\/Release.entitlements;/CODE_SIGN_ENTITLEMENTS = "";/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGN_ENTITLEMENTS = Runner\/Debug.entitlements;/CODE_SIGN_ENTITLEMENTS = "";/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/CODE_SIGN_ENTITLEMENTS = Runner\/Profile.entitlements;/CODE_SIGN_ENTITLEMENTS = "";/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/DevelopmentTeam = [A-Z0-9]+;//g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' macos/Runner.xcodeproj/project.pbxproj
+          
+          # Удаляем файлы entitlements (чтобы Xcode не ругался)
+          rm -f macos/Runner/Release.entitlements macos/Runner/Debug.entitlements macos/Runner/Profile.entitlements 2>/dev/null || true
+          touch macos/Runner/Release.entitlements macos/Runner/Debug.entitlements macos/Runner/Profile.entitlements
       
-      - name: Build macOS app (unsigned)
-        run: flutter build macos --release
+      - name: Generate Flutter build files
+        run: flutter build macos --debug --no-codesign
+        continue-on-error: true
       
-      - name: Upload .app
+      - name: Build with xcodebuild (unsigned, debug)
+        run: |
+          cd macos
+          xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Debug \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            OTHER_CODE_SIGN_FLAGS="--signature-skip" \
+            build
+          cd ..
+      
+      - name: Upload .app (Debug build)
         uses: actions/upload-artifact@v4
         with:
-          name: characterbook-macos
-          path: build/macos/Build/Products/Release/*.app
+          name: characterbook-macos-debug
+          path: build/macos/Build/Products/Debug/*.app
+          if-no-files-found: error
+          retention-days: 30
