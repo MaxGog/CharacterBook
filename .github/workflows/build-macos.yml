@@ -1,0 +1,62 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.41.9'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Enable macOS desktop support
+        run: flutter config --enable-macos-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build macOS app
+        run: flutter build macos --release
+
+      - name: Create DMG (optional)
+        run: |
+          brew install create-dmg
+          create-dmg --volname "CharacterBook" \
+                     --window-pos 200 120 \
+                     --window-size 800 400 \
+                     --icon-size 100 \
+                     --icon "CharacterBook.app" 200 190 \
+                     --hide-extension "CharacterBook.app" \
+                     --app-drop-link 600 185 \
+                     "CharacterBook.dmg" \
+                     "build/macos/Build/Products/Release/CharacterBook.app"
+
+      - name: Upload .app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: characterbook-macos-app
+          path: build/macos/Build/Products/Release/*.app
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload DMG (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: characterbook-macos-dmg
+          path: CharacterBook.dmg
+          if-no-files-found: warn
+          retention-days: 30
