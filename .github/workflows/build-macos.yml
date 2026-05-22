@@ -34,8 +34,7 @@ jobs:
 
       - name: Fix deployment target and entitlements
         run: |
-          # Исправляем deployment target (замена 26.0 на 11.0)
-          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET = 26.0;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g' macos/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET = 26.0;/MACOSX_DEPLOYMENT_TARGET = 14.0;/g' macos/Runner.xcodeproj/project.pbxproj
 
           touch macos/Runner/Debug.entitlements
           touch macos/Runner/Release.entitlements
