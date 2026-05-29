@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import MobileCoreServices
 
+@main
 public class AppDelegate: FlutterAppDelegate {
     private let CHANNEL = "file_picker"
     private let FILE_HANDLE_CHANNEL = "file_handler"
