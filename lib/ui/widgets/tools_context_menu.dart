@@ -7,6 +7,9 @@ class ContextMenu extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback? onDuplicate;
   final VoidCallback onShare;
+  final VoidCallback? onPin;
+  final String? pinLabel;
+  final IconData? pinIcon;
 
   const ContextMenu({
     super.key,
@@ -15,6 +18,9 @@ class ContextMenu extends StatelessWidget {
     required this.onDelete,
     required this.onShare,
     this.onDuplicate,
+    this.onPin,
+    this.pinLabel,
+    this.pinIcon,
   });
 
   factory ContextMenu.character({
@@ -24,6 +30,9 @@ class ContextMenu extends StatelessWidget {
     required VoidCallback onDelete,
     required VoidCallback onShare,
     VoidCallback? onDuplicate,
+    VoidCallback? onPin,
+    String? pinLabel,
+    IconData? pinIcon,
   }) =>
       ContextMenu(
         key: key,
@@ -32,6 +41,9 @@ class ContextMenu extends StatelessWidget {
         onDelete: onDelete,
         onShare: onShare,
         onDuplicate: onDuplicate,
+        onPin: onPin,
+        pinLabel: pinLabel,
+        pinIcon: pinIcon,
       );
 
   factory ContextMenu.race({
@@ -40,6 +52,9 @@ class ContextMenu extends StatelessWidget {
     required VoidCallback onEdit,
     required VoidCallback onDelete,
     required VoidCallback onShare,
+    VoidCallback? onPin,
+    String? pinLabel,
+    IconData? pinIcon,
   }) =>
       ContextMenu(
         key: key,
@@ -47,6 +62,9 @@ class ContextMenu extends StatelessWidget {
         onEdit: onEdit,
         onDelete: onDelete,
         onShare: onShare,
+        onPin: onPin,
+        pinLabel: pinLabel,
+        pinIcon: pinIcon,
       );
 
   factory ContextMenu.note({
@@ -157,6 +175,26 @@ class ContextMenu extends StatelessWidget {
         onTap: () {
           Navigator.pop(context);
           onDuplicate!();
+        },
+      ));
+    }
+
+    if (onPin != null && pinLabel != null && pinIcon != null) {
+      items.add(Divider(
+        height: 1,
+        thickness: 1,
+        color: colorScheme.outlineVariant,
+        indent: 16,
+        endIndent: 16,
+      ));
+      items.add(_buildMenuItem(
+        context: context,
+        icon: pinIcon!,
+        label: pinLabel!,
+        color: colorScheme.onSurface,
+        onTap: () {
+          Navigator.pop(context);
+          onPin!();
         },
       ));
     }

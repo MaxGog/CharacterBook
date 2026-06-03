@@ -5,6 +5,7 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/ui/controllers/race_list_controller.dart';
 import 'package:characterbook/ui/screens/settings/swipe_action_settings_screen.dart';
@@ -122,44 +123,58 @@ class _RaceListScreenState extends State<RaceListScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.race(
-        race: race,
-        onEdit: () => _editRace(context, race),
-        onDelete: () => _deleteRace(race, controller, service),
-        onShare: () {
-          ShareOptionsDialog.show(
-            context,
-            onCopy: () async {
-              try {
-                await controller.raceClipboardText(race, context);
-                if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
-              } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
+      builder: (ctx) => FutureBuilder<bool>(
+        future: PinService.isPinned(race.id),
+        builder: (context, snapshot) {
+          final isPinned = snapshot.data ?? false;
+          return ContextMenu.race(
+            race: race,
+            onEdit: () => _editRace(context, race),
+            onDelete: () => _deleteRace(race, controller, service),
+            onShare: () {
+              ShareOptionsDialog.show(
+                context,
+                onCopy: () async {
+                  try {
+                    await controller.raceClipboardText(race, context);
+                    if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
+                  }
+                },
+                onShareFile: () async {
+                  try {
+                    await controller.shareRaceAsFile(race);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.error}: $e');
+                  }
+                },
+                onExportPdf: () async {
+                  try {
+                    await controller.exportRaceToPdf(race, context);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
+                  }
+                },
+                onExportWord: () async {
+                  try {
+                    await controller.exportRaceToWord(race, context);
+                  } catch (e) {
+                    if (context.mounted) {
+                      AppNavigator.showError('${s.export_error}: $e');
+                    }
+                  }
+                },
+              );
+            },
+            onPin: () async {
+              final pinned = await PinService.togglePinned(race.id);
+              if (context.mounted) {
+                AppNavigator.showSuccess(pinned ? s.pin_success : s.unpin_success);
               }
             },
-            onShareFile: () async {
-              try {
-                await controller.shareRaceAsFile(race);
-              } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.error}: $e');
-              }
-            },
-            onExportPdf: () async {
-              try {
-                await controller.exportRaceToPdf(race, context);
-              } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
-              }
-            },
-            onExportWord: () async {
-              try {
-                await controller.exportRaceToWord(race, context);
-              } catch (e) {
-                if (context.mounted) {
-                  AppNavigator.showError('${s.export_error}: $e');
-                }
-              }
-            },
+            pinLabel: isPinned ? s.unpin : s.pin,
+            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
           );
         },
       ),

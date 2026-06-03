@@ -7,6 +7,7 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/date_formatter.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
@@ -119,42 +120,80 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _toggleHomePin(HomeItem item) async {
+    _controller.togglePin(item);
+  }
+
   void _showCharacterContextMenu(CharacterHomeItem item) {
+    final s = S.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.character(
-        character: item.character,
-        onEdit: () {
-          _editCharacter(item.character);
-        },
-        onDelete: () {
-          _showDeleteDialog(item);
-        },
-        onDuplicate: () {
-          _duplicateCharacter(item);
-        },
-        onShare: () {
-          _showCharacterShareOptions(item);
+      builder: (ctx) => FutureBuilder<bool>(
+        future: PinService.isPinned(item.character.id),
+        builder: (context, snapshot) {
+          final isPinned = snapshot.data ?? false;
+          return ContextMenu.character(
+            character: item.character,
+            onEdit: () {
+              _editCharacter(item.character);
+            },
+            onDelete: () {
+              _showDeleteDialog(item);
+            },
+            onDuplicate: () {
+              _duplicateCharacter(item);
+            },
+            onShare: () {
+              _showCharacterShareOptions(item);
+            },
+            onPin: () async {
+              await _toggleHomePin(item);
+              if (mounted) {
+                AppNavigator.showSuccess(isPinned ? s.unpin_success : s.pin_success);
+              }
+            },
+            pinLabel: isPinned ? s.unpin : s.pin,
+            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+          );
         },
       ),
     );
   }
 
   void _showRaceContextMenu(RaceHomeItem item) {
+    final s = S.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.race(
-        race: item.race,
-        onEdit: () {
-          _editRace(item.race);
-        },
-        onDelete: () {
-          _showDeleteDialog(item);
-        },
-        onShare: () {
-          _showRaceShareOptions(item);
+      builder: (ctx) => FutureBuilder<bool>(
+        future: PinService.isPinned(item.race.id),
+        builder: (context, snapshot) {
+          final isPinned = snapshot.data ?? false;
+          return ContextMenu.race(
+            race: item.race,
+            onEdit: () {
+              _editRace(item.race);
+            },
+            onDelete: () {
+              _showDeleteDialog(item);
+            },
+            onShare: () {
+              _showRaceShareOptions(item);
+            },
+            onPin: () async {
+              await _toggleHomePin(item);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(isPinned ? s.unpin : s.pin),
+                  ),
+                );
+              }
+            },
+            pinLabel: isPinned ? s.unpin : s.pin,
+            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+          );
         },
       ),
     );
@@ -215,15 +254,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           .toList(),
                     );
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(s.copied_to_clipboard)),
-                      );
+                      AppNavigator.showSuccess(s.copied_to_clipboard);
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${s.copy_error}: $e')),
-                      );
+                      AppNavigator.showError('${s.copy_error}: $e');
                     }
                   }
                 },
@@ -245,9 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${s.error}: $e')),
-                      );
+                      AppNavigator.showError('${s.error}: $e');
                     }
                   }
                 },
@@ -262,9 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context, item.character);
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${s.export_error}: $e')),
-                      );
+                      AppNavigator.showError('${s.export_error}: $e');
                     }
                   }
                 },
@@ -289,15 +320,11 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           await Clipboard.setData(ClipboardData(text: buffer.toString()));
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(s.copied_to_clipboard)),
-            );
+            AppNavigator.showSuccess(s.copied_to_clipboard);
           }
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${s.copy_error}: $e')),
-            );
+            AppNavigator.showError('${s.copy_error}: $e');
           }
         }
       },
@@ -313,9 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${s.error}: $e')),
-            );
+            AppNavigator.showError('${s.error}: $e');
           }
         }
       },
@@ -326,9 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${s.export_error}: $e')),
-            );
+            AppNavigator.showError('${s.export_error}: $e');
           }
         }
       },

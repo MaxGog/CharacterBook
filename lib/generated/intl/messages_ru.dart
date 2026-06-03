@@ -644,6 +644,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "permissions": MessageLookupByLibrary.simpleMessage("Разрешения"),
         "personality": MessageLookupByLibrary.simpleMessage("Характер"),
         "pin": MessageLookupByLibrary.simpleMessage("Закрепить"),
+        "pin_success": MessageLookupByLibrary.simpleMessage("Объект закреплён"),
         "pinned": MessageLookupByLibrary.simpleMessage("Закреплённые"),
         "popular_tags": MessageLookupByLibrary.simpleMessage("Популярные теги"),
         "portrait": MessageLookupByLibrary.simpleMessage("Портрет"),
@@ -849,6 +850,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "undo": MessageLookupByLibrary.simpleMessage("Отменить"),
         "unknown": MessageLookupByLibrary.simpleMessage("Неизвестно"),
         "unpin": MessageLookupByLibrary.simpleMessage("Открепить"),
+        "unpin_success":
+            MessageLookupByLibrary.simpleMessage("Объект откреплён"),
         "unsaved_changes_content": MessageLookupByLibrary.simpleMessage(
             "Сохранить изменения перед выходом?"),
         "unsaved_changes_title":

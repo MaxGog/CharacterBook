@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/ui/controllers/race_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
@@ -156,6 +157,28 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
         onPressed: () => Navigator.of(context).pop(true),
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
+      actions: [
+        FutureBuilder<bool>(
+          future: PinService.isPinned(controller.race.id),
+          builder: (context, snapshot) {
+            final isPinned = snapshot.data ?? false;
+            return IconButton(
+              icon: Icon(
+                isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+              ),
+              onPressed: () async {
+                final pinned = await PinService.togglePinned(controller.race.id);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(pinned ? s.pin : s.unpin)),
+                  );
+                }
+              },
+              tooltip: isPinned ? s.unpin : s.pin,
+            );
+          },
+        ),
+      ],
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -5,6 +5,7 @@ import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
 import 'package:characterbook/ui/controllers/character_list_controller.dart';
@@ -193,53 +194,67 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ContextMenu.character(
-        character: character,
-        onEdit: () => _navigateToEdit(context, character),
-        onDelete: () => _deleteCharacter(character, controller),
-        onDuplicate: () async {
-          try {
-            await controller.duplicateCharacter(character, service);
-            if (context.mounted) AppNavigator.showSuccess(s.character_duplicated);
-          } catch (e) {
-            if (context.mounted) AppNavigator.showError('${s.duplicate_error}: $e');
-          }
-        },
-        onShare: () {
-          ShareOptionsDialog.show(
-            context,
-            onCopy: () async {
+      builder: (ctx) => FutureBuilder<bool>(
+        future: PinService.isPinned(character.id),
+        builder: (context, snapshot) {
+          final isPinned = snapshot.data ?? false;
+          return ContextMenu.character(
+            character: character,
+            onEdit: () => _navigateToEdit(context, character),
+            onDelete: () => _deleteCharacter(character, controller),
+            onDuplicate: () async {
               try {
-                await controller.characterClipboardText(character, context);
-                if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
+                await controller.duplicateCharacter(character, service);
+                if (context.mounted) AppNavigator.showSuccess(s.character_duplicated);
               } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
+                if (context.mounted) AppNavigator.showError('${s.duplicate_error}: $e');
               }
             },
-            onShareFile: () async {
-              try {
-                await controller.shareCharacterAsFile(character);
-              } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.error}: $e');
+            onShare: () {
+              ShareOptionsDialog.show(
+                context,
+                onCopy: () async {
+                  try {
+                    await controller.characterClipboardText(character, context);
+                    if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
+                  }
+                },
+                onShareFile: () async {
+                  try {
+                    await controller.shareCharacterAsFile(character);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.error}: $e');
+                  }
+                },
+                onExportPdf: () async {
+                  try {
+                    await controller.exportCharacterToPdf(character, context);
+                  } catch (e) {
+                    if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
+                  }
+                },
+                onExportWord: () async {
+                  try {
+                    await controller.exportCharacterToWord(
+                        character, context);
+                  } catch (e) {
+                    if (context.mounted) {
+                      AppNavigator.showError('${s.export_error}: $e');
+                    }
+                  }
+                },
+              );
+            },
+            onPin: () async {
+              final pinned = await PinService.togglePinned(character.id);
+              if (context.mounted) {
+                AppNavigator.showSuccess(pinned ? s.pin_success : s.unpin_success);
               }
             },
-            onExportPdf: () async {
-              try {
-                await controller.exportCharacterToPdf(character, context);
-              } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
-              }
-            },
-            onExportWord: () async {
-              try {
-                await controller.exportCharacterToWord(
-                    character, context);
-              } catch (e) {
-                if (context.mounted) {
-                  AppNavigator.showError('${s.export_error}: $e');
-                }
-              }
-            },
+            pinLabel: isPinned ? s.unpin : s.pin,
+            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
           );
         },
       ),

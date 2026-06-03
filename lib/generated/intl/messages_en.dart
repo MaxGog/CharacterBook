@@ -501,6 +501,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Permission required"),
         "personality": MessageLookupByLibrary.simpleMessage("Personality"),
         "pin": MessageLookupByLibrary.simpleMessage("Pin"),
+        "pin_success": MessageLookupByLibrary.simpleMessage("Pinned"),
         "pinned": MessageLookupByLibrary.simpleMessage("Pinned"),
         "posts": MessageLookupByLibrary.simpleMessage("Posts"),
         "preparing_services":
@@ -622,6 +623,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "undo": MessageLookupByLibrary.simpleMessage("Undo"),
         "unknown": MessageLookupByLibrary.simpleMessage("Unknown"),
         "unpin": MessageLookupByLibrary.simpleMessage("Unpin"),
+        "unpin_success": MessageLookupByLibrary.simpleMessage("Unpinned"),
         "unsaved_changes_content":
             MessageLookupByLibrary.simpleMessage("Save changes before exit?"),
         "unsaved_changes_title":

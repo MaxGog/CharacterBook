@@ -3,6 +3,7 @@ import 'package:characterbook/data/enums/tool_type_enum.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/ui/screens/calendar_screen.dart';
 import 'package:characterbook/ui/screens/characters/relationships_screen.dart';
 import 'package:characterbook/ui/screens/settings/export_pdf_settings_screen.dart';
@@ -10,7 +11,6 @@ import 'package:characterbook/ui/screens/random_number_screen.dart';
 import 'package:characterbook/ui/screens/templates/template_list_screen.dart';
 import 'package:characterbook/ui/widgets/items/home_item.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeController extends ChangeNotifier {
   final CharacterService _characterService;
@@ -144,15 +144,12 @@ class HomeController extends ChangeNotifier {
   int get itemCount => _filteredItems.length;
 
   Future<void> _loadPinnedIds() async {
-    final prefs = await SharedPreferences.getInstance();
-    final ids = prefs.getStringList('pinned_ids') ?? [];
-    _pinnedIds = Set<String>.from(ids);
+    _pinnedIds = await PinService.loadPinnedIds();
     notifyListeners();
   }
 
   Future<void> _savePinnedIds() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('pinned_ids', _pinnedIds.toList());
+    await PinService.savePinnedIds(_pinnedIds);
   }
 
   void togglePin(HomeItem item) {

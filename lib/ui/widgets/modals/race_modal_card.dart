@@ -3,6 +3,7 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/clipboard_service.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/ui/controllers/race_modal_card_controller.dart';
 import 'package:characterbook/ui/screens/races/race_management_screen.dart';
@@ -59,6 +60,23 @@ class RaceModalCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return [
       PopupMenuItem(
+        value: 'pin',
+        child: FutureBuilder<bool>(
+          future: PinService.isPinned(race.id),
+          builder: (context, snapshot) {
+            final isPinned = snapshot.data ?? false;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              title: Text(isPinned ? s.unpin : s.pin),
+            );
+          },
+        ),
+      ),
+      PopupMenuItem(
         value: 'share',
         child: ListTile(
           contentPadding: EdgeInsets.zero,
@@ -91,6 +109,11 @@ class RaceModalCard extends StatelessWidget {
   Future<void> _onMenuItemSelected(BuildContext context,
       RaceModalController controller, String value) async {
     switch (value) {
+      case 'pin':
+        final pinned = await PinService.togglePinned(race.id);
+        _showSnackBar(context, pinned ? S.of(context).pin : S.of(context).unpin,
+            isError: false);
+        break;
       case 'share':
         _showShareMenu(context, controller);
         break;

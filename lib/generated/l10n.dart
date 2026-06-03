@@ -5097,11 +5097,31 @@ class S {
     );
   }
 
+  /// `Объект закреплён`
+  String get pin_success {
+    return Intl.message(
+      'Объект закреплён',
+      name: 'pin_success',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Открепить`
   String get unpin {
     return Intl.message(
       'Открепить',
       name: 'unpin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Объект откреплён`
+  String get unpin_success {
+    return Intl.message(
+      'Объект откреплён',
+      name: 'unpin_success',
       desc: '',
       args: [],
     );

@@ -9,6 +9,7 @@ import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/clipboard_service.dart';
+import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/character_modal_controller.dart';
 import 'package:characterbook/ui/widgets/dialogs/share_options_dialog.dart';
@@ -152,6 +153,23 @@ class CharacterModalCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return [
       PopupMenuItem(
+        value: 'pin',
+        child: FutureBuilder<bool>(
+          future: PinService.isPinned(character.id),
+          builder: (context, snapshot) {
+            final isPinned = snapshot.data ?? false;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              title: Text(isPinned ? s.unpin : s.pin),
+            );
+          },
+        ),
+      ),
+      PopupMenuItem(
         value: 'share',
         child: ListTile(
           contentPadding: EdgeInsets.zero,
@@ -185,6 +203,11 @@ class CharacterModalCard extends StatelessWidget {
   Future<void> _onMenuItemSelected(BuildContext context,
       CharacterModalController controller, String value) async {
     switch (value) {
+      case 'pin':
+        final pinned = await PinService.togglePinned(character.id);
+        showSnackBar(context, pinned ? S.of(context).pin : S.of(context).unpin,
+            isError: false);
+        break;
       case 'share':
         _showShareMenu(context, controller);
         break;

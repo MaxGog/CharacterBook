@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:characterbook/services/pin_service.dart';
 
 class CharacterManagementScreen extends StatefulWidget {
   final Character? character;
@@ -138,18 +139,21 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     _onSavePressed(context);
   }
 
-  void _onCharacterMenuSelected(
+  Future<void> _onCharacterMenuSelected(
     _CharacterMenuAction action,
     CharacterManagementController controller,
-  ) {
+  ) async {
     final s = S.of(context);
     switch (action) {
       case _CharacterMenuAction.addTag:
         _showTagEditor(context, controller);
         break;
       case _CharacterMenuAction.favorite:
+        final pinned = await PinService.togglePinned(controller.character.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Add to favorites...')),
+          SnackBar(
+            content: Text(pinned ? s.pin : s.unpin),
+          ),
         );
         break;
       case _CharacterMenuAction.copyInfo:
@@ -370,9 +374,17 @@ ${controller.character.age}''';
           ),
           PopupMenuItem(
             value: _CharacterMenuAction.favorite,
-            child: ListTile(
-              leading: const Icon(Icons.star_border),
-              title: Text('Add to favorites'),
+            child: FutureBuilder<bool>(
+              future: PinService.isPinned(controller.character.id),
+              builder: (context, snapshot) {
+                final isPinned = snapshot.data ?? false;
+                return ListTile(
+                  leading: Icon(
+                    isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                  ),
+                  title: Text(isPinned ? s.unpin : s.pin),
+                );
+              },
             ),
           ),
           const PopupMenuDivider(),

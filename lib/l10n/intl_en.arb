@@ -448,5 +448,7 @@
   "field_name_hint": "e.g. \"Eye color\"",
   "field_value": "Value",
   "field_value_hint": "Enter value",
-  "custom_fields": "Custom Fields"
+  "custom_fields": "Custom Fields",
+  "unpin_success": "Unpinned",
+  "pin_success": "Pinned"
 }
