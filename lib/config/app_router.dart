@@ -16,6 +16,7 @@ import 'package:characterbook/ui/navigation/app_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final scaffoldKey = GlobalKey<ScaffoldState>();
 
 class SharedAxisPage<T> extends CustomTransitionPage<T> {
@@ -101,6 +102,7 @@ class FadeThroughPage<T> extends CustomTransitionPage<T> {
 }
 
 final appRouter = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: '/home',
   routes: [
     StatefulShellRoute.indexedStack(
@@ -127,6 +129,7 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     final template =
@@ -141,6 +144,7 @@ final appRouter = GoRouter(
                 ),
                 GoRoute(
                   path: ':characterId/edit',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     return SharedAxisPage<bool>(
@@ -164,6 +168,7 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) => SharedAxisPage<bool>(
                     key: const ValueKey('race_create'),
                     child: const RaceManagementScreen(),
@@ -171,6 +176,7 @@ final appRouter = GoRouter(
                 ),
                 GoRoute(
                   path: ':raceId/edit',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     return SharedAxisPage<bool>(
@@ -193,6 +199,7 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'create',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) => SharedAxisPage<bool>(
                     key: const ValueKey('note_create'),
                     child: const NoteManagementScreen(),
@@ -200,6 +207,7 @@ final appRouter = GoRouter(
                 ),
                 GoRoute(
                   path: ':noteId/edit',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final extra = state.extra;
                     return SharedAxisPage<bool>(
