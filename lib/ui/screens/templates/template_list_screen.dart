@@ -491,64 +491,74 @@ class _TemplateDetailsModal extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.library_books_rounded,
-                    color: colorScheme.primary, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      template.name,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.library_books_rounded,
+                            color: colorScheme.primary, size: 28),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      s.fields_count(template.standardFields.length +
-                          template.customFields.length),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              template.name,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              s.fields_count(template.standardFields.length +
+                                  template.customFields.length),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFieldsSection(
+                    context,
+                    title: s.standard_fields,
+                    fields: template.standardFields,
+                    icon: Icons.check_circle_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(height: 20),
+                  if (template.customFields.isNotEmpty)
+                    _buildFieldsSection(
+                      context,
+                      title: s.custom_fields,
+                      fields: template.customFields.map((f) => f.key).toList(),
+                      icon: Icons.add_circle_rounded,
+                      color: colorScheme.tertiary,
                     ),
-                  ],
-                ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildFieldsSection(
-            context,
-            title: s.standard_fields,
-            fields: template.standardFields,
-            icon: Icons.check_circle_rounded,
-            color: colorScheme.primary,
-          ),
-          const SizedBox(height: 20),
-          if (template.customFields.isNotEmpty)
-            _buildFieldsSection(
-              context,
-              title: s.custom_fields,
-              fields: template.customFields.map((f) => f.key).toList(),
-              icon: Icons.add_circle_rounded,
-              color: colorScheme.tertiary,
             ),
-          const SizedBox(height: 24),
+          ),
           Row(
             children: [
               Expanded(
