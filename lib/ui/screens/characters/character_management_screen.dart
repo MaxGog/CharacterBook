@@ -20,6 +20,7 @@ import 'package:characterbook/ui/widgets/reference_image_picker.dart';
 import 'package:characterbook/ui/widgets/image_gallery_section.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -34,10 +35,13 @@ class CharacterManagementScreen extends StatefulWidget {
       _CharacterManagementScreenState();
 }
 
+enum _CharacterMenuAction { addTag, favorite, delete, copyInfo }
+
 class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
-  static const _sectionSpacing = 24.0;
-  static const _fieldSpacing = 16.0;
+  static const _sectionSpacing = 18.0;
+  static const _fieldSpacing = 12.0;
   static const _maxFormWidth = 600.0;
+  static const _avatarSize = 80.0;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
@@ -76,6 +80,11 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     final controller = _controller;
     if (controller == null) return;
 
+    final s = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+
     FocusScope.of(context).unfocus();
 
     final success = await controller.save();
@@ -83,20 +92,20 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
 
     if (success) {
       OverlayNotification.show(
-        S.of(context).changes_saved,
+        s.changes_saved,
         type: OverlayNotificationType.success,
       );
       Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) Navigator.of(context).pop(true);
+        if (mounted) navigator.pop(true);
       });
     } else {
-      final errorMsg = controller.error ?? S.of(context).error;
-      ScaffoldMessenger.of(context)
+      final errorMsg = controller.error ?? s.error;
+      messenger
         ..clearSnackBars()
         ..showSnackBar(
           SnackBar(
             content: Text(errorMsg),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: errorColor,
           ),
         );
     }
@@ -129,6 +138,99 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     _onSavePressed(context);
   }
 
+  void _onCharacterMenuSelected(
+    _CharacterMenuAction action,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    switch (action) {
+      case _CharacterMenuAction.addTag:
+        _showTagEditor(context, controller);
+        break;
+      case _CharacterMenuAction.favorite:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Add to favorites...')),
+        );
+        break;
+      case _CharacterMenuAction.copyInfo:
+        final info = '''${controller.character.name}
+${controller.character.race?.name ?? ''}
+${controller.character.gender}
+${controller.character.age}''';
+        Clipboard.setData(ClipboardData(text: info));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${s.copy} ${s.character.toLowerCase()}')),
+        );
+        break;
+      case _CharacterMenuAction.delete:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${s.delete}...')),
+        );
+        break;
+    }
+  }
+
+  Future<void> _showTagEditor(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) async {
+    var tags = List<String>.from(controller.tags);
+    final s = S.of(context);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      s.tags,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    TagsSection(
+                      tags: tags,
+                      onTagsChanged: (updated) => setState(() {
+                        tags = List<String>.from(updated);
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () {
+                        controller.setTags(tags);
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(s.ok),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -149,14 +251,15 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
               icon: const Icon(Icons.save),
               label: Text(s.save),
             ),
-            body: WillPopScope(
-              onWillPop: () async => true, 
+            body: PopScope(
+              canPop: true,
+              onPopInvokedWithResult: (didPop, result) {},
               child: CustomScrollView(
                 slivers: [
                   _buildSliverAppBar(context, controller, s),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
                       child: Center(
                         child: ConstrainedBox(
                           constraints:
@@ -169,19 +272,13 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 const SizedBox(height: _sectionSpacing),
-                                _buildFolderAndTagsSection(context, controller),
-                                if (widget.template != null)
-                                  _buildTemplateChip(context),
+                                _buildProfileSection(context, controller),
                                 const SizedBox(height: _sectionSpacing),
-                                Center(
-                                  child: _buildAvatarSection(context, controller),
-                                ),
+                                _buildAppearanceSection(context, controller),
                                 const SizedBox(height: _sectionSpacing),
-                                _buildBasicInfoSection(context, controller),
+                                _buildInformationSection(context, controller),
                                 const SizedBox(height: _sectionSpacing),
-                                _buildDetailsSection(context, controller),
-                                const SizedBox(height: _sectionSpacing),
-                                _buildRelationshipsSection(context, controller),
+                                _buildAdditionalSection(context, controller),
                                 const SizedBox(height: 76),
                               ],
                             ),
@@ -214,63 +311,417 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
       title: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _nameController,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration.collapsed(
-            hintText: widget.character == null
-                ? (widget.template == null
-                    ? s.new_character
-                    : '${s.new_character} (${s.from_template})')
-                : s.edit_character,
-            hintStyle: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _nameController,
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              labelText: s.character,
+              hintText: widget.character == null
+                  ? (widget.template == null
+                      ? s.new_character
+                      : s.new_character_from_template)
+                  : null,
+              border: InputBorder.none,
+            ),
+            cursorColor: theme.colorScheme.primary,
+            maxLines: 1,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              setState(() {
+                _nameTouched = true;
+              });
+            },
+            onSubmitted: (_) {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                _nameTouched = true;
+              });
+            },
           ),
-          cursorColor: theme.colorScheme.primary,
-          maxLines: 1,
-          textInputAction: TextInputAction.done,
-          onChanged: (_) {
-            setState(() {
-              _nameTouched = true;
-            });
-          },
-          onSubmitted: (_) {
-            FocusScope.of(context).unfocus();
-            setState(() {
-              _nameTouched = true;
-            });
-          },
-        ),
-        if (showNameError)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              s.enterName,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.error,
+          if (showNameError)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                s.enterName,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
             ),
+        ],
+      ),
+    actions: [
+      PopupMenuButton<_CharacterMenuAction>(
+        icon: const Icon(Icons.more_vert_rounded),
+        onSelected: (value) => _onCharacterMenuSelected(value, controller),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: _CharacterMenuAction.addTag,
+            child: ListTile(
+              leading: const Icon(Icons.label_outline),
+              title: Text(s.add_tag),
+            ),
           ),
-      ],
-    ),
+          PopupMenuItem(
+            value: _CharacterMenuAction.favorite,
+            child: ListTile(
+              leading: const Icon(Icons.star_border),
+              title: Text('Add to favorites'),
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: _CharacterMenuAction.copyInfo,
+            child: ListTile(
+              leading: const Icon(Icons.copy_rounded),
+              title: Text(s.copy),
+            ),
+          ),
+          PopupMenuItem(
+            value: _CharacterMenuAction.delete,
+            child: ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: Text(s.delete),
+            ),
+          ),
+        ],
+      ),
+    ],
     pinned: true,
     );
   }
 
-  Widget _buildFolderAndTagsSection(
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(icon, color: theme.colorScheme.onPrimaryContainer),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (subtitle != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(
     BuildContext context,
     CharacterManagementController controller,
   ) {
-    return TagsSection(
-      tags: controller.tags,
-      onTagsChanged: controller.setTags,
+    final s = S.of(context);
+    return _buildSectionCard(
+      context,
+      icon: Icons.badge_rounded,
+      title: s.basic_info,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_shouldShowField('race'))
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RaceSelectorField(
+                  initialRace: controller.character.race,
+                  onChanged: (race) => controller.updateRace(race),
+                ),
+                if (controller.character.race == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      s.select_race,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
+                  ),
+              ],
+            ),
+          if (widget.template != null) _buildTemplateChip(context),
+        ],
+      ),
     );
+  }
+
+  Widget _buildAppearanceSection(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    return _buildSectionCard(
+      context,
+      icon: Icons.visibility_rounded,
+      title: s.appearance,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAvatarSection(context, controller, size: _avatarSize),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAgeAndGenderRow(context, controller),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: _fieldSpacing),
+          if (_shouldShowField('appearance'))
+            _FullscreenTextField(
+              label: s.appearance,
+              value: controller.character.appearance,
+              onTap: () => _openFullscreenEditor(
+                  context, controller, 'appearance', s.appearance),
+              maxLines: 3,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInformationSection(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    return _buildSectionCard(
+      context,
+      icon: Icons.info_rounded,
+      title: s.information,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ..._buildFullscreenFields(
+            context,
+            controller,
+            ['biography', 'personality'],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdditionalSection(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    return _buildSectionCard(
+      context,
+      icon: Icons.photo_library_rounded,
+      title: s.details,
+      subtitle: s.additional_images,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CustomFieldsEditor(
+            initialFields: controller.customFields,
+            onFieldsChanged: controller.setCustomFields,
+            verticalLayout: true,
+            useFullscreenEditor: true,
+          ),
+          const SizedBox(height: _fieldSpacing),
+          ..._buildFullscreenFields(
+            context,
+            controller,
+            ['abilities', 'other'],
+          ),
+          if (_shouldShowField('referenceImage') || _shouldShowField('additionalImages'))
+            ...[
+              const SizedBox(height: _fieldSpacing),
+              _buildMediaSection(context, controller),
+            ],
+          const SizedBox(height: _fieldSpacing),
+          _buildRelationshipList(context, controller),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRelationshipList(
+      BuildContext context, CharacterManagementController controller) {
+    final s = S.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          s.relationships,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...controller.relationships.map((rel) {
+            final otherCharId = rel.character1Id == controller.character.id
+                ? rel.character2Id
+                : rel.character1Id;
+            final otherChar = controller.getCharacter(otherCharId);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: otherChar?.imageBytes != null
+                        ? MemoryImage(otherChar!.imageBytes!)
+                        : null,
+                    child: otherChar?.imageBytes == null
+                        ? Text(otherChar?.name.isNotEmpty == true
+                            ? otherChar!.name[0].toUpperCase()
+                            : '?')
+                        : null,
+                  ),
+                  title: Text(rel.name),
+                  subtitle: Text(otherChar?.name ?? s.unknown),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => EditRelationshipBottomSheet(
+                        relationship: rel,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          }),
+        OutlinedButton.icon(
+          onPressed: () async {
+            await showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const EditRelationshipBottomSheet(),
+            );
+          },
+          icon: const Icon(Icons.add_rounded),
+          label: Text(s.add_relationships),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMediaSection(
+    BuildContext context,
+    CharacterManagementController controller,
+  ) {
+    final s = S.of(context);
+    final showReference = _shouldShowField('referenceImage');
+    final showGallery = _shouldShowField('additionalImages');
+
+    if (showReference && showGallery) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 136,
+            child: ReferenceImagePicker(
+              imageBytes: controller.character.referenceImageBytes,
+              onPickImage: () => _pickReferenceImage(context, controller),
+              title: s.reference_image,
+            ),
+          ),
+          const SizedBox(width: _fieldSpacing),
+          Expanded(
+            child: ImageGallerySection(
+              images: controller.additionalImages,
+              onAddImage: () => _pickAdditionalImage(context, controller),
+              onRemoveImage: (index) =>
+                  _removeAdditionalImage(context, controller, index),
+              title: s.additional_images,
+              emptyText: s.no_additional_images,
+              addTooltip: s.add_picture,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (showReference) {
+      return ReferenceImagePicker(
+        imageBytes: controller.character.referenceImageBytes,
+        onPickImage: () => _pickReferenceImage(context, controller),
+        title: s.reference_image,
+      );
+    }
+
+    if (showGallery) {
+      return ImageGallerySection(
+        images: controller.additionalImages,
+        onAddImage: () => _pickAdditionalImage(context, controller),
+        onRemoveImage: (index) =>
+            _removeAdditionalImage(context, controller, index),
+        title: s.additional_images,
+        emptyText: s.no_additional_images,
+        addTooltip: s.add_picture,
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildTemplateChip(BuildContext context) {
@@ -291,58 +742,15 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
 
   Widget _buildAvatarSection(
     BuildContext context,
-    CharacterManagementController controller,
-  ) {
+    CharacterManagementController controller, {
+    double size = _avatarSize,
+  }) {
     return AvatarPicker(
       currentAvatar: controller.character.imageBytes,
       onAvatarChanged: (bytes) {
         controller.updateMainImage(bytes);
       },
-    );
-  }
-
-  Widget _buildBasicInfoSection(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    final s = S.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildAgeAndGenderRow(context, controller),
-        if (_shouldShowField('race'))
-          Padding(
-            padding: const EdgeInsets.only(top: _fieldSpacing),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RaceSelectorField(
-                  initialRace: controller.character.race,
-                  onChanged: (race) => controller.updateRace(race),
-                ),
-                if (controller.character.race == null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      s.select_race,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        if (_shouldShowField('referenceImage'))
-          Padding(
-            padding: const EdgeInsets.only(top: _fieldSpacing),
-            child: ReferenceImagePicker(
-              imageBytes: controller.character.referenceImageBytes,
-              onPickImage: () => _pickReferenceImage(context, controller),
-              title: s.reference_image,
-            ),
-          ),
-      ],
+      size: size,
     );
   }
 
@@ -351,148 +759,33 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     CharacterManagementController controller,
   ) {
     final s = S.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_shouldShowField('age'))
-          Expanded(
-            child: CustomTextField(
-              label: s.age,
-              initialValue: controller.character.age.toString(),
-              isRequired: _shouldShowField('age'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) =>
-                  controller.updateAge(int.tryParse(value) ?? 0),
-              validator: _shouldShowField('age')
-                  ? (value) {
-                      if (value == null || value.isEmpty) return s.enter_age;
-                      final age = int.tryParse(value);
-                      if (age == null || age <= 0) return s.invalid_age;
-                      return null;
-                    }
-                  : null,
-            ),
-          ),
-        if (_shouldShowField('age') && _shouldShowField('gender'))
-          const SizedBox(width: _fieldSpacing),
-        if (_shouldShowField('gender'))
-          Expanded(
-            child: GenderSelectorField(
-              initialValue: controller.character.gender,
-              onChanged: (value) => controller.updateGender(value ?? ''),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDetailsSection(
-    BuildContext context,
-    CharacterManagementController controller,
-  ) {
-    final s = S.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CustomFieldsEditor(
-          initialFields: controller.customFields,
-          onFieldsChanged: controller.setCustomFields,
-          verticalLayout: true,
-          useFullscreenEditor: true,
-        ),
-        if (_shouldShowField('additionalImages'))
-          Padding(
-            padding: const EdgeInsets.only(top: _fieldSpacing),
-            child: ImageGallerySection(
-              images: controller.additionalImages,
-              onAddImage: () => _pickAdditionalImage(context, controller),
-              onRemoveImage: (index) =>
-                  _removeAdditionalImage(context, controller, index),
-              title: s.additional_images,
-              emptyText: s.no_additional_images,
-              addTooltip: s.add_picture,
-            ),
-          ),
-        ..._buildFullscreenFields(context, controller),
-      ],
-    );
-  }
-
-  Widget _buildRelationshipsSection(
-      BuildContext context, CharacterManagementController controller) {
-    final s = S.of(context);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: _sectionSpacing),
-        Text(
-          s.relationships,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+        if (_shouldShowField('age'))
+          CustomTextField(
+            label: s.age,
+            initialValue: controller.character.age.toString(),
+            isRequired: _shouldShowField('age'),
+            keyboardType: TextInputType.number,
+            onChanged: (value) => controller.updateAge(int.tryParse(value) ?? 0),
+            validator: _shouldShowField('age')
+                ? (value) {
+                    if (value == null || value.isEmpty) return s.enter_age;
+                    final age = int.tryParse(value);
+                    if (age == null || age <= 0) return s.invalid_age;
+                    return null;
+                  }
+                : null,
           ),
-        ),
-        const SizedBox(height: 12),
-        if (controller.relationships.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              s.empty_list,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          )
-        else
-          ...controller.relationships.map((rel) {
-            final otherCharId = rel.character1Id == controller.character.id
-                ? rel.character2Id
-                : rel.character1Id;
-            final otherChar = controller.getCharacter(otherCharId);
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: otherChar?.imageBytes != null
-                      ? MemoryImage(otherChar!.imageBytes!)
-                      : null,
-                  child: otherChar?.imageBytes == null
-                      ? Text(otherChar?.name.isNotEmpty == true
-                          ? otherChar!.name[0].toUpperCase()
-                          : '?')
-                      : null,
-                ),
-                title: Text(rel.name),
-                subtitle: Text(otherChar?.name ?? '${s.unknown}'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => EditRelationshipBottomSheet(relationship: rel),
-                  );
-                },
-              ),
-            );
-          }),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: () async {
-            await showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => const EditRelationshipBottomSheet(),
-            );
-          },
-          icon: const Icon(Icons.add_rounded),
-          label: Text(s.add_relationships),
-        ),
+        if (_shouldShowField('age') && _shouldShowField('gender'))
+          const SizedBox(height: _fieldSpacing),
+        if (_shouldShowField('gender'))
+          GenderSelectorField(
+            initialValue: controller.character.gender,
+            onChanged: (value) => controller.updateGender(value ?? ''),
+            isRequired: _shouldShowField('gender'),
+          ),
       ],
     );
   }
@@ -500,28 +793,37 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   List<Widget> _buildFullscreenFields(
     BuildContext context,
     CharacterManagementController controller,
+    List<String> fieldNames,
   ) {
     final s = S.of(context);
-    final fields = [
-      ('appearance', s.appearance),
-      ('personality', s.personality),
-      ('biography', s.biography),
-      ('abilities', s.abilities),
-      ('other', s.other),
-    ];
+    final fields = {
+      'appearance': s.appearance,
+      'personality': s.personality,
+      'biography': s.biography,
+      'abilities': s.abilities,
+      'other': s.other,
+    };
 
-    return fields
-        .where((e) => _shouldShowField(e.$1))
-        .map((entry) => Padding(
-              padding: const EdgeInsets.only(top: _fieldSpacing),
-              child: _FullscreenTextField(
-                label: entry.$2,
-                value: _getFieldValue(controller, entry.$1) ?? '',
-                onTap: () => _openFullscreenEditor(
-                    context, controller, entry.$1, entry.$2),
-                maxLines: 3,
+    return fieldNames
+        .where((fieldName) => _shouldShowField(fieldName))
+        .where(fields.containsKey)
+        .map((fieldName) {
+          final label = fields[fieldName]!;
+          return Padding(
+            padding: const EdgeInsets.only(top: _fieldSpacing),
+            child: _FullscreenTextField(
+              label: label,
+              value: _getFieldValue(controller, fieldName) ?? '',
+              onTap: () => _openFullscreenEditor(
+                context,
+                controller,
+                fieldName,
+                label,
               ),
-            ))
+              maxLines: 3,
+            ),
+          );
+        })
         .toList();
   }
 
@@ -600,6 +902,10 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     BuildContext context,
     CharacterManagementController controller,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final errorLabel = S.of(context).error;
+
     try {
       final image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) return;
@@ -607,7 +913,7 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       if (!mounted) return;
       controller.updateReferenceImage(bytes);
     } catch (e) {
-      _showError(context, e.toString());
+      _showError(messenger, errorColor, errorLabel, e.toString());
     }
   }
 
@@ -615,6 +921,10 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
     BuildContext context,
     CharacterManagementController controller,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final errorLabel = S.of(context).error;
+
     try {
       final image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -626,15 +936,20 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
       if (!mounted) return;
       controller.addAdditionalImage(bytes);
     } catch (e) {
-      _showError(context, e.toString());
+      _showError(messenger, errorColor, errorLabel, e.toString());
     }
   }
 
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
+  void _showError(
+    ScaffoldMessengerState messenger,
+    Color errorColor,
+    String errorLabel,
+    String message,
+  ) {
+    messenger.showSnackBar(
       SnackBar(
-        content: Text('${S.of(context).error}: $message'),
-        backgroundColor: Theme.of(context).colorScheme.error,
+        content: Text('$errorLabel: $message'),
+        backgroundColor: errorColor,
       ),
     );
   }

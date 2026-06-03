@@ -31,8 +31,13 @@ class ImageGallerySection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(title, style: textTheme.titleMedium),
-            const Spacer(),
+            Expanded(
+              child: Text(
+                title,
+                style: textTheme.titleMedium,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.add_photo_alternate),
               onPressed: onAddImage,
@@ -62,7 +67,7 @@ class ImageGallerySection extends StatelessWidget {
                     child: Stack(
                       children: [
                         Semantics(
-                          label: '${title} ${index + 1}',
+                          label: '$title ${index + 1}',
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.memory(

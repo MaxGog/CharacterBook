@@ -221,21 +221,26 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   : theme.colorScheme.onSurface,
             ),
           ),
-          subtitle: field.value.isNotEmpty
-              ? Text(
-                  field.value,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                )
-              : const SizedBox.shrink(),
+          subtitle: Text(
+            field.value.isNotEmpty ? field.value : s.field_value_hint,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: field.value.isNotEmpty
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.onSurfaceVariant.withAlpha(179),
+              fontStyle: field.value.isEmpty ? FontStyle.italic : null,
+            ),
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.edit_outlined,
-                  size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                color: theme.colorScheme.primary,
+                tooltip: s.edit,
+                onPressed: () => _editFieldFullscreen(index),
+              ),
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 color: theme.colorScheme.error,
@@ -251,124 +256,114 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
   }
 
   Widget _buildFullscreenLayout(S s, ThemeData theme) {
+    if (_fields.isEmpty) {
+      return _buildEmptyCallToAction(
+        s,
+        theme,
+        onTap: _addAndEditField,
+        isFullscreen: true,
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.custom_fields_editor_title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    s.custom_fields_editor_subtitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            FilledButton.tonalIcon(
-              onPressed: _addAndEditField,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(s.add_field),
-            ),
-          ],
+        Text(
+          s.custom_fields_editor_title,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          s.custom_fields_editor_subtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 24),
-        if (_fields.isNotEmpty)
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _fields.length,
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) newIndex--;
-                final field = _fields.removeAt(oldIndex);
-                _fields.insert(newIndex, field);
-              });
-              widget.onFieldsChanged(_fields);
-            },
-            itemBuilder: (context, index) {
-              return _buildFullscreenFieldItem(index, _fields[index], s, theme);
-            },
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _fields.length,
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex--;
+              final field = _fields.removeAt(oldIndex);
+              _fields.insert(newIndex, field);
+            });
+            widget.onFieldsChanged(_fields);
+          },
+          itemBuilder: (context, index) {
+            return _buildFullscreenFieldItem(index, _fields[index], s, theme);
+          },
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonalIcon(
+            onPressed: _addAndEditField,
+            icon: const Icon(Icons.add_rounded),
+            label: Text(s.add_field),
           ),
-        if (_fields.isEmpty)
-          _buildEmptyCallToAction(s, theme,
-              onTap: _addAndEditField, isFullscreen: true),
+        ),
       ],
     );
   }
 
   Widget _buildVerticalLayout(S s, ThemeData theme) {
+    if (_fields.isEmpty) {
+      return _buildEmptyCallToAction(s, theme, onTap: _addField);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.custom_fields_editor_title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    s.custom_fields_editor_subtitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            FilledButton.tonalIcon(
-              onPressed: _addField,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(s.add_field),
-            ),
-          ],
+        Text(
+          s.custom_fields_editor_title,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          s.custom_fields_editor_subtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 24),
-        if (_fields.isNotEmpty)
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _fields.length,
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) newIndex--;
-                final field = _fields.removeAt(oldIndex);
-                _fields.insert(newIndex, field);
-                final keyCtrl = _keyControllers.removeAt(oldIndex);
-                _keyControllers.insert(newIndex, keyCtrl);
-                final valCtrl = _valueControllers.removeAt(oldIndex);
-                _valueControllers.insert(newIndex, valCtrl);
-              });
-              widget.onFieldsChanged(_fields);
-            },
-            itemBuilder: (context, index) {
-              return _buildVerticalFieldItem(index, s, theme);
-            },
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _fields.length,
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex--;
+              final field = _fields.removeAt(oldIndex);
+              _fields.insert(newIndex, field);
+              final keyCtrl = _keyControllers.removeAt(oldIndex);
+              _keyControllers.insert(newIndex, keyCtrl);
+              final valCtrl = _valueControllers.removeAt(oldIndex);
+              _valueControllers.insert(newIndex, valCtrl);
+            });
+            widget.onFieldsChanged(_fields);
+          },
+          itemBuilder: (context, index) {
+            return _buildVerticalFieldItem(index, s, theme);
+          },
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonalIcon(
+            onPressed: _addField,
+            icon: const Icon(Icons.add_rounded),
+            label: Text(s.add_field),
           ),
-        if (_fields.isEmpty)
-          _buildEmptyCallToAction(s, theme, onTap: _addField),
+        ),
       ],
     );
   }
@@ -410,7 +405,6 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 16),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -427,7 +421,6 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 16),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
                       alignLabelWithHint: true,
                     ),
                   ),
@@ -544,7 +537,6 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
                 ),
               ),
               const SizedBox(height: 16),
@@ -561,7 +553,6 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
                   alignLabelWithHint: true,
                 ),
               ),
@@ -587,7 +578,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
           Icon(
             isFullscreen ? Icons.edit_note_rounded : Icons.notes_rounded,
             size: 48,
-            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: theme.colorScheme.onSurfaceVariant.withAlpha(179),
           ),
           const SizedBox(height: 16),
           Text(
@@ -601,7 +592,7 @@ class _CustomFieldsEditorState extends State<CustomFieldsEditor> {
           Text(
             s.custom_fields_editor_subtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: theme.colorScheme.onSurfaceVariant.withAlpha(179),
             ),
             textAlign: TextAlign.center,
           ),
