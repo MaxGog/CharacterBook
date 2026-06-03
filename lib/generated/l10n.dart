@@ -410,16 +410,6 @@ class S {
     );
   }
 
-  /// `Раса`
-  String get race {
-    return Intl.message(
-      'Раса',
-      name: 'race',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Расы`
   String get races {
     return Intl.message(
@@ -640,16 +630,6 @@ class S {
     );
   }
 
-  /// `Имя`
-  String get name {
-    return Intl.message(
-      'Имя',
-      name: 'name',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Краткое имя`
   String get short_name {
     return Intl.message(
@@ -660,31 +640,11 @@ class S {
     );
   }
 
-  /// `Возраст`
-  String get age {
-    return Intl.message(
-      'Возраст',
-      name: 'age',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `лет`
   String get years {
     return Intl.message(
       'лет',
       name: 'years',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Пол`
-  String get gender {
-    return Intl.message(
-      'Пол',
-      name: 'gender',
       desc: '',
       args: [],
     );
@@ -715,86 +675,6 @@ class S {
     return Intl.message(
       'Другой',
       name: 'another',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Описание`
-  String get description {
-    return Intl.message(
-      'Описание',
-      name: 'description',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Биография`
-  String get biography {
-    return Intl.message(
-      'Биография',
-      name: 'biography',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Характер`
-  String get personality {
-    return Intl.message(
-      'Характер',
-      name: 'personality',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Внешность`
-  String get appearance {
-    return Intl.message(
-      'Внешность',
-      name: 'appearance',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Способности`
-  String get abilities {
-    return Intl.message(
-      'Способности',
-      name: 'abilities',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Другое`
-  String get other {
-    return Intl.message(
-      'Другое',
-      name: 'other',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Биология`
-  String get biology {
-    return Intl.message(
-      'Биология',
-      name: 'biology',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `История`
-  String get backstory {
-    return Intl.message(
-      'История',
-      name: 'backstory',
       desc: '',
       args: [],
     );
@@ -835,26 +715,6 @@ class S {
     return Intl.message(
       'Основное',
       name: 'main_image',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Референс`
-  String get reference_image {
-    return Intl.message(
-      'Референс',
-      name: 'reference_image',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Доп. изображения`
-  String get additional_images {
-    return Intl.message(
-      'Доп. изображения',
-      name: 'additional_images',
       desc: '',
       args: [],
     );
@@ -975,86 +835,6 @@ class S {
     return Intl.message(
       'Основные характеристики',
       name: 'standard_fields',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Дополнительные поля`
-  String get custom_fields {
-    return Intl.message(
-      'Дополнительные поля',
-      name: 'custom_fields',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Дополнительные характеристики`
-  String get custom_fields_editor_title {
-    return Intl.message(
-      'Дополнительные характеристики',
-      name: 'custom_fields_editor_title',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Добавить поле`
-  String get add_field {
-    return Intl.message(
-      'Добавить поле',
-      name: 'add_field',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Пока нет дополнительных характеристик`
-  String get no_custom_fields {
-    return Intl.message(
-      'Пока нет дополнительных характеристик',
-      name: 'no_custom_fields',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Название характеристики`
-  String get field_name {
-    return Intl.message(
-      'Название характеристики',
-      name: 'field_name',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Например: «Цвет глаз»`
-  String get field_name_hint {
-    return Intl.message(
-      'Например: «Цвет глаз»',
-      name: 'field_name_hint',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Значение`
-  String get field_value {
-    return Intl.message(
-      'Значение',
-      name: 'field_value',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Введите значение`
-  String get field_value_hint {
-    return Intl.message(
-      'Введите значение',
-      name: 'field_value_hint',
       desc: '',
       args: [],
     );
@@ -2037,16 +1817,6 @@ class S {
     );
   }
 
-  /// `"{name}" экспортирован в PDF`
-  String character_exported(Object name) {
-    return Intl.message(
-      '"$name" экспортирован в PDF',
-      name: 'character_exported',
-      desc: '',
-      args: [name],
-    );
-  }
-
   /// `"{name}" импортирован`
   String character_imported(Object name) {
     return Intl.message(
@@ -2442,16 +2212,6 @@ class S {
     return Intl.message(
       'Все теги',
       name: 'all_tags',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Основное`
-  String get basic_info {
-    return Intl.message(
-      'Основное',
-      name: 'basic_info',
       desc: '',
       args: [],
     );
@@ -3847,16 +3607,6 @@ class S {
     );
   }
 
-  /// `Ошибка загрузки настроек PDF`
-  String get settings_load_error {
-    return Intl.message(
-      'Ошибка загрузки настроек PDF',
-      name: 'settings_load_error',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Размер шрифта`
   String get font_size {
     return Intl.message(
@@ -4337,6 +4087,16 @@ class S {
     );
   }
 
+  /// `Ошибка загрузки настроек PDF`
+  String get settings_load_error {
+    return Intl.message(
+      'Ошибка загрузки настроек PDF',
+      name: 'settings_load_error',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Ошибка сохранения настроек PDF`
   String get settings_save_error {
     return Intl.message(
@@ -4362,6 +4122,156 @@ class S {
     return Intl.message(
       'Профиль расы',
       name: 'race_profile_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Основное`
+  String get basic_info {
+    return Intl.message(
+      'Основное',
+      name: 'basic_info',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Имя`
+  String get name {
+    return Intl.message(
+      'Имя',
+      name: 'name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Возраст`
+  String get age {
+    return Intl.message(
+      'Возраст',
+      name: 'age',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Пол`
+  String get gender {
+    return Intl.message(
+      'Пол',
+      name: 'gender',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Раса`
+  String get race {
+    return Intl.message(
+      'Раса',
+      name: 'race',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Описание`
+  String get description {
+    return Intl.message(
+      'Описание',
+      name: 'description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Биография`
+  String get biography {
+    return Intl.message(
+      'Биография',
+      name: 'biography',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Характер`
+  String get personality {
+    return Intl.message(
+      'Характер',
+      name: 'personality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Внешность`
+  String get appearance {
+    return Intl.message(
+      'Внешность',
+      name: 'appearance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Способности`
+  String get abilities {
+    return Intl.message(
+      'Способности',
+      name: 'abilities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Другое`
+  String get other {
+    return Intl.message(
+      'Другое',
+      name: 'other',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Референс`
+  String get reference_image {
+    return Intl.message(
+      'Референс',
+      name: 'reference_image',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Доп. изображения`
+  String get additional_images {
+    return Intl.message(
+      'Доп. изображения',
+      name: 'additional_images',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Биология`
+  String get biology {
+    return Intl.message(
+      'Биология',
+      name: 'biology',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `История`
+  String get backstory {
+    return Intl.message(
+      'История',
+      name: 'backstory',
       desc: '',
       args: [],
     );
@@ -4434,6 +4344,16 @@ class S {
       name: 'export_success',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `"{name}" экспортирован в PDF`
+  String character_exported(Object name) {
+    return Intl.message(
+      '"$name" экспортирован в PDF',
+      name: 'character_exported',
+      desc: '',
+      args: [name],
     );
   }
 
@@ -5117,16 +5037,6 @@ class S {
     );
   }
 
-  /// `Характеристика удалена`
-  String get field_removed {
-    return Intl.message(
-      'Характеристика удалена',
-      name: 'field_removed',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Изменения сохранены`
   String get changes_saved {
     return Intl.message(
@@ -5797,11 +5707,101 @@ class S {
     );
   }
 
+  /// `Дополнительные характеристики`
+  String get custom_fields_editor_title {
+    return Intl.message(
+      'Дополнительные характеристики',
+      name: 'custom_fields_editor_title',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Добавьте любые произвольные поля для описания персонажа`
   String get custom_fields_editor_subtitle {
     return Intl.message(
       'Добавьте любые произвольные поля для описания персонажа',
       name: 'custom_fields_editor_subtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Добавить поле`
+  String get add_field {
+    return Intl.message(
+      'Добавить поле',
+      name: 'add_field',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Пока нет дополнительных характеристик`
+  String get no_custom_fields {
+    return Intl.message(
+      'Пока нет дополнительных характеристик',
+      name: 'no_custom_fields',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Характеристика удалена`
+  String get field_removed {
+    return Intl.message(
+      'Характеристика удалена',
+      name: 'field_removed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Название характеристики`
+  String get field_name {
+    return Intl.message(
+      'Название характеристики',
+      name: 'field_name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Например: «Цвет глаз»`
+  String get field_name_hint {
+    return Intl.message(
+      'Например: «Цвет глаз»',
+      name: 'field_name_hint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Значение`
+  String get field_value {
+    return Intl.message(
+      'Значение',
+      name: 'field_value',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Введите значение`
+  String get field_value_hint {
+    return Intl.message(
+      'Введите значение',
+      name: 'field_value_hint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Дополнительные поля`
+  String get custom_fields {
+    return Intl.message(
+      'Дополнительные поля',
+      name: 'custom_fields',
       desc: '',
       args: [],
     );
