@@ -32,7 +32,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(name) => "Персонаж ${name}";
 
-  static String m21(count) => "Персонажей: ${count}";
+  static String m22(count) => "Персонажей: ${count}";
 
   static String m6(charactersCount, notesCount, racesCount, templatesCount,
           foldersCount) =>
@@ -40,41 +40,43 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m7(days) => "${days} дн. назад";
 
-  static String m8(count) => "${count} характ.";
+  static String m8(error) => "Ошибка: ${error}\n\nОписание проблемы: ";
 
-  static String m22(count) => "Папок: ${count}";
+  static String m9(count) => "${count} характ.";
 
-  static String m9(hours) => "${hours} ч. назад";
+  static String m23(count) => "Папок: ${count}";
 
-  static String m10(error) => "Ошибка выбора фото: ${error}";
+  static String m10(hours) => "${hours} ч. назад";
 
-  static String m11(error) => "Ошибка импорта: ${error}";
+  static String m11(error) => "Ошибка выбора фото: ${error}";
 
-  static String m12(months) => "${months} мес. назад";
+  static String m12(error) => "Ошибка импорта: ${error}";
 
-  static String m13(count) => "ещё ${count}";
+  static String m13(months) => "${months} мес. назад";
 
-  static String m23(count) => "Заметок: ${count}";
+  static String m14(count) => "ещё ${count}";
 
-  static String m14(name) => "\"${name}\" экспортирована в PDF";
+  static String m24(count) => "Заметок: ${count}";
 
-  static String m15(name) => "Раса \"${name}\" импортирована";
+  static String m15(name) => "\"${name}\" экспортирована в PDF";
 
-  static String m16(name) => "Раса ${name}";
+  static String m16(name) => "Раса \"${name}\" импортирована";
 
-  static String m24(count) => "Рас: ${count}";
+  static String m17(name) => "Раса ${name}";
 
-  static String m17(name) => "Шаблон \"${name}\" экспортирован";
+  static String m25(count) => "Рас: ${count}";
 
-  static String m18(name) => "Шаблон \"${name}\" импортирован";
+  static String m18(name) => "Шаблон \"${name}\" экспортирован";
 
-  static String m19(name) => "Шаблон \"${name}\" уже есть. Заменить?";
+  static String m19(name) => "Шаблон \"${name}\" импортирован";
 
-  static String m25(count) => "Шаблонов: ${count}";
+  static String m20(name) => "Шаблон \"${name}\" уже есть. Заменить?";
 
-  static String m26(count) => "Всего: ${count}";
+  static String m26(count) => "Шаблонов: ${count}";
 
-  static String m20(years) => "${years} г. назад";
+  static String m27(count) => "Всего: ${count}";
+
+  static String m21(years) => "${years} г. назад";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -198,7 +200,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "characters": MessageLookupByLibrary.simpleMessage("Персонажи"),
         "characters_and_races":
             MessageLookupByLibrary.simpleMessage("Персонажи и расы"),
-        "characters_count": m21,
+        "characters_count": m22,
         "check_for_updates": MessageLookupByLibrary.simpleMessage("Обновления"),
         "checking_dependencies":
             MessageLookupByLibrary.simpleMessage("Проверка зависимостей…"),
@@ -267,6 +269,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Копировать персонажа"),
         "copy_error":
             MessageLookupByLibrary.simpleMessage("Ошибка копирования"),
+        "copy_error_text":
+            MessageLookupByLibrary.simpleMessage("Скопировать ошибку"),
         "create": MessageLookupByLibrary.simpleMessage("Создать"),
         "createBackup": MessageLookupByLibrary.simpleMessage("Создать копию"),
         "createRelationship":
@@ -352,6 +356,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "edit_template":
             MessageLookupByLibrary.simpleMessage("Изменить шаблон"),
         "elderly": MessageLookupByLibrary.simpleMessage("Пожилые"),
+        "email_open_error": MessageLookupByLibrary.simpleMessage(
+            "Не удалось открыть почтовое приложение"),
         "empty_file_error": MessageLookupByLibrary.simpleMessage("Файл пуст"),
         "empty_list": MessageLookupByLibrary.simpleMessage("Пусто!"),
         "enterName": MessageLookupByLibrary.simpleMessage("Введите название"),
@@ -370,8 +376,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "error_details": MessageLookupByLibrary.simpleMessage("Детали ошибки"),
         "error_details_description": MessageLookupByLibrary.simpleMessage(
             "Ошибка при запуске. Техническая информация:"),
+        "error_dialog_description": MessageLookupByLibrary.simpleMessage(
+            "Вы можете скопировать ошибку или отправить её поддержке."),
         "error_loading_notes":
             MessageLookupByLibrary.simpleMessage("Ошибка загрузки заметок"),
+        "error_report_body": m8,
+        "error_report_subject": MessageLookupByLibrary.simpleMessage(
+            "Сообщение об ошибке CharacterBook"),
         "event": MessageLookupByLibrary.simpleMessage("Событие"),
         "event_calendar":
             MessageLookupByLibrary.simpleMessage("Календарь событий"),
@@ -412,7 +423,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "field_value_hint":
             MessageLookupByLibrary.simpleMessage("Введите значение"),
         "fields_asc": MessageLookupByLibrary.simpleMessage("Полей ↑"),
-        "fields_count": m8,
+        "fields_count": m9,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Полей ↓"),
         "file_app": MessageLookupByLibrary.simpleMessage("Файл приложения"),
         "file_character":
@@ -435,7 +446,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "folder_mode": MessageLookupByLibrary.simpleMessage("Папки"),
         "folder_name": MessageLookupByLibrary.simpleMessage("Название"),
         "folders": MessageLookupByLibrary.simpleMessage("Папки"),
-        "folders_count": m22,
+        "folders_count": m23,
         "font_load_timeout":
             MessageLookupByLibrary.simpleMessage("Таймаут загрузки шрифта"),
         "font_settings": MessageLookupByLibrary.simpleMessage("Шрифты"),
@@ -458,9 +469,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "home": MessageLookupByLibrary.simpleMessage("Главная"),
         "home_subtitle":
             MessageLookupByLibrary.simpleMessage("Коллекция персонажей и рас"),
-        "hours_ago": m9,
+        "hours_ago": m10,
         "image": MessageLookupByLibrary.simpleMessage("Изображение"),
-        "image_picker_error": m10,
+        "image_picker_error": m11,
         "image_quality": MessageLookupByLibrary.simpleMessage("Качество"),
         "image_removed":
             MessageLookupByLibrary.simpleMessage("Изображение удалено"),
@@ -469,7 +480,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Импорт отменён"),
         "import_character": MessageLookupByLibrary.simpleMessage("Импорт"),
         "import_data": MessageLookupByLibrary.simpleMessage("Импорт"),
-        "import_error": m11,
+        "import_error": m12,
         "import_failed": MessageLookupByLibrary.simpleMessage("Ошибка импорта"),
         "import_from_cloud":
             MessageLookupByLibrary.simpleMessage("Импорт из облака"),
@@ -559,8 +570,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "minutes": MessageLookupByLibrary.simpleMessage("мин"),
         "minutes_before": MessageLookupByLibrary.simpleMessage("Напомнить за"),
         "month": MessageLookupByLibrary.simpleMessage("Месяц"),
-        "months_ago": m12,
-        "more_fields": m13,
+        "months_ago": m13,
+        "more_fields": m14,
         "more_options": MessageLookupByLibrary.simpleMessage("Ещё"),
         "most_edited": MessageLookupByLibrary.simpleMessage("Часто изменяемое"),
         "most_popular": MessageLookupByLibrary.simpleMessage("Популярные"),
@@ -602,7 +613,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "none": MessageLookupByLibrary.simpleMessage("Нет"),
         "not_selected": MessageLookupByLibrary.simpleMessage("Не выбрано"),
         "note_events": MessageLookupByLibrary.simpleMessage("События заметок"),
-        "notes_count": m23,
+        "notes_count": m24,
         "nothing_found":
             MessageLookupByLibrary.simpleMessage("Ничего не найдено"),
         "ok": MessageLookupByLibrary.simpleMessage("ОК"),
@@ -664,16 +675,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Удалить расу?"),
         "race_deleted": MessageLookupByLibrary.simpleMessage("Раса удалена"),
         "race_events": MessageLookupByLibrary.simpleMessage("События рас"),
-        "race_exported": m14,
-        "race_imported": m15,
+        "race_exported": m15,
+        "race_imported": m16,
         "race_management": MessageLookupByLibrary.simpleMessage("Расы"),
         "race_profile_title":
             MessageLookupByLibrary.simpleMessage("Профиль расы"),
         "race_service_creation_error":
             MessageLookupByLibrary.simpleMessage("Ошибка сервиса расы"),
-        "race_share_text": m16,
+        "race_share_text": m17,
         "races": MessageLookupByLibrary.simpleMessage("Расы"),
-        "races_count": m24,
+        "races_count": m25,
         "randomNumberGenerator":
             MessageLookupByLibrary.simpleMessage("Генератор чисел"),
         "rate_app": MessageLookupByLibrary.simpleMessage("Оценить"),
@@ -704,6 +715,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Cвязи между персонажами"),
         "reminder": MessageLookupByLibrary.simpleMessage("Напоминание"),
         "replace": MessageLookupByLibrary.simpleMessage("Заменить"),
+        "report_error":
+            MessageLookupByLibrary.simpleMessage("Сообщить об ошибке"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Обязательное поле"),
         "reset_settings": MessageLookupByLibrary.simpleMessage("Сброс"),
@@ -810,13 +823,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Шаблон удалён"),
         "template_exists":
             MessageLookupByLibrary.simpleMessage("Шаблон уже есть"),
-        "template_exported": m17,
-        "template_imported": m18,
+        "template_exported": m18,
+        "template_imported": m19,
         "template_management": MessageLookupByLibrary.simpleMessage("Шаблоны"),
         "template_name_label": MessageLookupByLibrary.simpleMessage("Название"),
-        "template_replace_confirm": m19,
+        "template_replace_confirm": m20,
         "templates": MessageLookupByLibrary.simpleMessage("Шаблоны"),
-        "templates_count": m25,
+        "templates_count": m26,
         "templates_not_found":
             MessageLookupByLibrary.simpleMessage("Шаблоны не найдены"),
         "terms_of_service": MessageLookupByLibrary.simpleMessage("Условия"),
@@ -828,7 +841,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "to": MessageLookupByLibrary.simpleMessage("До"),
         "today": MessageLookupByLibrary.simpleMessage("Сегодня"),
         "tool_management": MessageLookupByLibrary.simpleMessage("Инструменты"),
-        "total_count": m26,
+        "total_count": m27,
         "total_events": MessageLookupByLibrary.simpleMessage("Всего"),
         "typeOptional":
             MessageLookupByLibrary.simpleMessage("Тип (необязательно)"),
@@ -868,7 +881,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "word_export_success": MessageLookupByLibrary.simpleMessage(
             "Word документ успешно экспортирован"),
         "years": MessageLookupByLibrary.simpleMessage("лет"),
-        "years_ago": m20,
+        "years_ago": m21,
         "young": MessageLookupByLibrary.simpleMessage("Молодые"),
         "your_collection": MessageLookupByLibrary.simpleMessage("Коллекция"),
         "z_to_a": MessageLookupByLibrary.simpleMessage("Я-А")

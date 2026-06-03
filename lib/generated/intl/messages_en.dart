@@ -38,31 +38,33 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m7(days) => "${days}d ago";
 
-  static String m8(count) => "${count} fields";
+  static String m8(error) => "Error: ${error}\n\nDescription: ";
 
-  static String m9(hours) => "${hours}h ago";
+  static String m9(count) => "${count} fields";
 
-  static String m10(error) => "Image error: ${error}";
+  static String m10(hours) => "${hours}h ago";
 
-  static String m11(error) => "Import error: ${error}";
+  static String m11(error) => "Image error: ${error}";
 
-  static String m12(months) => "${months}mo ago";
+  static String m12(error) => "Import error: ${error}";
 
-  static String m13(count) => "+${count}";
+  static String m13(months) => "${months}mo ago";
 
-  static String m14(name) => "\"${name}\" exported to PDF";
+  static String m14(count) => "+${count}";
 
-  static String m15(name) => "\"${name}\" imported";
+  static String m15(name) => "\"${name}\" exported to PDF";
 
-  static String m16(name) => "${name} (race)";
+  static String m16(name) => "\"${name}\" imported";
 
-  static String m17(name) => "\"${name}\" exported";
+  static String m17(name) => "${name} (race)";
 
-  static String m18(name) => "\"${name}\" imported";
+  static String m18(name) => "\"${name}\" exported";
 
-  static String m19(name) => "\"${name}\" exists. Replace?";
+  static String m19(name) => "\"${name}\" imported";
 
-  static String m20(years) => "${years}y ago";
+  static String m20(name) => "\"${name}\" exists. Replace?";
+
+  static String m21(years) => "${years}y ago";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -214,6 +216,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "copy": MessageLookupByLibrary.simpleMessage("Copy"),
         "copy_character": MessageLookupByLibrary.simpleMessage("Copy"),
         "copy_error": MessageLookupByLibrary.simpleMessage("Copy error"),
+        "copy_error_text": MessageLookupByLibrary.simpleMessage("Copy error"),
         "create": MessageLookupByLibrary.simpleMessage("Create"),
         "createBackup": MessageLookupByLibrary.simpleMessage("Backup"),
         "createRelationship":
@@ -280,6 +283,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "edit_race": MessageLookupByLibrary.simpleMessage("Edit"),
         "edit_template": MessageLookupByLibrary.simpleMessage("Edit"),
         "elderly": MessageLookupByLibrary.simpleMessage("Elderly"),
+        "email_open_error":
+            MessageLookupByLibrary.simpleMessage("Unable to open email app"),
         "empty_file_error": MessageLookupByLibrary.simpleMessage("File empty"),
         "empty_list": MessageLookupByLibrary.simpleMessage("Empty"),
         "enterName": MessageLookupByLibrary.simpleMessage("Enter a name"),
@@ -297,8 +302,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "error_details": MessageLookupByLibrary.simpleMessage("Details"),
         "error_details_description": MessageLookupByLibrary.simpleMessage(
             "Error during init. Technical info:"),
+        "error_dialog_description": MessageLookupByLibrary.simpleMessage(
+            "You can copy the error or report it to support."),
         "error_loading_notes":
             MessageLookupByLibrary.simpleMessage("Error loading posts"),
+        "error_report_body": m8,
+        "error_report_subject":
+            MessageLookupByLibrary.simpleMessage("CharacterBook error report"),
         "event_calendar": MessageLookupByLibrary.simpleMessage("Events"),
         "event_description":
             MessageLookupByLibrary.simpleMessage("Description"),
@@ -323,7 +333,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "field_value": MessageLookupByLibrary.simpleMessage("Value"),
         "field_value_hint": MessageLookupByLibrary.simpleMessage("Enter value"),
         "fields_asc": MessageLookupByLibrary.simpleMessage("Fields ↑"),
-        "fields_count": m8,
+        "fields_count": m9,
         "fields_desc": MessageLookupByLibrary.simpleMessage("Fields ↓"),
         "file_app": MessageLookupByLibrary.simpleMessage("App file"),
         "file_character":
@@ -357,14 +367,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "home_subtitle":
             MessageLookupByLibrary.simpleMessage("Character & race collection"),
-        "hours_ago": m9,
+        "hours_ago": m10,
         "image": MessageLookupByLibrary.simpleMessage("Image"),
-        "image_picker_error": m10,
+        "image_picker_error": m11,
         "image_removed": MessageLookupByLibrary.simpleMessage("Image removed"),
         "import": MessageLookupByLibrary.simpleMessage("Import"),
         "import_cancelled": MessageLookupByLibrary.simpleMessage("Cancelled"),
         "import_character": MessageLookupByLibrary.simpleMessage("Import"),
-        "import_error": m11,
+        "import_error": m12,
         "import_failed": MessageLookupByLibrary.simpleMessage("Import failed"),
         "import_from_cloud":
             MessageLookupByLibrary.simpleMessage("Import from cloud"),
@@ -438,8 +448,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Migrating..."),
         "minutes": MessageLookupByLibrary.simpleMessage("min"),
         "minutes_before": MessageLookupByLibrary.simpleMessage("Remind me for"),
-        "months_ago": m12,
-        "more_fields": m13,
+        "months_ago": m13,
+        "more_fields": m14,
         "more_options": MessageLookupByLibrary.simpleMessage("More"),
         "my": MessageLookupByLibrary.simpleMessage("My"),
         "my_characters": MessageLookupByLibrary.simpleMessage("My Characters"),
@@ -508,10 +518,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "race_delete_title":
             MessageLookupByLibrary.simpleMessage("Delete race?"),
         "race_deleted": MessageLookupByLibrary.simpleMessage("Deleted"),
-        "race_exported": m14,
-        "race_imported": m15,
+        "race_exported": m15,
+        "race_imported": m16,
         "race_management": MessageLookupByLibrary.simpleMessage("Races"),
-        "race_share_text": m16,
+        "race_share_text": m17,
         "races": MessageLookupByLibrary.simpleMessage("Races"),
         "randomNumberGenerator": MessageLookupByLibrary.simpleMessage("RNG"),
         "ready_to_use": MessageLookupByLibrary.simpleMessage("Ready"),
@@ -528,6 +538,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "relationships": MessageLookupByLibrary.simpleMessage("Relationships"),
         "reminder": MessageLookupByLibrary.simpleMessage("Reminder"),
         "replace": MessageLookupByLibrary.simpleMessage("Replace"),
+        "report_error": MessageLookupByLibrary.simpleMessage("Report issue"),
         "required_field_error":
             MessageLookupByLibrary.simpleMessage("Required"),
         "restoreData": MessageLookupByLibrary.simpleMessage("Restore"),
@@ -596,10 +607,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "template_deleted": MessageLookupByLibrary.simpleMessage("Deleted"),
         "template_exists":
             MessageLookupByLibrary.simpleMessage("Template exists"),
-        "template_exported": m17,
-        "template_imported": m18,
+        "template_exported": m18,
+        "template_imported": m19,
         "template_name_label": MessageLookupByLibrary.simpleMessage("Name"),
-        "template_replace_confirm": m19,
+        "template_replace_confirm": m20,
         "templates": MessageLookupByLibrary.simpleMessage("Templates"),
         "templates_not_found":
             MessageLookupByLibrary.simpleMessage("No templates"),
@@ -633,7 +644,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "word_export_success":
             MessageLookupByLibrary.simpleMessage("Word export success"),
         "years": MessageLookupByLibrary.simpleMessage("years"),
-        "years_ago": m20,
+        "years_ago": m21,
         "young": MessageLookupByLibrary.simpleMessage("Young"),
         "z_to_a": MessageLookupByLibrary.simpleMessage("Z-A")
       };

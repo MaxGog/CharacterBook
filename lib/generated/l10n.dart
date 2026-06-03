@@ -4557,6 +4557,66 @@ class S {
     );
   }
 
+  /// `Вы можете скопировать ошибку или отправить её поддержке.`
+  String get error_dialog_description {
+    return Intl.message(
+      'Вы можете скопировать ошибку или отправить её поддержке.',
+      name: 'error_dialog_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Скопировать ошибку`
+  String get copy_error_text {
+    return Intl.message(
+      'Скопировать ошибку',
+      name: 'copy_error_text',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Сообщить об ошибке`
+  String get report_error {
+    return Intl.message(
+      'Сообщить об ошибке',
+      name: 'report_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Сообщение об ошибке CharacterBook`
+  String get error_report_subject {
+    return Intl.message(
+      'Сообщение об ошибке CharacterBook',
+      name: 'error_report_subject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ошибка: {error}\n\nОписание проблемы: `
+  String error_report_body(Object error) {
+    return Intl.message(
+      'Ошибка: $error\n\nОписание проблемы: ',
+      name: 'error_report_body',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Не удалось открыть почтовое приложение`
+  String get email_open_error {
+    return Intl.message(
+      'Не удалось открыть почтовое приложение',
+      name: 'email_open_error',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Технические детали`
   String get technical_details {
     return Intl.message(
