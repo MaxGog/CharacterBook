@@ -1,17 +1,27 @@
 import 'package:characterbook/data/models/relationship_model.dart';
 import 'package:characterbook/data/repositories/relationship_repository.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 
-class RelationshipService {
+class RelationshipService extends ChangeNotifier {
   final RelationshipRepository _repository;
 
   RelationshipService(this._repository);
 
-  Future<dynamic> saveRelationship(Relationship relationship, {dynamic key}) =>
-      _repository.save(relationship, key: key);
+  Future<dynamic> saveRelationship(Relationship relationship, {dynamic key})
+  {
+    var result = _repository.save(relationship, key: key);
+    notifyListeners();
+    return result;
+  }
 
-  Future<void> deleteRelationship(Relationship relationship) =>
-      _repository.delete(relationship.key);
+  Future<void> deleteRelationship(Relationship relationship)
+  {
+    var result = _repository.delete(relationship.key);
+    notifyListeners();
+    return result;
+  }
+      
 
   Future<List<Relationship>> getAllRelationships() => _repository.getAll();
 

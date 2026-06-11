@@ -55,21 +55,16 @@ void main() async {
 class CharacterBookApp extends StatelessWidget {
   final bool hiveInitialized;
 
-  const CharacterBookApp({
-    super.key,
-    required this.hiveInitialized,
-  });
+  const CharacterBookApp({super.key, required this.hiveInitialized});
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldMessengerState> messengerKey =
-        GlobalKey<ScaffoldMessengerState>();
+    final messengerKey = GlobalKey<ScaffoldMessengerState>();
 
     final characterBox = HiveService.characterBox;
     final raceBox = HiveService.raceBox;
     final noteBox = HiveService.noteBox;
     final templateBox = HiveService.templateBox;
-    final settingsBox = HiveService.settingsBox;
     final relationshipBox = HiveService.relationshipBox;
     final customEventBox = HiveService.customEventBox;
     final appSettingsBox = HiveService.appSettingsBox;
@@ -104,64 +99,93 @@ class CharacterBookApp extends StatelessWidget {
           ChangeNotifierProvider<AutoBackupProvider>(
             create: (_) => AutoBackupProvider(appSettingsBox),
           ),
-        ProxyProvider<RelationshipRepository, RelationshipService>(
-          update: (_, repo, __) => RelationshipService(repo),
-        ),
-        ProxyProvider2<CharacterRepository, RelationshipService,
-            CharacterService>(
-          update: (_, repo, relService, __) =>
-              CharacterService(repo, relService),
-        ),
-        ProxyProvider<RaceRepository, RaceService>(
-          update: (_, repo, __) => RaceService(repo),
-        ),
-        ProxyProvider<NoteRepository, NoteService>(
-          update: (_, repo, __) => NoteService(repo),
-        ),
-        ProxyProvider<TemplateRepository, TemplateService>(
-          update: (_, repo, __) => TemplateService(repo),
-        ),
-        ChangeNotifierProvider<TemplateListController>(
-          create: (context) => TemplateListController(
-            context.read<TemplateRepository>(),
-          ),
-        ),
         if (customEventBox != null)
           Provider<CustomEventRepository>(
             create: (_) => CustomEventRepositoryHive(customEventBox),
           ),
-        ProxyProvider<CustomEventRepository, CustomEventService>(
-          update: (_, repo, __) => CustomEventService(repo),
-        ),
         Provider<DeviceCalendarService>(
           create: (_) => DeviceCalendarService(),
         ),
         Provider<LocalNotificationService>(
           create: (_) => LocalNotificationService()..initialize(),
         ),
+        Provider<NotificationService>(
+          create: (_) => NotificationService(messengerKey),
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => SwipeActionSettingsProvider()),
+      ],
+      child: _AppServicesWrapper(
+        hiveInitialized: hiveInitialized,
+        messengerKey: messengerKey,
+      ),
+    );
+  }
+}
+
+class _AppServicesWrapper extends StatelessWidget {
+  final bool hiveInitialized;
+  final GlobalKey<ScaffoldMessengerState> messengerKey;
+
+  const _AppServicesWrapper({
+    required this.hiveInitialized,
+    required this.messengerKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => RelationshipService(
+            context.read<RelationshipRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CharacterService(
+            context.read<CharacterRepository>(),
+            context.read<RelationshipService>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => RaceService(
+            context.read<RaceRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => NoteService(
+            context.read<NoteRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TemplateService(
+            context.read<TemplateRepository>(),
+          ),
+        ),
+        ProxyProvider<CustomEventRepository, CustomEventService>(
+          update: (_, repo, __) => CustomEventService(repo),
+        ),
         ProxyProvider5<CharacterRepository, RaceRepository, NoteRepository,
             TemplateRepository, RelationshipRepository, BackupManager>(
           update: (_, charRepo, raceRepo, noteRepo, templateRepo,
                   relationshipRepo, __) =>
               BackupManager(
-                characterRepo: charRepo,
-                noteRepo: noteRepo,
-                raceRepo: raceRepo,
-                templateRepo: templateRepo,
-                relationshipRepo: relationshipRepo,
-              ),
-        ),
-        Provider<NotificationService>(
-          create: (_) => NotificationService(messengerKey),
+            characterRepo: charRepo,
+            noteRepo: noteRepo,
+            raceRepo: raceRepo,
+            templateRepo: templateRepo,
+            relationshipRepo: relationshipRepo,
+          ),
         ),
         ProxyProvider3<BackupManager, FilePickerService, NotificationService,
             LocalBackupService>(
           update: (_, backupManager, filePicker, notification, __) =>
               LocalBackupService(
-                backupManager: backupManager,
-                filePickerService: filePicker,
-                notificationService: notification,
-              ),
+            backupManager: backupManager,
+            filePickerService: filePicker,
+            notificationService: notification,
+          ),
         ),
         ProxyProvider2<BackupManager, NotificationService, CloudBackupService>(
           update: (_, backupManager, notification, __) => CloudBackupService(
@@ -169,9 +193,11 @@ class CharacterBookApp extends StatelessWidget {
             notificationService: notification,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => SwipeActionSettingsProvider()),
+        ChangeNotifierProvider<TemplateListController>(
+          create: (context) => TemplateListController(
+            context.read<TemplateRepository>(),
+          ),
+        ),
       ],
       child: _AppContent(
         hiveInitialized: hiveInitialized,
@@ -197,6 +223,7 @@ class _AppContent extends StatefulWidget {
 class _AppContentState extends State<_AppContent> {
   bool _showErrorDialog = false;
 
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {

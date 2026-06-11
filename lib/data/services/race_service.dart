@@ -11,13 +11,22 @@ import 'package:characterbook/ui/widgets/dialogs/loading_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class RaceService {
+class RaceService extends ChangeNotifier {
   final RaceRepository _repository;
 
   RaceService(this._repository);
 
-  Future<dynamic> saveRace(Race race, {dynamic key}) => _repository.save(race, key: key);
-  Future<void> deleteRace(dynamic key) => _repository.delete(key);
+  Future<dynamic> saveRace(Race race, {dynamic key}) async {
+    final result = await _repository.save(race, key: key);
+    notifyListeners();
+    return result;
+  }
+
+  Future<void> deleteRace(dynamic key) async {
+    await _repository.delete(key);
+    notifyListeners();
+  }
+  
   Future<List<Race>> getAllRaces() => _repository.getAll();
   Future<Race?> getRaceById(String id) => _repository.getById(id);
   Future<Race?> getRaceByKey(dynamic key) => _repository.getByKey(key);

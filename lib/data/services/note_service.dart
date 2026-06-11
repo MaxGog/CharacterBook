@@ -8,14 +8,21 @@ import 'package:characterbook/services/file_share_service.dart';
 import 'package:characterbook/ui/widgets/dialogs/loading_dialog.dart';
 import 'package:flutter/material.dart';
 
-class NoteService {
+class NoteService extends ChangeNotifier {
   final NoteRepository _repository;
 
   NoteService(this._repository);
 
-  Future<dynamic> saveNote(Note note, {dynamic key}) => _repository.save(note, key: key);
+  Future<dynamic> saveNote(Note note, {dynamic key}) async {
+    final result = await _repository.save(note, key: key);
+    notifyListeners();
+    return result;
+  }
 
-  Future<void> deleteNote(Note note) => _repository.delete(note.key);
+  Future<void> deleteNote(Note note) async {
+    await _repository.delete(note.key);
+    notifyListeners();
+  }
 
   Future<List<Note>> getAllNotes() => _repository.getAll();
 

@@ -10,7 +10,7 @@ import 'package:characterbook/services/word_export_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
-class TemplateService {
+class TemplateService extends ChangeNotifier {
   final TemplateRepository _repository;
 
   TemplateService(this._repository);
@@ -18,12 +18,17 @@ class TemplateService {
   Future<void> initializeDefaultTemplates() =>
       _repository.initializeDefaultTemplates();
 
-  Future<void> saveTemplate(QuestionnaireTemplate template) =>
-      _repository.save(template);
+  Future<void> saveTemplate(QuestionnaireTemplate template) async {
+    await _repository.save(template);
+    notifyListeners();
+  }
+
+  Future<void> deleteTemplate(String name) async {
+    await _repository.delete(name);
+    notifyListeners();
+  }
 
   Future<List<QuestionnaireTemplate>> getAllTemplates() => _repository.getAll();
-
-  Future<void> deleteTemplate(String name) => _repository.delete(name);
 
   Future<File> exportTemplate(QuestionnaireTemplate template) async {
     final dir = await getApplicationDocumentsDirectory();

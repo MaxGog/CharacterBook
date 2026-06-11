@@ -50,6 +50,12 @@ class HomeController extends ChangeNotifier {
         _pinsProvider = pinsProvider {
     _initTools();
     _pinsProvider.addListener(_onPinsChanged);
+    _characterService.addListener(_onDataChanged);
+    _raceService.addListener(_onDataChanged);
+  }
+
+  void _onDataChanged() {
+    loadData();
   }
 
   void _onPinsChanged() {

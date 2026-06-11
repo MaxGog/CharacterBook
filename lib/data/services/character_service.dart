@@ -14,19 +14,22 @@ import 'package:characterbook/ui/widgets/dialogs/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 
-class CharacterService {
+class CharacterService extends ChangeNotifier {
   final CharacterRepository _repository;
   final RelationshipService _relationshipService;
 
   CharacterService(this._repository, this._relationshipService);
 
-  Future<dynamic> saveCharacter(Character character, {int? key}) {
-    return _repository.save(character, key: key);
+  Future<dynamic> saveCharacter(Character character, {int? key}) async {
+    final result = await _repository.save(character, key: key);
+    notifyListeners();
+    return result;
   }
 
   Future<void> deleteCharacter(Character character) async {
     await _relationshipService.deleteRelationshipsForCharacter(character.id);
     await _repository.delete(character.key);
+    notifyListeners();
   }
 
   Future<List<Character>> getAllCharacters() => _repository.getAll();

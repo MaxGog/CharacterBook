@@ -363,13 +363,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _editCharacter(Character character) async {
-    final result = AppNavigator.editCharacter(character);
-    if (result == true && mounted) await _loadData();
+    await AppNavigator.editCharacter(character);
   }
 
   Future<void> _editRace(Race race) async {
-    final result = AppNavigator.editRace(race);
-    if (result == true && mounted) await _loadData();
+    await AppNavigator.editRace(race);
   }
 
   Future<void> _showDeleteDialog(HomeItem item) async {
