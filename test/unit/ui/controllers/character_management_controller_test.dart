@@ -7,6 +7,7 @@ import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeCharacterRepository implements CharacterRepository {
@@ -82,7 +83,8 @@ class FakeRaceRepository implements RaceRepository {
   Future<void> clear() async => _store.clear();
 }
 
-class FakeRelationshipService implements RelationshipService {
+class FakeRelationshipService extends ChangeNotifier
+    implements RelationshipService {
   final StreamController<List<Relationship>> _controller =
       StreamController<List<Relationship>>.broadcast();
 
