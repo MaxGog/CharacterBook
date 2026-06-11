@@ -3,6 +3,7 @@ import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/services/character_service.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/file_picker_service.dart';
 import 'package:characterbook/services/pin_service.dart';
@@ -191,6 +192,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     CharacterService service,
   ) {
     final s = S.of(context);
+    final pinsProvider = context.read<PinsProvider>();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -248,9 +250,10 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
               );
             },
             onPin: () async {
-              final pinned = await PinService.togglePinned(character.id);
+              await pinsProvider.togglePin(character.id);
               if (context.mounted) {
-                AppNavigator.showSuccess(pinned ? s.pin_success : s.unpin_success);
+                AppNavigator.showSuccess(
+                    isPinned ? s.unpin_success : s.pin_success);
               }
             },
             pinLabel: isPinned ? s.unpin : s.pin,

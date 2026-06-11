@@ -6,6 +6,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
@@ -47,9 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     final characterService = context.read<CharacterService>();
     final raceService = context.read<RaceService>();
+    final pinsProvider = context.read<PinsProvider>();
     _controller = HomeController(
       characterService: characterService,
       raceService: raceService,
+      pinsProvider: pinsProvider,
     );
     _loadData();
   }
@@ -148,9 +151,10 @@ class _HomeScreenState extends State<HomeScreen> {
               _showCharacterShareOptions(item);
             },
             onPin: () async {
-              await _toggleHomePin(item);
+              await _controller.togglePin(item);
               if (mounted) {
-                AppNavigator.showSuccess(isPinned ? s.unpin_success : s.pin_success);
+                AppNavigator.showSuccess(
+                    isPinned ? s.unpin_success : s.pin_success);
               }
             },
             pinLabel: isPinned ? s.unpin : s.pin,

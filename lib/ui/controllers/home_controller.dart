@@ -3,7 +3,7 @@ import 'package:characterbook/data/enums/tool_type_enum.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
-import 'package:characterbook/services/pin_service.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/ui/screens/calendar_screen.dart';
 import 'package:characterbook/ui/screens/characters/relationships_screen.dart';
 import 'package:characterbook/ui/screens/settings/export_pdf_settings_screen.dart';
@@ -15,14 +15,13 @@ import 'package:flutter/material.dart';
 class HomeController extends ChangeNotifier {
   final CharacterService _characterService;
   final RaceService _raceService;
+  final PinsProvider _pinsProvider; 
 
   List<CharacterHomeItem> _characters = [];
   List<RaceHomeItem> _races = [];
   final List<ToolHomeItem> _tools = [];
   List<HomeItem> _filteredItems = [];
   String _searchQuery = '';
-
-  Set<String> _pinnedIds = {};
 
 
   List<HomeItem> get filteredItems => _filteredItems;
@@ -34,19 +33,27 @@ class HomeController extends ChangeNotifier {
   List<ToolHomeItem> get tools => List.unmodifiable(_tools);
 
   List<HomeItem> get pinnedItems {
+    final pinnedIds = _pinsProvider.pinnedIds;
     return [
-      ..._characters.where((c) => _pinnedIds.contains(c.character.id)),
-      ..._races.where((r) => _pinnedIds.contains(r.race.id)),
+      ..._characters.where((c) => pinnedIds.contains(c.character.id)),
+      ..._races.where((r) => pinnedIds.contains(r.race.id)),
     ];
   }
 
-  HomeController({
+
+   HomeController({
     required CharacterService characterService,
     required RaceService raceService,
+    required PinsProvider pinsProvider,
   })  : _characterService = characterService,
-        _raceService = raceService {
+        _raceService = raceService,
+        _pinsProvider = pinsProvider {
     _initTools();
-    _loadPinnedIds(); // загружаем сохранённые пины
+    _pinsProvider.addListener(_onPinsChanged);
+  }
+
+  void _onPinsChanged() {
+    notifyListeners();
   }
 
   void _initTools() {
@@ -116,16 +123,13 @@ class HomeController extends ChangeNotifier {
 
     if (item is CharacterHomeItem) {
       _characters.remove(item);
-      _pinnedIds.remove(item.character.id);
+      _pinsProvider.setPinned(item.character.id, false);
     } else if (item is RaceHomeItem) {
       _races.remove(item);
-      _pinnedIds.remove(item.race.id);
-    } else {
-      return;
+      _pinsProvider.setPinned(item.race.id, false);
     }
 
     _applyFilter();
-    await _savePinnedIds();
 
     try {
       if (item is CharacterHomeItem) {
@@ -143,31 +147,19 @@ class HomeController extends ChangeNotifier {
 
   int get itemCount => _filteredItems.length;
 
-  Future<void> _loadPinnedIds() async {
-    _pinnedIds = await PinService.loadPinnedIds();
-    notifyListeners();
-  }
-
-  Future<void> _savePinnedIds() async {
-    await PinService.savePinnedIds(_pinnedIds);
-  }
-
-  void togglePin(HomeItem item) {
-    final id = item.id;
-    if (_pinnedIds.contains(id)) {
-      _pinnedIds.remove(id);
-    } else {
-      _pinnedIds.add(id);
-    }
-    _savePinnedIds();
-    notifyListeners();
+  Future<void> togglePin(HomeItem item) async {
+    await _pinsProvider.togglePin(item.id);
   }
 
   void unpinItem(HomeItem item) {
-    _pinnedIds.remove(item.id);
-    _savePinnedIds();
-    notifyListeners();
+    _pinsProvider.setPinned(item.id, false);
   }
 
-  bool isPinned(HomeItem item) => _pinnedIds.contains(item.id);
+  bool isPinned(HomeItem item) => _pinsProvider.isPinned(item.id);
+
+  @override
+  void dispose() {
+    _pinsProvider.removeListener(_onPinsChanged);
+    super.dispose();
+  }
 }

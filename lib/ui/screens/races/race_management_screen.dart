@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
-import 'package:characterbook/services/pin_service.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/ui/controllers/race_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
@@ -158,23 +158,24 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
       actions: [
-        FutureBuilder<bool>(
-          future: PinService.isPinned(controller.race.id),
-          builder: (context, snapshot) {
-            final isPinned = snapshot.data ?? false;
+        Consumer<PinsProvider>(
+          builder: (context, pinsProvider, child) {
+            final isPinned = pinsProvider.isPinned(controller.race.id);
             return IconButton(
               icon: Icon(
-                isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-              ),
+                  isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined),
               onPressed: () async {
-                final pinned = await PinService.togglePinned(controller.race.id);
+                await pinsProvider.togglePin(controller.race.id);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(pinned ? s.pin : s.unpin)),
+                    SnackBar(
+                        content: Text(isPinned
+                            ? S.of(context).unpin
+                            : S.of(context).pin)),
                   );
                 }
               },
-              tooltip: isPinned ? s.unpin : s.pin,
+              tooltip: isPinned ? S.of(context).unpin : S.of(context).pin,
             );
           },
         ),

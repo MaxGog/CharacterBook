@@ -4,6 +4,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/services/file_picker_service.dart';
@@ -120,6 +121,7 @@ class _RaceListScreenState extends State<RaceListScreen> {
   void _showRaceContextMenu(Race race, BuildContext context,
       RaceListController controller, RaceService service) {
     final s = S.of(context);
+    final pinsProvider = context.read<PinsProvider>();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -168,9 +170,10 @@ class _RaceListScreenState extends State<RaceListScreen> {
               );
             },
             onPin: () async {
-              final pinned = await PinService.togglePinned(race.id);
+              await pinsProvider.togglePin(race.id);
               if (context.mounted) {
-                AppNavigator.showSuccess(pinned ? s.pin_success : s.unpin_success);
+                AppNavigator.showSuccess(
+                    isPinned ? s.unpin_success : s.pin_success);
               }
             },
             pinLabel: isPinned ? s.unpin : s.pin,

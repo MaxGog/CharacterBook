@@ -6,6 +6,7 @@ import 'package:characterbook/data/models/character_model.dart';
 import 'package:characterbook/data/models/template_model.dart';
 import 'package:characterbook/data/repositories/character_repository.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/ui/controllers/character_management_controller.dart';
 import 'package:characterbook/ui/screens/field_editor_screen.dart';
 import 'package:characterbook/ui/widgets/avatar_picker_widget.dart';
@@ -23,7 +24,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:characterbook/services/pin_service.dart';
 
 class CharacterManagementScreen extends StatefulWidget {
   final Character? character;
@@ -140,8 +140,9 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   }
 
   Future<void> _onCharacterMenuSelected(
-    _CharacterMenuAction action,
+     _CharacterMenuAction action,
     CharacterManagementController controller,
+    PinsProvider pinsProvider,
   ) async {
     final s = S.of(context);
     switch (action) {
@@ -149,12 +150,15 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
         _showTagEditor(context, controller);
         break;
       case _CharacterMenuAction.favorite:
-        final pinned = await PinService.togglePinned(controller.character.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(pinned ? s.pin : s.unpin),
-          ),
-        );
+        await pinsProvider.togglePin(controller.character.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(pinsProvider.isPinned(controller.character.id)
+                    ? s.pin
+                    : s.unpin)),
+          );
+        }
         break;
       case _CharacterMenuAction.copyInfo:
         final info = '''${controller.character.name}
@@ -308,6 +312,7 @@ ${controller.character.age}''';
     final theme = Theme.of(context);
     final nameEmpty = _nameController.text.trim().isEmpty;
     final showNameError = nameEmpty && _nameTouched;
+    final pinsProvider = context.read<PinsProvider>();
     return SliverAppBar.large(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
@@ -363,7 +368,7 @@ ${controller.character.age}''';
     actions: [
       PopupMenuButton<_CharacterMenuAction>(
         icon: const Icon(Icons.more_vert_rounded),
-        onSelected: (value) => _onCharacterMenuSelected(value, controller),
+        onSelected: (value) => _onCharacterMenuSelected(value, controller, pinsProvider),
         itemBuilder: (context) => [
           PopupMenuItem(
             value: _CharacterMenuAction.addTag,
@@ -372,21 +377,19 @@ ${controller.character.age}''';
               title: Text(s.add_tag),
             ),
           ),
-          PopupMenuItem(
-            value: _CharacterMenuAction.favorite,
-            child: FutureBuilder<bool>(
-              future: PinService.isPinned(controller.character.id),
-              builder: (context, snapshot) {
-                final isPinned = snapshot.data ?? false;
-                return ListTile(
-                  leading: Icon(
-                    isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-                  ),
-                  title: Text(isPinned ? s.unpin : s.pin),
-                );
-              },
+         PopupMenuItem(
+              value: _CharacterMenuAction.favorite,
+              child: ListTile(
+                leading: Icon(
+                  pinsProvider.isPinned(controller.character.id)
+                      ? Icons.push_pin_rounded
+                      : Icons.push_pin_outlined,
+                ),
+                title: Text(pinsProvider.isPinned(controller.character.id)
+                    ? s.unpin
+                    : s.pin),
+              ),
             ),
-          ),
           const PopupMenuDivider(),
           PopupMenuItem(
             value: _CharacterMenuAction.copyInfo,

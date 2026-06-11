@@ -31,6 +31,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:characterbook/providers/pins_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
@@ -78,6 +79,7 @@ class CharacterBookApp extends StatelessWidget {
         Provider<FilePickerService>(create: (_) => FilePickerService()),
         Provider<ClipboardService>(create: (_) => ClipboardService()),
         Provider<FileShareService>(create: (_) => FileShareService()),
+        ChangeNotifierProvider(create: (_) => PinsProvider()),
         if (characterBox != null)
           Provider<CharacterRepository>(
             create: (_) => CharacterRepositoryHive(characterBox),
