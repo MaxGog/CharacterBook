@@ -6,8 +6,6 @@ import 'package:characterbook/data/repositories/note_repository.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/ui/controllers/note_management_controller.dart';
 import 'package:characterbook/ui/widgets/avatar_widget.dart';
-import 'package:characterbook/ui/widgets/dialogs/error_dialog.dart';
-import 'package:characterbook/ui/widgets/fields/custom_text_field.dart';
 import 'package:characterbook/ui/widgets/markdown_context_menu.dart';
 import 'package:characterbook/ui/widgets/overlay_notification.dart';
 import 'package:characterbook/ui/widgets/tags_section.dart';
@@ -28,16 +26,18 @@ class NoteManagementScreen extends StatefulWidget {
 
 class _NoteManagementScreenState extends State<NoteManagementScreen> {
   static const _fieldSpacing = 16.0;
-  
-  late final TextEditingController _titleController;
+
   late final TextEditingController _contentController;
+  late final TextEditingController _titleController;
   Timer? _titleDebounce;
   Timer? _contentDebounce;
   NoteManagementController? _controller;
   bool _isPreviewMode = false;
-
+  bool _metadataExpanded = true;
   bool _titleTouched = false;
   bool _initialized = false;
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -46,19 +46,29 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     _contentController = TextEditingController();
     _titleController.addListener(_onTitleChanged);
     _contentController.addListener(_onContentChanged);
-    _contentController.addListener(_generateAutoTitle);
+
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _titleController.removeListener(_onTitleChanged);
     _contentController.removeListener(_onContentChanged);
-    _contentController.removeListener(_generateAutoTitle);
     _titleController.dispose();
     _contentController.dispose();
     _titleDebounce?.cancel();
     _contentDebounce?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.offset > 100 && _metadataExpanded) {
+      setState(() => _metadataExpanded = false);
+    } else if (_scrollController.offset <= 0 && !_metadataExpanded) {
+      setState(() => _metadataExpanded = true);
+    }
   }
 
   void _onTitleChanged() {
@@ -72,7 +82,7 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
 
   void _onContentChanged() {
     _contentDebounce?.cancel();
-    _contentDebounce = Timer(const Duration(seconds: 1), () {
+    _contentDebounce = Timer(const Duration(milliseconds: 500), () {
       final controller = _controller;
       if (controller == null) return;
       final newContent = _contentController.text;
@@ -82,99 +92,28 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     });
   }
 
-  void _generateAutoTitle() {
-    final controller = _controller;
-    if (controller == null || !controller.autoGenerateTitle) return;
-    if (_titleController.text.trim().isNotEmpty) return;
-    final text = _contentController.text.trim();
-    if (text.isNotEmpty) {
-      final words = text.split(' ');
-      final title = words.take(4).join(' ');
-      _titleController.text = title;
-    }
-  }
-
   void _togglePreviewMode() {
     setState(() => _isPreviewMode = !_isPreviewMode);
   }
 
-  void _showMetadataSheet(BuildContext context) {
-    final controller = _controller!;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.outline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              S.of(ctx).settings,
-              style: Theme.of(ctx).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _titleController,
-                      label: S.of(ctx).name,
-                      isRequired: true,
-                    ),
-                    const SizedBox(height: _fieldSpacing),
-                    TagsSection(
-                      tags: controller.tags,
-                      onTagsChanged: controller.setTags,
-                    ),
-                    const SizedBox(height: _fieldSpacing),
-                    _CharacterSelectorSection(
-                      selectedCharacterIds: controller.selectedCharacterIds,
-                      onAddCharacter: controller.addCharacterId,
-                      onRemoveCharacter: controller.removeCharacterId,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text(S.of(ctx).close),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _toggleMetadata() {
+    setState(() => _metadataExpanded = !_metadataExpanded);
   }
 
   void _onNoteSaveAttempt() {
     if (_titleController.text.trim().isEmpty) {
-      showErrorDialog(
+      showDialog(
         context: context,
-        title: S.of(context).enter_title_note,
-        message: S.of(context).save_error,
+        builder: (ctx) => AlertDialog(
+          title: Text(S.of(ctx).enter_title_note),
+          content: Text(S.of(ctx).save_error),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(S.of(ctx).ok),
+            ),
+          ],
+        ),
       );
       return;
     }
@@ -203,104 +142,116 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
             _contentController.text = controller.content;
             _initialized = true;
           }
+
           return Scaffold(
-            body: WillPopScope(
-              onWillPop: () async => true,
-              child: CustomScrollView(
-                slivers: [
-                  _buildSliverAppBar(context, controller, s),
-                  if (!_isPreviewMode)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: TextFormField(
-                          controller: _contentController,
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: s.start_writing,
-                            hintStyle: const TextStyle(fontSize: 16),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontSize: 16,
-                                    height: 1.5,
-                                  ),
-                          contextMenuBuilder: (context, editableTextState) {
-                            return MarkdownContextMenu(
-                              controller: _contentController,
-                              editableTextState: editableTextState,
-                            );
-                          },
+            body: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                _buildSliverAppBar(context, controller, s),
+                SliverToBoxAdapter(
+                  child: _buildMetadataSection(context, controller, s),
+                ),
+                if (!_isPreviewMode)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextFormField(
+                        controller: _contentController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: s.start_writing,
+                          hintStyle: const TextStyle(fontSize: 16),
+                          contentPadding: EdgeInsets.zero,
                         ),
-                      ),
-                    )
-                  else
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: MarkdownBody(
-                          data: _contentController.text,
-                          styleSheet:
-                              MarkdownStyleSheet.fromTheme(Theme.of(context)),
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontSize: 16, height: 1.5),
+                        contextMenuBuilder: (context, editableTextState) {
+                          return MarkdownContextMenu(
+                            controller: _contentController,
+                            editableTextState: editableTextState,
+                          );
+                        },
                       ),
                     ),
-                ],
-              ),
+                  )
+                else
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: MarkdownBody(
+                        data: _contentController.text,
+                        styleSheet:
+                            MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                      ),
+                    ),
+                  ),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+              ],
             ),
-            bottomNavigationBar: BottomAppBar(
-              shape: const CircularNotchedRectangle(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  if (controller.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox.square(
-                        dimension: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  else ...[
-                    IconButton(
-                      onPressed: () => controller.share(context),
-                      icon: const Icon(Icons.share_rounded),
-                      tooltip: s.share,
-                    ),
-                    IconButton(
-                      onPressed: () => controller.copyToClipboard(context),
-                      icon: const Icon(Icons.copy_rounded),
-                      tooltip: s.copy,
-                    ),
-                    IconButton(
-                      onPressed: () => _showMetadataSheet(context),
-                      icon: const Icon(Icons.edit_note_rounded),
-                      tooltip: s.settings,
-                    ),
-                    IconButton(
-                      onPressed: _togglePreviewMode,
-                      tooltip: _isPreviewMode ? s.edit : s.grid_view,
-                      icon: Icon(_isPreviewMode
-                          ? Icons.edit_rounded
-                          : Icons.preview_rounded),
-                    ),
-                    const Spacer(),
-                    FloatingActionButton.extended(
-                      onPressed: _onNoteSaveAttempt,
-                      icon: const Icon(Icons.save),
-                      label: Text(s.save),
-                    )
-                  ],
-                ],
-              ),
-            ),
+            bottomNavigationBar: _buildBottomBar(context, controller, s),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildMetadataSection(
+    BuildContext context,
+    NoteManagementController controller,
+    S s,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          leading: Icon(
+            _metadataExpanded ? Icons.expand_less : Icons.expand_more,
+            color: colorScheme.primary,
+          ),
+          title: Text(
+            s.settings,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          onTap: _toggleMetadata,
+        ),
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 300),
+          crossFadeState: _metadataExpanded
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          firstChild: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TagsSection(
+                  tags: controller.tags,
+                  onTagsChanged: controller.setTags,
+                ),
+                const SizedBox(height: _fieldSpacing),
+                _CharacterSelectorSection(
+                  selectedCharacterIds: controller.selectedCharacterIds,
+                  onAddCharacter: controller.addCharacterId,
+                  onRemoveCharacter: controller.removeCharacterId,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+          secondChild: const SizedBox.shrink(),
+        ),
+        const Divider(height: 1),
+      ],
     );
   }
 
@@ -312,6 +263,7 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
     final theme = Theme.of(context);
     final titleEmpty = _titleController.text.trim().isEmpty;
     final showTitleError = titleEmpty && _titleTouched;
+
     return SliverAppBar.large(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
@@ -339,16 +291,10 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
             cursorColor: theme.colorScheme.primary,
             maxLines: 1,
             textInputAction: TextInputAction.done,
-            onChanged: (_) {
-              setState(() {
-                _titleTouched = true;
-              });
-            },
+            onChanged: (_) => setState(() => _titleTouched = true),
             onSubmitted: (_) {
               FocusScope.of(context).unfocus();
-              setState(() {
-                _titleTouched = true;
-              });
+              setState(() => _titleTouched = true);
             },
           ),
           if (showTitleError)
@@ -364,6 +310,80 @@ class _NoteManagementScreenState extends State<NoteManagementScreen> {
         ],
       ),
       pinned: true,
+      actions: [
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert_rounded),
+          onSelected: (value) {
+            switch (value) {
+              case 'share':
+                controller.share(context);
+                break;
+              case 'copy':
+                controller.copyToClipboard(context);
+                break;
+            }
+          },
+          itemBuilder: (ctx) => [
+            PopupMenuItem(
+              value: 'share',
+              child: Row(
+                children: [
+                  const Icon(Icons.share_rounded),
+                  const SizedBox(width: 8),
+                  Text(s.share),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'copy',
+              child: Row(
+                children: [
+                  const Icon(Icons.copy_rounded),
+                  const SizedBox(width: 8),
+                  Text(s.copy),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar(
+    BuildContext context,
+    NoteManagementController controller,
+    S s,
+  ) {
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          if (controller.isLoading)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox.square(
+                dimension: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else ...[
+            IconButton(
+              onPressed: _togglePreviewMode,
+              tooltip: _isPreviewMode ? s.edit : s.grid_view,
+              icon: Icon(
+                  _isPreviewMode ? Icons.edit_rounded : Icons.preview_rounded),
+            ),
+            const Spacer(),
+            FloatingActionButton.extended(
+              onPressed: _onNoteSaveAttempt,
+              icon: const Icon(Icons.save),
+              label: Text(s.save),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -467,13 +487,13 @@ class _CharacterSelectorSection extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: selectedIds.map((characterId) {
-        dynamic actualKey;
-        try {
-          actualKey = int.parse(characterId);
-        } catch (_) {
-          actualKey = characterId;
+        Character? character = charactersBox.get(characterId);
+        if (character == null) {
+          final intKey = int.tryParse(characterId);
+          if (intKey != null) {
+            character = charactersBox.get(intKey);
+          }
         }
-        final character = charactersBox.get(actualKey);
         return character != null
             ? InputChip(
                 avatar: AvatarWidget.character(
