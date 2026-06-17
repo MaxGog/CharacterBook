@@ -402,21 +402,16 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
                     (context, index) {
                       final template = controller.filteredItems[index];
                       return TemplateCardItem(
-                        key: ValueKey('${template.name}-$index'),
-                        template: template,
-                        isSelected: false,
-                        onTap: () => _navigateToDetail(template),
-                        onLongPress: () => _showTemplateContextMenu(
-                            template, context, controller),
-                        onMenuPressed: () => _showTemplateContextMenu(
-                            template, context, controller),
-                        onShare: () => service.shareTemplate(template),
-                        onSettings: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SwipeActionSettingsScreen(),
-                          ),
-                        ),
+                          key: ValueKey('${template.name}-$index'),
+                          template: template,
+                          isSelected: false,
+                          onTap: () => _navigateToDetail(template),
+                          onLongPress: () => _showTemplateContextMenu(template, context, controller),
+                          onEdit: () => _navigateToEdit(context, template),
+                          onDelete: () => _deleteTemplate(template, controller),
+                          onShare: () => service.shareTemplate(template),
+                          onDuplicate: null,
+                          onSettings: () => AppNavigator.openSwipeActionSettings(),
                       );
                     },
                     childCount: controller.filteredItems.length,

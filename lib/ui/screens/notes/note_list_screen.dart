@@ -434,20 +434,16 @@ class _NotesListScreenState extends State<NotesListScreen> {
                                       ? Column(
                                           children: group.notes
                                               .map((note) => NoteCardItem(
-                                                    key: ValueKey(note.key),
-                                                    note: note,
-                                                    onTap: () =>
-                                                        AppNavigator.editNote(
-                                                            note),
-                                                    onEdit: () =>
-                                                        AppNavigator.editNote(
-                                                            note),
-                                                    onLongPress: () =>
-                                                        _showNoteContextMenu(
-                                                            note, controller),
-                                                    onDelete: () => _deleteNote(
-                                                        note, controller),
-                                                  ))
+                                                key: ValueKey(note.key),
+                                                note: note,
+                                                onTap: () => AppNavigator.editNote(note),
+                                                onEdit: () => AppNavigator.editNote(note),
+                                                onLongPress: () => _showNoteContextMenu(note, controller),
+                                                onDelete: () => _deleteNote(note, controller),
+                                                onShare: () => controller.shareNoteAsFile(note),
+                                                onDuplicate: null,
+                                                onSettings: () => AppNavigator.openSwipeActionSettings(),
+                                              ))
                                               .toList(),
                                         )
                                       : const SizedBox.shrink(),

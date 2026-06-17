@@ -521,27 +521,15 @@ class _RaceListScreenState extends State<RaceListScreen> {
                                       ? Column(
                                           children: group.races
                                               .map((race) => RaceCardItem(
-                                                    key: ValueKey(race.key),
-                                                    race: race,
-                                                    onTap: () => _editRace(
-                                                        context, race),
-                                                    onLongPress: () =>
-                                                        _showRaceContextMenu(
-                                                            race,
-                                                            context,
-                                                            controller,
-                                                            service),
-                                                    onShare: () =>
-                                                        service.exportToPdf(
-                                                            context, race),
-                                                    onSettings: () =>
-                                                        Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            const SwipeActionSettingsScreen(),
-                                                      ),
-                                                    ),
+                                                key: ValueKey(race.key),
+                                                race: race,
+                                                onTap: () => _editRace(context, race),
+                                                onLongPress: () => _showRaceContextMenu(race, context, controller, service),
+                                                onEdit: () => _editRace(context, race),
+                                                onDelete: () => _deleteRace(race, controller, service),
+                                                onShare: () => controller.shareRaceAsFile(race),
+                                                onDuplicate: null,
+                                                onSettings: () => AppNavigator.openSwipeActionSettings(),
                                                   ))
                                               .toList(),
                                         )
@@ -563,16 +551,12 @@ class _RaceListScreenState extends State<RaceListScreen> {
                               key: ValueKey(race.key),
                               race: race,
                               onTap: () => _editRace(context, race),
-                              onLongPress: () => _showRaceContextMenu(
-                                  race, context, controller, service),
-                              onShare: () => service.exportToPdf(context, race),
-                              onSettings: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const SwipeActionSettingsScreen(),
-                                ),
-                              ),
+                              onLongPress: () => _showRaceContextMenu(race, context, controller, service),
+                              onEdit: () => _editRace(context, race),
+                              onDelete: () => _deleteRace(race, controller, service),
+                              onShare: () => controller.shareRaceAsFile(race),
+                              onDuplicate: null,
+                              onSettings: () => AppNavigator.openSwipeActionSettings(),
                             );
                           },
                           childCount: controller.filteredItems.length,

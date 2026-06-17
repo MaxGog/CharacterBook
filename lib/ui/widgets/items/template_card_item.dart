@@ -1,14 +1,16 @@
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/template_model.dart';
+import 'package:characterbook/ui/widgets/items/commod_card_item.dart';
 import 'package:flutter/material.dart';
 
 class TemplateCardItem extends StatelessWidget {
   final QuestionnaireTemplate template;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  final VoidCallback onMenuPressed;
+  final VoidCallback? onLongPress;
   final bool enableDrag;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final VoidCallback? onShare;
   final VoidCallback? onDuplicate;
   final VoidCallback? onSettings;
@@ -16,11 +18,12 @@ class TemplateCardItem extends StatelessWidget {
   const TemplateCardItem({
     super.key,
     required this.template,
-    required this.isSelected,
+    this.isSelected = false,
     required this.onTap,
-    required this.onLongPress,
-    required this.onMenuPressed,
     this.enableDrag = false,
+    this.onLongPress,
+    required this.onEdit,
+    required this.onDelete,
     this.onShare,
     this.onDuplicate,
     this.onSettings,
@@ -34,104 +37,83 @@ class TemplateCardItem extends StatelessWidget {
     final totalFields =
         template.standardFields.length + template.customFields.length;
 
-    return Card(
+    return CommonCardItem(
+      id: template.key,
+      isSelected: isSelected,
+      onTap: onTap,
+      onLongPress: enableDrag ? null : onLongPress,
+      onEdit: onEdit,
+      onDelete: onDelete,
+      onShare: onShare,
+      onDuplicate: onDuplicate,
+      onSettings: onSettings,
+      deleteConfirmationMessage: s.deleteConfirmation,
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colorScheme.primaryContainer.withOpacity(0.25),
-              colorScheme.tertiaryContainer.withOpacity(0.25),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: enableDrag ? null : onLongPress,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTemplateIcon(colorScheme),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.library_books_rounded,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    template.name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.fields_count(totalFields),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
-                      Text(
-                        template.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      _buildFieldChip(
+                        icon: Icons.checklist_rounded,
+                        label:
+                            '${template.standardFields.length} ${s.standard}',
+                        containerColor: colorScheme.primaryContainer,
+                        onContainerColor: colorScheme.onPrimaryContainer,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        s.fields_count(totalFields),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.8),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _buildFieldChip(
-                            icon: Icons.checklist_rounded,
-                            label:
-                                '${template.standardFields.length} ${s.standard}',
-                            containerColor: colorScheme.primaryContainer,
-                            onContainerColor: colorScheme.onPrimaryContainer,
-                          ),
-                          _buildFieldChip(
-                            icon: Icons.edit_rounded,
-                            label:
-                                '${template.customFields.length} ${s.custom}',
-                            containerColor: colorScheme.tertiaryContainer,
-                            onContainerColor: colorScheme.onTertiaryContainer,
-                          ),
-                        ],
+                      _buildFieldChip(
+                        icon: Icons.edit_rounded,
+                        label: '${template.customFields.length} ${s.custom}',
+                        containerColor: colorScheme.tertiaryContainer,
+                        onContainerColor: colorScheme.onTertiaryContainer,
                       ),
                     ],
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_vert_rounded,
-                      color: colorScheme.onSurfaceVariant),
-                  onPressed: onMenuPressed,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTemplateIcon(ColorScheme colorScheme) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(Icons.library_books_rounded,
-          color: colorScheme.primary, size: 20),
     );
   }
 

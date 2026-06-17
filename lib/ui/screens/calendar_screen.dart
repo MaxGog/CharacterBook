@@ -9,6 +9,7 @@ import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/note_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
+import 'package:characterbook/services/app_navigator.dart';
 import 'package:characterbook/services/device_calendar_service.dart';
 import 'package:characterbook/services/notification_service.dart';
 import 'package:characterbook/ui/widgets/modals/character_modal_card.dart';
@@ -301,9 +302,13 @@ class _EventListItem extends StatelessWidget {
       case CalendarEventType.race:
         return RaceCardItem(
           race: event.race!,
-          isSelected: false,
           onTap: () => _showRaceModal(context, event.race!),
-          onLongPress: () {},
+          onLongPress: null,
+          onEdit: () => AppNavigator.editRace(event.race!),
+          onDelete: () => AppNavigator.showError(S.of(context).delete_error),
+          onShare: null,
+          onDuplicate: null,
+          onSettings: () => AppNavigator.openSwipeActionSettings(),
         );
       case CalendarEventType.note:
         return NoteCardItem(
