@@ -330,7 +330,7 @@ ${controller.character.age}''';
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              labelText: s.character,
+              labelText: s.enter_name,
               hintText: widget.character == null
                   ? (widget.template == null
                       ? s.new_character

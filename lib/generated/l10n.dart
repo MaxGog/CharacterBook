@@ -5826,6 +5826,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Введите имя`
+  String get enter_name {
+    return Intl.message(
+      'Введите имя',
+      name: 'enter_name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Удаление заметки`
+  String get note_delete_title {
+    return Intl.message(
+      'Удаление заметки',
+      name: 'note_delete_title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Вы действительно хотите удалить заметку? Восстановить её будет невозможно.`
+  String get note_delete_confirm {
+    return Intl.message(
+      'Вы действительно хотите удалить заметку? Восстановить её будет невозможно.',
+      name: 'note_delete_confirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `заметка успешно удалена`
+  String get note_deleted {
+    return Intl.message(
+      'заметка успешно удалена',
+      name: 'note_deleted',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -364,6 +364,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "enter_age": MessageLookupByLibrary.simpleMessage("Возраст"),
         "enter_event_title":
             MessageLookupByLibrary.simpleMessage("Введите название события"),
+        "enter_name": MessageLookupByLibrary.simpleMessage("Введите имя"),
         "enter_name_character":
             MessageLookupByLibrary.simpleMessage("Введите имя персонажа"),
         "enter_race_name":
@@ -612,6 +613,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_templates": MessageLookupByLibrary.simpleMessage("Нет шаблонов"),
         "none": MessageLookupByLibrary.simpleMessage("Нет"),
         "not_selected": MessageLookupByLibrary.simpleMessage("Не выбрано"),
+        "note_delete_confirm": MessageLookupByLibrary.simpleMessage(
+            "Вы действительно хотите удалить заметку? Восстановить её будет невозможно."),
+        "note_delete_title":
+            MessageLookupByLibrary.simpleMessage("Удаление заметки"),
+        "note_deleted":
+            MessageLookupByLibrary.simpleMessage("заметка успешно удалена"),
         "note_events": MessageLookupByLibrary.simpleMessage("События заметок"),
         "notes_count": m24,
         "nothing_found":

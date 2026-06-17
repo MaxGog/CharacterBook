@@ -291,6 +291,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "enter_age": MessageLookupByLibrary.simpleMessage("Age"),
         "enter_event_title":
             MessageLookupByLibrary.simpleMessage("Enter the event name"),
+        "enter_name": MessageLookupByLibrary.simpleMessage("Enter name"),
         "enter_name_character":
             MessageLookupByLibrary.simpleMessage("Enter name character"),
         "enter_race_name": MessageLookupByLibrary.simpleMessage("Race name"),
@@ -482,6 +483,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_templates": MessageLookupByLibrary.simpleMessage("No templates"),
         "none": MessageLookupByLibrary.simpleMessage("None"),
         "not_selected": MessageLookupByLibrary.simpleMessage("Not selected"),
+        "note_delete_confirm": MessageLookupByLibrary.simpleMessage(
+            "Do you really want to delete the note? It will be impossible to restore it."),
+        "note_delete_title":
+            MessageLookupByLibrary.simpleMessage("Delete note?"),
+        "note_deleted": MessageLookupByLibrary.simpleMessage(
+            "the note was successfully deleted"),
         "nothing_found": MessageLookupByLibrary.simpleMessage("Nothing found"),
         "ok": MessageLookupByLibrary.simpleMessage("OK"),
         "operationCompleted": MessageLookupByLibrary.simpleMessage("Completed"),

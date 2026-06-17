@@ -65,9 +65,9 @@ class _NotesListScreenState extends State<NotesListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(S.of(context).template_delete_title),
+        title: Text(S.of(context).note_delete_title),
         content: Text(
-            '${S.of(context).posts} "${note.title}" ${S.of(context).template_delete_confirm}'),
+            '${S.of(context).posts} "${note.title}" ${S.of(context).note_delete_confirm}'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -84,7 +84,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
       await controller.deleteNote(note);
       if (mounted) {
         AppNavigator.showSuccess(
-            '${S.of(context).posts} "${note.title}" ${S.of(context).template_deleted}');
+            '${S.of(context).posts} "${note.title}" ${S.of(context).note_deleted}');
       }
     }
   }

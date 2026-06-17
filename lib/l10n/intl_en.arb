@@ -450,5 +450,9 @@
   "field_value_hint": "Enter value",
   "custom_fields": "Custom Fields",
   "unpin_success": "Unpinned",
-  "pin_success": "Pinned"
+  "pin_success": "Pinned",
+  "enter_name": "Enter name",
+  "note_delete_title": "Delete note?",
+  "note_delete_confirm": "Do you really want to delete the note? It will be impossible to restore it.",
+  "note_deleted": "the note was successfully deleted"
 }
