@@ -110,9 +110,11 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     try {
       final character = await context
           .read<CharacterListController>()
-          .importCharacter(() => FilePickerService().importCharacter(), service);
+          .importCharacter(
+              () => FilePickerService().importCharacter(), service);
       if (mounted && character != null) {
-        AppNavigator.showSuccess(S.of(context).character_imported(character.name));
+        AppNavigator.showSuccess(
+            S.of(context).character_imported(character.name));
       }
     } catch (e) {
       setState(() => _errorMessage = e.toString());
@@ -143,7 +145,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         false;
   }
 
-
   void _navigateToDetail(Character character) {
     setState(() => _animatingHeroId = character.id);
     showModalBottomSheet(
@@ -154,7 +155,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     ).then((_) {
       if (mounted) {
         setState(() => _animatingHeroId = null);
-      } 
+      }
     });
   }
 
@@ -207,9 +208,13 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
             onDuplicate: () async {
               try {
                 await controller.duplicateCharacter(character, service);
-                if (context.mounted) AppNavigator.showSuccess(s.character_duplicated);
+                if (context.mounted) {
+                  AppNavigator.showSuccess(s.character_duplicated);
+                }
               } catch (e) {
-                if (context.mounted) AppNavigator.showError('${s.duplicate_error}: $e');
+                if (context.mounted) {
+                  AppNavigator.showError('${s.duplicate_error}: $e');
+                }
               }
             },
             onShare: () {
@@ -218,29 +223,36 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                 onCopy: () async {
                   try {
                     await controller.characterClipboardText(character, context);
-                    if (context.mounted) AppNavigator.showSuccess(s.copied_to_clipboard);
+                    if (context.mounted) {
+                      AppNavigator.showSuccess(s.copied_to_clipboard);
+                    }
                   } catch (e) {
-                    if (context.mounted) AppNavigator.showError('${s.copy_error}: $e');
+                    if (context.mounted) {
+                      AppNavigator.showError('${s.copy_error}: $e');
+                    }
                   }
                 },
                 onShareFile: () async {
                   try {
                     await controller.shareCharacterAsFile(character);
                   } catch (e) {
-                    if (context.mounted) AppNavigator.showError('${s.error}: $e');
+                    if (context.mounted) {
+                      AppNavigator.showError('${s.error}: $e');
+                    }
                   }
                 },
                 onExportPdf: () async {
                   try {
                     await controller.exportCharacterToPdf(character, context);
                   } catch (e) {
-                    if (context.mounted) AppNavigator.showError('${s.export_error}: $e');
+                    if (context.mounted) {
+                      AppNavigator.showError('${s.export_error}: $e');
+                    }
                   }
                 },
                 onExportWord: () async {
                   try {
-                    await controller.exportCharacterToWord(
-                        character, context);
+                    await controller.exportCharacterToWord(character, context);
                   } catch (e) {
                     if (context.mounted) {
                       AppNavigator.showError('${s.export_error}: $e');
@@ -257,7 +269,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
               }
             },
             pinLabel: isPinned ? s.unpin : s.pin,
-            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+            pinIcon:
+                isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
           );
         },
       ),
@@ -366,74 +379,74 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                 return false;
               },
               child: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                  SliverAppBar.large(
-                    pinned: true,
-                    leading: _isSearching
-                        ? IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            onPressed: _stopSearch,
-                          )
-                        : null,
-                    title: _isSearching ? null : Text(s.my_characters),
-                    actions: [
-                      if (!_isSearching) ...[
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: _startSearch,
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  if (_isSearching) {
+                    return [
+                      SliverAppBar(
+                        pinned: true,
+                        leading: IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: _stopSearch,
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.account_circle_rounded),
-                          iconSize: 32,
-                          tooltip: s.more_options,
-                          onPressed: () => AppNavigator.openMenu(context),
-                        ),
-                      ] else ...[
-                        if (_searchController.text.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              controller.setSearchQuery('');
-                            },
+                        title: SearchBar(
+                          controller: _searchController,
+                          hintText: s.search_characters,
+                          leading: const Padding(
+                            padding: EdgeInsets.only(left: 8.0),
+                            child: Icon(Icons.search),
                           ),
-                      ],
-                    ],
-                    bottom: _isSearching
-                        ? PreferredSize(
-                            preferredSize:
-                                const Size.fromHeight(kToolbarHeight),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                              child: SearchBar(
-                                controller: _searchController,
-                                hintText: s.search_characters,
-                                leading: const Padding(
-                                  padding: EdgeInsets.only(left: 8.0),
-                                  child: Icon(Icons.search),
-                                ),
-                                padding: const WidgetStatePropertyAll(
-                                  EdgeInsets.symmetric(horizontal: 8),
-                                ),
-                                shape: WidgetStatePropertyAll(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                ),
-                                backgroundColor: WidgetStatePropertyAll(
-                                  colorScheme.surfaceContainerHigh,
-                                ),
-                                elevation: const WidgetStatePropertyAll(0),
-                                onChanged: (query) =>
-                                    controller.setSearchQuery(query),
-                                onSubmitted: (query) =>
-                                    controller.setSearchQuery(query),
-                              ),
+                          padding: const WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
                             ),
-                          )
-                        : null,
-                  ),
-                ],
+                          ),
+                          backgroundColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceContainerHigh,
+                          ),
+                          elevation: const WidgetStatePropertyAll(0),
+                          onChanged: (query) =>
+                              controller.setSearchQuery(query),
+                          onSubmitted: (query) =>
+                              controller.setSearchQuery(query),
+                          trailing: [
+                            if (_searchController.text.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  controller.setSearchQuery('');
+                                },
+                              ),
+                          ],
+                        ),
+                        actions: const [],
+                      ),
+                    ];
+                  } else {
+                    return [
+                      SliverAppBar.large(
+                        pinned: true,
+                        leading: null,
+                        title: Text(s.my_characters),
+                        actions: [
+                          IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: _startSearch,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.account_circle_rounded),
+                            iconSize: 32,
+                            tooltip: s.more_options,
+                            onPressed: () => AppNavigator.openMenu(context),
+                          ),
+                        ],
+                      ),
+                    ];
+                  }
+                },
                 body: CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(
@@ -518,7 +531,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                           children: group.characters
                                               .map((character) =>
                                                   CharacterCardItem(
-                                                    key: ValueKey(character.key),
+                                                    key:
+                                                        ValueKey(character.key),
                                                     animateHero:
                                                         _animatingHeroId !=
                                                             character.id,

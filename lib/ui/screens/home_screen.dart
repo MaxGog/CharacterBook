@@ -8,7 +8,6 @@ import 'package:characterbook/data/services/character_service.dart';
 import 'package:characterbook/data/services/race_service.dart';
 import 'package:characterbook/providers/pins_provider.dart';
 import 'package:characterbook/services/app_navigator.dart';
-import 'package:characterbook/services/pin_service.dart';
 import 'package:characterbook/services/clipboard_service.dart';
 import 'package:characterbook/services/date_formatter.dart';
 import 'package:characterbook/services/pdf_export_manager.dart';
@@ -61,8 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
-    _controller.dispose();
     _searchFocus.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -123,83 +122,63 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _toggleHomePin(HomeItem item) async {
-    _controller.togglePin(item);
-  }
-
-  void _showCharacterContextMenu(CharacterHomeItem item) {
-    final s = S.of(context);
+  void _showRaceDetail(RaceHomeItem item) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => FutureBuilder<bool>(
-        future: PinService.isPinned(item.character.id),
-        builder: (context, snapshot) {
-          final isPinned = snapshot.data ?? false;
-          return ContextMenu.character(
-            character: item.character,
-            onEdit: () {
-              _editCharacter(item.character);
-            },
-            onDelete: () {
-              _showDeleteDialog(item);
-            },
-            onDuplicate: () {
-              _duplicateCharacter(item);
-            },
-            onShare: () {
-              _showCharacterShareOptions(item);
-            },
-            onPin: () async {
-              await _controller.togglePin(item);
-              if (mounted) {
-                AppNavigator.showSuccess(
-                    isPinned ? s.unpin_success : s.pin_success);
-              }
-            },
-            pinLabel: isPinned ? s.unpin : s.pin,
-            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-          );
-        },
-      ),
+      builder: (_) => RaceModalCard(race: item.race),
     );
   }
 
-  void _showRaceContextMenu(RaceHomeItem item) {
+  void _showContextMenu(HomeItem item) {
     final s = S.of(context);
+    final pinsProvider = context.read<PinsProvider>();
+    final isPinned = pinsProvider.isPinned(item.id);
+
+    Widget buildMenu() {
+      if (item is CharacterHomeItem) {
+        return ContextMenu.character(
+          character: item.character,
+          onEdit: () => _editCharacter(item.character),
+          onDelete: () => _showDeleteDialog(item),
+          onDuplicate: () => _duplicateCharacter(item),
+          onShare: () => _showCharacterShareOptions(item),
+          onPin: () async {
+            await _controller.togglePin(item);
+            if (mounted) {
+              AppNavigator.showSuccess(
+                  isPinned ? s.unpin_success : s.pin_success);
+            }
+          },
+          pinLabel: isPinned ? s.unpin : s.pin,
+          pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+        );
+      } else if (item is RaceHomeItem) {
+        return ContextMenu.race(
+          race: item.race,
+          onEdit: () => _editRace(item.race),
+          onDelete: () => _showDeleteDialog(item),
+          onShare: () => _showRaceShareOptions(item),
+          onPin: () async {
+            await _controller.togglePin(item);
+            if (mounted) {
+              AppNavigator.showSuccess(
+                  isPinned ? s.unpin_success : s.pin_success);
+            }
+          },
+          pinLabel: isPinned ? s.unpin : s.pin,
+          pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+        );
+      } else {
+        return const SizedBox.shrink();
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => FutureBuilder<bool>(
-        future: PinService.isPinned(item.race.id),
-        builder: (context, snapshot) {
-          final isPinned = snapshot.data ?? false;
-          return ContextMenu.race(
-            race: item.race,
-            onEdit: () {
-              _editRace(item.race);
-            },
-            onDelete: () {
-              _showDeleteDialog(item);
-            },
-            onShare: () {
-              _showRaceShareOptions(item);
-            },
-            onPin: () async {
-              await _toggleHomePin(item);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isPinned ? s.unpin : s.pin),
-                  ),
-                );
-              }
-            },
-            pinLabel: isPinned ? s.unpin : s.pin,
-            pinIcon: isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-          );
-        },
-      ),
+      builder: (_) => buildMenu(),
     );
   }
 
@@ -215,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(S.of(context).character_duplicated)),
         );
-        await _loadData();
       }
     } catch (e) {
       if (mounted) {
@@ -423,15 +401,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showRaceDetail(RaceHomeItem item) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => RaceModalCard(race: item.race),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -445,96 +414,97 @@ class _HomeScreenState extends State<HomeScreen> {
         body: RefreshIndicator(
           onRefresh: () => _controller.loadData(),
           child: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              SliverAppBar.large(
-                pinned: true,
-                leading: _isSearching
-                    ? IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: _stopSearch,
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: Image.asset(
-                            'assets/iconapp.png',
-                            height: 32,
-                            width: 32,
-                            fit: BoxFit.fitHeight,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.book_rounded, size: 32),
-                          ),
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              if (_isSearching) {
+                return [
+                  SliverAppBar(
+                    pinned: true,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: _stopSearch,
+                    ),
+                    title: SearchBar(
+                      controller: _searchController,
+                      focusNode: _searchFocus,
+                      hintText: s.search,
+                      leading: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Icon(Icons.search),
+                      ),
+                      padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
-                title: _isSearching ? null : Text(s.app_name),
-                actions: [
-                  if (!_isSearching) ...[
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: _startSearch,
+                      backgroundColor: WidgetStatePropertyAll(
+                        colorScheme.surfaceContainerHigh,
+                      ),
+                      elevation: const WidgetStatePropertyAll(0),
+                      onChanged: _onSearchChanged,
+                      onSubmitted: _onSearchSubmitted,
+                      trailing: [
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              _searchDebounce?.cancel();
+                              _controller.setSearchQuery('');
+                              _searchFocus.requestFocus();
+                            },
+                          ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.account_circle_rounded),
-                      iconSize: 32,
-                      onPressed: () => AppNavigator.openMenu(context),
-                      tooltip: s.more_options,
+                    actions: const [],
+                  ),
+                ];
+              } else {
+                return [
+                  SliverAppBar.large(
+                    pinned: true,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: Image.asset(
+                          'assets/iconapp.png',
+                          height: 32,
+                          width: 32,
+                          fit: BoxFit.fitHeight,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.book_rounded, size: 32),
+                        ),
+                      ),
                     ),
-                  ] else ...[
-                    if (_searchController.text.isNotEmpty)
+                    title: Text(s.app_name),
+                    actions: [
                       IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _searchDebounce?.cancel();
-                          _controller.setSearchQuery('');
-                          _searchFocus.requestFocus();
-                        },
+                        icon: const Icon(Icons.search),
+                        onPressed: _startSearch,
                       ),
-                  ],
-                ],
-
-                bottom: _isSearching
-                    ? PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                          child: SearchBar(
-                            controller: _searchController,
-                            focusNode: _searchFocus,
-                            hintText: s.search,
-                            leading: const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: Icon(Icons.search),
-                            ),
-                            padding: const WidgetStatePropertyAll(
-                              EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            shape: WidgetStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                            ),
-                            backgroundColor: WidgetStatePropertyAll(
-                              colorScheme.surfaceContainerHigh,
-                            ),
-                            elevation: const WidgetStatePropertyAll(0),
-                            onChanged: _onSearchChanged,
-                            onSubmitted: _onSearchSubmitted,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ],
+                      IconButton(
+                        icon: const Icon(Icons.account_circle_rounded),
+                        iconSize: 32,
+                        onPressed: () => AppNavigator.openMenu(context),
+                        tooltip: s.more_options,
+                      ),
+                    ],
+                  ),
+                ];
+              }
+            },
             body: Consumer<HomeController>(
               builder: (context, controller, _) {
                 if (controller.searchQuery.isNotEmpty) {
                   return _SearchResultsGrid(
                     items: controller.filteredItems,
                     onCharacterTap: _showCharacterDetail,
-                    onCharacterContextMenu: _showCharacterContextMenu,
+                    onCharacterContextMenu: _showContextMenu,
                     onRaceTap: _showRaceDetail,
-                    onRaceContextMenu: _showRaceContextMenu,
+                    onRaceContextMenu: _showContextMenu,
                     onToolTap: (tool) => _navigateToTool(tool.page),
                   );
                 }
@@ -549,9 +519,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 return _MainExpressiveContent(
                   controller: controller,
                   onCharacterTap: _showCharacterDetail,
-                  onCharacterContextMenu: _showCharacterContextMenu,
+                  onCharacterContextMenu: _showContextMenu,
                   onRaceTap: _showRaceDetail,
-                  onRaceContextMenu: _showRaceContextMenu,
+                  onRaceContextMenu: _showContextMenu,
                   onToolTap: _navigateToTool,
                 );
               },
@@ -568,9 +538,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _createNewContent() => AppNavigator.openNewCharacter();
-
-  Future<void> refresh() async => await _loadData();
-
 }
 
 class _SearchResultsGrid extends StatelessWidget {
@@ -585,9 +552,9 @@ class _SearchResultsGrid extends StatelessWidget {
 
   final List<HomeItem> items;
   final void Function(CharacterHomeItem) onCharacterTap;
-  final void Function(CharacterHomeItem) onCharacterContextMenu;
+  final void Function(HomeItem) onCharacterContextMenu;
   final void Function(RaceHomeItem) onRaceTap;
-  final void Function(RaceHomeItem) onRaceContextMenu;
+  final void Function(HomeItem) onRaceContextMenu;
   final void Function(ToolHomeItem) onToolTap;
 
   @override
@@ -702,9 +669,9 @@ class _MainExpressiveContent extends StatelessWidget {
 
   final HomeController controller;
   final void Function(CharacterHomeItem) onCharacterTap;
-  final void Function(CharacterHomeItem) onCharacterContextMenu;
+  final void Function(HomeItem) onCharacterContextMenu;
   final void Function(RaceHomeItem) onRaceTap;
-  final void Function(RaceHomeItem) onRaceContextMenu;
+  final void Function(HomeItem) onRaceContextMenu;
   final void Function(Widget) onToolTap;
 
   @override
@@ -822,4 +789,3 @@ class _ToolMaterialCard extends StatelessWidget {
     );
   }
 }
-

@@ -102,9 +102,7 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
               try {
                 await controller.templateClipboardText(template, context);
                 if (context.mounted) {
-                  (
-                    AppNavigator.showSuccess(s.copied_to_clipboard)
-                  );
+                  (AppNavigator.showSuccess(s.copied_to_clipboard));
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -212,7 +210,7 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
     try {
       final template = await service.pickAndImportTemplate();
       if (template == null) {
-        if (mounted) _showSnackBar(S.of(context).import_cancelled);
+        if (mounted) AppNavigator.showError(S.of(context).import_cancelled);
         return;
       }
 
@@ -236,25 +234,21 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
           ),
         );
         if (replace != true) {
-          if (mounted) _showSnackBar(S.of(context).import_cancelled);
+          if (mounted) AppNavigator.showError(S.of(context).import_cancelled);
           return;
         }
       }
 
       await service.saveTemplate(template);
-      if (mounted)
-        _showSnackBar(S.of(context).template_imported(template.name));
+      if (mounted) {
+        AppNavigator.showSuccess(S.of(context).template_imported(template.name));
+      }
     } catch (e) {
       setState(() => _errorMessage = e.toString());
-      if (mounted) _showSnackBar(S.of(context).import_error(e.toString()));
+      if (mounted) AppNavigator.showError(S.of(context).import_error(e.toString()));
     } finally {
       if (mounted) setState(() => _isImporting = false);
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -305,67 +299,66 @@ class _TemplatesListScreenState extends State<TemplatesListScreen> {
           return false;
         },
         child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar.large(
-              pinned: true,
-              leading: _isSearching
-                  ? IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: _stopSearch,
-                    )
-                  : null,
-              title: _isSearching ? null : Text(s.templates),
-              actions: [
-                if (!_isSearching) ...[
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: _startSearch,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            if (_isSearching) {
+              return [
+                SliverAppBar(
+                  pinned: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: _stopSearch,
                   ),
-                ] else ...[
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        controller.setSearchQuery('');
-                      },
+                  title: SearchBar(
+                    controller: _searchController,
+                    hintText: s.search_hint,
+                    leading: const Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Icon(Icons.search),
                     ),
-                ],
-              ],
-              bottom: _isSearching
-                  ? PreferredSize(
-                      preferredSize: const Size.fromHeight(kToolbarHeight),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                        child: SearchBar(
-                          controller: _searchController,
-                          hintText: s.search_hint,
-                          leading: const Padding(
-                            padding: EdgeInsets.only(left: 8.0),
-                            child: Icon(Icons.search),
-                          ),
-                          padding: const WidgetStatePropertyAll(
-                            EdgeInsets.symmetric(horizontal: 8),
-                          ),
-                          shape: WidgetStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          backgroundColor: WidgetStatePropertyAll(
-                            colorScheme.surfaceContainerHigh,
-                          ),
-                          elevation: const WidgetStatePropertyAll(0),
-                          onChanged: (query) =>
-                              controller.setSearchQuery(query),
-                          onSubmitted: (query) =>
-                              controller.setSearchQuery(query),
-                        ),
+                    padding: const WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                    )
-                  : null,
-            ),
-          ],
+                    ),
+                    backgroundColor: WidgetStatePropertyAll(
+                      colorScheme.surfaceContainerHigh,
+                    ),
+                    elevation: const WidgetStatePropertyAll(0),
+                    onChanged: (query) => controller.setSearchQuery(query),
+                    onSubmitted: (query) => controller.setSearchQuery(query),
+                    trailing: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            controller.setSearchQuery('');
+                          },
+                        ),
+                    ],
+                  ),
+                  actions: const [],
+                ),
+              ];
+            } else {
+              return [
+                SliverAppBar.large(
+                  pinned: true,
+                  leading: null,
+                  title: Text(s.templates),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: _startSearch,
+                    ),
+                  ],
+                ),
+              ];
+            }
+          },
           body: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(

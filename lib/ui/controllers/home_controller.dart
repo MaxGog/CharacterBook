@@ -15,14 +15,13 @@ import 'package:flutter/material.dart';
 class HomeController extends ChangeNotifier {
   final CharacterService _characterService;
   final RaceService _raceService;
-  final PinsProvider _pinsProvider; 
+  final PinsProvider _pinsProvider;
 
   List<CharacterHomeItem> _characters = [];
   List<RaceHomeItem> _races = [];
   final List<ToolHomeItem> _tools = [];
   List<HomeItem> _filteredItems = [];
   String _searchQuery = '';
-
 
   List<HomeItem> get filteredItems => _filteredItems;
   String get searchQuery => _searchQuery;
@@ -40,8 +39,7 @@ class HomeController extends ChangeNotifier {
     ];
   }
 
-
-   HomeController({
+  HomeController({
     required CharacterService characterService,
     required RaceService raceService,
     required PinsProvider pinsProvider,
@@ -54,13 +52,8 @@ class HomeController extends ChangeNotifier {
     _raceService.addListener(_onDataChanged);
   }
 
-  void _onDataChanged() {
-    loadData();
-  }
-
-  void _onPinsChanged() {
-    notifyListeners();
-  }
+  void _onDataChanged() => loadData();
+  void _onPinsChanged() => notifyListeners();
 
   void _initTools() {
     _tools.addAll([
@@ -70,7 +63,7 @@ class HomeController extends ChangeNotifier {
           type: ToolType.pdfExport, page: const ExportPdfSettingsScreen()),
       ToolHomeItem(type: ToolType.templates, page: const TemplatesListScreen()),
       ToolHomeItem(type: ToolType.calendar, page: const CalendarScreen()),
-      ToolHomeItem(type: ToolType.relationships, page: RelationshipsScreen())
+      ToolHomeItem(type: ToolType.relationships, page: RelationshipsScreen()),
     ]);
   }
 
@@ -85,13 +78,6 @@ class HomeController extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
-  }
-
-  List<String> getAllNamesForSuggestions() {
-    return [
-      ..._characters.map((item) => item.character.name),
-      ..._races.map((item) => item.race.name),
-    ];
   }
 
   void setSearchQuery(String query) {
@@ -166,6 +152,8 @@ class HomeController extends ChangeNotifier {
   @override
   void dispose() {
     _pinsProvider.removeListener(_onPinsChanged);
+    _characterService.removeListener(_onDataChanged);
+    _raceService.removeListener(_onDataChanged);
     super.dispose();
   }
 }
