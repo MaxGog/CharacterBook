@@ -32,7 +32,7 @@ class HiveService {
 
   static Future<void> initializeAll() async {
     if (!_isInitialized) {
-      await Hive.initFlutter();
+      await Hive.initFlutter('Characterbook data');
       _registerAdapters();
       _isInitialized = true;
     }
