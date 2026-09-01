@@ -94,7 +94,8 @@ class BackupManager {
     if (type == Character) return Character.fromJson(json);
     if (type == Note) return Note.fromJson(json);
     if (type == Race) return Race.fromJson(json);
-    if (type == QuestionnaireTemplate) return QuestionnaireTemplate.fromJson(json);
+    if (type == QuestionnaireTemplate)
+      return QuestionnaireTemplate.fromJson(json);
     if (type == Relationship) return Relationship.fromJson(json);
     return null;
   }
@@ -146,7 +147,16 @@ class LocalBackupService implements BackupService {
     final bytes = utf8.encode(backupJson);
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
-    html.Url.revokeObjectUrl(url);
+    final anchor = html.AnchorElement(href: url)
+      ..download =
+          'characterbook_backup_${DateTime.now().millisecondsSinceEpoch}.characterbook'
+      ..style.display = 'none';
+    html.document.body?.append(anchor);
+    anchor.click();
+    anchor.remove();
+    Future<void>.delayed(const Duration(seconds: 1), () {
+      html.Url.revokeObjectUrl(url);
+    });
   }
 
   Future<void> _exportForMobile(String backupJson) async {

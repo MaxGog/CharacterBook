@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/race_model.dart';
 import 'package:characterbook/data/repositories/race_repository.dart';
@@ -30,7 +29,6 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey();
   late final TextEditingController _nameController;
-  Timer? _nameDebounce;
   RaceManagementController? _controller;
 
   bool _nameTouched = false;
@@ -47,20 +45,17 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
   void dispose() {
     _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
-    _nameDebounce?.cancel();
     super.dispose();
   }
 
   void _onNameChanged() {
-    _nameDebounce?.cancel();
-    _nameDebounce = Timer(const Duration(milliseconds: 500), () {
-      final controller = _controller;
-      if (controller == null) return;
-      controller.updateName(_nameController.text.trim());
-    });
+    _controller?.updateName(_nameController.text.trim());
   }
 
-  void _onRaceSaveAttempt() {
+  Future<void> _onRaceSaveAttempt() async {
+    final controller = _controller;
+    if (controller == null) return;
+
     if (_nameController.text.trim().isEmpty) {
       showErrorDialog(
         context: context,
@@ -69,6 +64,17 @@ class _RaceManagementScreenState extends State<RaceManagementScreen> {
       );
       return;
     }
+
+    FocusScope.of(context).unfocus();
+    final success = await controller.save();
+    if (!mounted) return;
+    if (!success) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(controller.error ?? S.of(context).error)));
+      return;
+    }
+
     OverlayNotification.show(
       S.of(context).changes_saved,
       type: OverlayNotificationType.success,

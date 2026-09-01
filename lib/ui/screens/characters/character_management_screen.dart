@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:characterbook/data/services/relationship_service.dart';
 import 'package:characterbook/generated/l10n.dart';
 import 'package:characterbook/data/models/character_model.dart';
@@ -47,7 +45,6 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _nameController;
-  Timer? _nameDebounce;
   CharacterManagementController? _controller;
 
   bool _nameTouched = false;
@@ -64,17 +61,11 @@ class _CharacterManagementScreenState extends State<CharacterManagementScreen> {
   void dispose() {
     _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
-    _nameDebounce?.cancel();
     super.dispose();
   }
 
   void _onNameChanged() {
-    _nameDebounce?.cancel();
-    _nameDebounce = Timer(const Duration(milliseconds: 500), () {
-      final controller = _controller;
-      if (controller == null) return;
-      controller.updateName(_nameController.text.trim());
-    });
+    _controller?.updateName(_nameController.text.trim());
   }
 
   Future<void> _onSavePressed(BuildContext context) async {

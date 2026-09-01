@@ -43,53 +43,42 @@ class RaceManagementController extends ChangeNotifier {
       _hasUnsavedChanges = true;
     }
   }
-  void _autoSave() {
-    save();
-  }
-
   void updateName(String name) {
-    if (name.trim().isEmpty) return;
     _editable.name = name;
-    _autoSave();
-    _markUnsaved();
+    _markUnsaved(notify: false);
   }
 
   void updateDescription(String description) {
     _editable.description = description;
-    _autoSave();
     _markUnsaved();
   }
 
   void updateBiology(String biology) {
     _editable.biology = biology;
-    _autoSave();
     _markUnsaved();
   }
 
   void updateBackstory(String backstory) {
     _editable.backstory = backstory;
-    _autoSave();
     _markUnsaved();
   }
 
   void updateLogo(Uint8List? bytes) {
     _editable.logo = bytes;
-    _autoSave();
     _markUnsaved();
   }
 
   void setTags(List<String> tags) {
     _tags = tags;
     _editable.tags = tags;
-    _autoSave();
     _markUnsaved();
   }
 
-  void _markUnsaved() {
+  void _markUnsaved({bool notify = true}) {
     if (!_hasUnsavedChanges) {
       _hasUnsavedChanges = true;
-      notifyListeners();
-    } else {
+    }
+    if (notify) {
       notifyListeners();
     }
   }

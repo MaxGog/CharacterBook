@@ -29,8 +29,6 @@ class CharacterManagementController extends ChangeNotifier {
   String? _error;
   bool _hasUnsavedChanges = false;
   bool _isSaving = false;
-  Timer? _autoSaveTimer;
-  
   dynamic _currentKey;
 
   Map<String, Character> _characterMap = {};
@@ -43,11 +41,11 @@ class CharacterManagementController extends ChangeNotifier {
     required RelationshipService relationshipService,
     Character? character,
     QuestionnaireTemplate? template,
-  })  : _characterRepo = characterRepo,
-        _raceRepo = raceRepo,
-        _relationshipService = relationshipService,
-        _originalCharacter = character,
-        _template = template {
+  }) : _characterRepo = characterRepo,
+       _raceRepo = raceRepo,
+       _relationshipService = relationshipService,
+       _originalCharacter = character,
+       _template = template {
     _initialize();
   }
 
@@ -100,7 +98,6 @@ class CharacterManagementController extends ChangeNotifier {
           !_availableRaces.any((r) => r.id == _editable.race!.id)) {
         _availableRaces.add(_editable.race!);
       }
-
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -115,12 +112,14 @@ class CharacterManagementController extends ChangeNotifier {
     try {
       final allChars = await _characterRepo.getAll();
       _characterMap = {for (var c in allChars) c.id: c};
- 
+
       _relSub = _relationshipService.watchAll().listen((allRelationships) {
         _relationships = allRelationships
-            .where((rel) =>
-                rel.character1Id == _editable.id ||
-                rel.character2Id == _editable.id)
+            .where(
+              (rel) =>
+                  rel.character1Id == _editable.id ||
+                  rel.character2Id == _editable.id,
+            )
             .toList();
         notifyListeners();
       });
@@ -139,29 +138,18 @@ class CharacterManagementController extends ChangeNotifier {
     return null;
   }
 
-  void _autoSave() {
-    if (_originalCharacter == null) return;
-    _autoSaveTimer?.cancel();
-    _autoSaveTimer = Timer(const Duration(milliseconds: 500), () {
-      save();
-    });
-  }
-
   void updateName(String name) {
     _editable = _editable.copyWith(name: name);
-    _autoSave();
-    _markUnsaved();
+    _markUnsaved(notify: false);
   }
 
   void updateAge(int age) {
     _editable = _editable.copyWith(age: age);
-    _autoSave();
-    _markUnsaved();
+    _markUnsaved(notify: false);
   }
 
   void updateGender(String gender) {
     _editable = _editable.copyWith(gender: gender);
-    _autoSave();
     _markUnsaved();
   }
 
@@ -169,57 +157,49 @@ class CharacterManagementController extends ChangeNotifier {
     _editable = _editable.copyWith(
       race: race != null ? Race(id: race.id, name: race.name) : null,
     );
-    _autoSave();
     _markUnsaved();
   }
 
   void updateMainImage(Uint8List? bytes) {
     _editable = _editable.copyWith(imageBytes: bytes);
-    _autoSave();
     _markUnsaved();
   }
 
   void updateReferenceImage(Uint8List? bytes) {
     _editable = _editable.copyWith(referenceImageBytes: bytes);
-    _autoSave();
     _markUnsaved();
   }
 
   void addAdditionalImage(Uint8List bytes) {
     _additionalImages.add(bytes);
-    _autoSave();
     _updateAdditionalImages();
   }
 
   void removeAdditionalImage(int index) {
     _additionalImages.removeAt(index);
-    _autoSave();
     _updateAdditionalImages();
   }
 
   void insertAdditionalImage(int index, Uint8List bytes) {
     _additionalImages.insert(index, bytes);
-    _autoSave();
     _updateAdditionalImages();
   }
 
   void _updateAdditionalImages() {
     _editable = _editable.copyWith(additionalImages: _additionalImages);
-    _autoSave();
     _markUnsaved();
   }
 
   void setTags(List<String> tags) {
     _tags = tags;
     _editable = _editable.copyWith(tags: tags);
-    _autoSave();
     _markUnsaved();
   }
 
   void setCustomFields(List<CustomField> fields) {
     _customFields = fields.map((f) => f.copyWith()).toList();
     _editable = _editable.copyWith(customFields: _customFields);
-    _markUnsaved();
+    _markUnsaved(notify: false);
   }
 
   void updateTextField(String field, String value) {
@@ -240,20 +220,19 @@ class CharacterManagementController extends ChangeNotifier {
         _editable = _editable.copyWith(other: value);
         break;
     }
-    _markUnsaved();
+    _markUnsaved(notify: false);
   }
 
-  void _markUnsaved() {
+  void _markUnsaved({bool notify = true}) {
     if (!_hasUnsavedChanges) {
       _hasUnsavedChanges = true;
-      notifyListeners();
-    } else {
+    }
+    if (notify) {
       notifyListeners();
     }
   }
 
   Future<bool> save({bool closeAfterSave = false}) async {
-    _autoSaveTimer?.cancel();
     if (_isSaving) return false;
     if (_editable.name.trim().isEmpty) {
       _error = 'Имя не может быть пустым';
@@ -290,7 +269,6 @@ class CharacterManagementController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _autoSaveTimer?.cancel();
     _relSub?.cancel();
     super.dispose();
   }
